@@ -1,6 +1,6 @@
 {
-	"name": "footnotes",
-	"displayName": "footnotes",
+	"name": "sidenotes",
+	"displayName": "sidenotes",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
@@ -10,16 +10,55 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"onCommand:sidenotes.annotate",
+		"onCommand:sidenotes.display"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
+		"configuration": [
 			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
+				"title": "sidenotes configuration",
+				"properties": {
+					"sidenotes.noteFolder": {
+						"type": "string",
+						"default": "${workspaceTopLevelFolder}/.sidenotes",
+						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
+					},
+					"sidenotes.markerPrefix": {
+						"type": "string",
+						"default": "NOTE ",
+						"description": "Specifies the string to use as a prefix for margin note comment markers. You can add some funky Unicode symbols here"
+					},
+					"sidenotes.useExternalEditor": {
+						"type": "boolean",
+						"default": "false",
+						"description": "Specifies whether to open sidenote in external editor."
+					},
+					"sidenotes.externalEditor": {
+						"type": "string",
+						"default": "typora",
+						"description": "Specifies the external editor executable name to open sidenotes with. Editor should support Markdown. Executable must be in system's PATH to work."
+					}
+				}
 			}
-		]
+		],
+		"commands": [{
+				"command": "sidenotes.display",
+				"title": "Display sidenotes",
+				"category": "sidenotes"
+			}, {
+				"command": "sidenotes.annotate",
+				"title": "Add or edit sidenote",
+				"category": "sidenotes",
+				"icon": "images/icon.png"
+			}
+		],
+		"menus": {
+			"editor/context": [ {
+					"command": "sidenotes.annotate"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -32,11 +71,15 @@
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^5.2.6",
 		"@types/node": "^10.12.21",
+		"@types/uuid": "^3.4.5",
 		"@types/vscode": "^1.38.0",
 		"glob": "^7.1.4",
 		"mocha": "^6.1.4",
-		"typescript": "^3.3.1",
 		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
 		"vscode-test": "^1.2.0"
+	},
+	"dependencies": {
+		"uuid": "^3.3.3"
 	}
 }
