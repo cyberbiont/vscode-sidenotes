@@ -17,7 +17,10 @@
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
-
+			"skipFiles": [
+				"<node_internals>/**/*.js",
+				"${workspaceFolder}/node_modules/**/*.js"
+			],
 			"preLaunchTask": "npm: watch"
 		},
 		{
@@ -26,6 +29,7 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
 			],

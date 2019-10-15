@@ -2,7 +2,7 @@
 	"name": "sidenotes",
 	"displayName": "sidenotes",
 	"description": "",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.38.0"
 	},
@@ -11,7 +11,8 @@
 	],
 	"activationEvents": [
 		"onCommand:sidenotes.annotate",
-		"onCommand:sidenotes.display"
+		"onCommand:sidenotes.display",
+		"onDebug"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -21,7 +22,7 @@
 				"properties": {
 					"sidenotes.noteFolder": {
 						"type": "string",
-						"default": "${workspaceTopLevelFolder}/.sidenotes",
+						"default": ".sidenotes",
 						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
 					},
 					"sidenotes.markerPrefix": {
@@ -45,17 +46,39 @@
 		"commands": [{
 				"command": "sidenotes.display",
 				"title": "Display sidenotes",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			}, {
 				"command": "sidenotes.annotate",
 				"title": "Add or edit sidenote",
-				"category": "sidenotes",
+				"category": "Sidenotes",
 				"icon": "images/icon.png"
+			}, {
+				"command": "sidenotes.delete",
+				"title": "Delete sidenote",
+				"category": "Sidenotes"
+			}, {
+				"command": "sidenotes.pruneBroken",
+				"title": "Delete broken sidenotes",
+				"category": "Sidenotes"
+			}, {
+				"command": "sidenotes.pruneEmpty",
+				"title": "Delete empty sidenotes",
+				"category": "Sidenotes"
+			}, {
+				"command": "sidenotes.temp",
+				"title": "Temporary command to run fucntions",
+				"category": "Sidenotes"
 			}
 		],
 		"menus": {
 			"editor/context": [ {
 					"command": "sidenotes.annotate"
+				}, {
+					"command": "sidenotes.display"
+				}, {
+					"command": "sidenotes.delete"
+				}, {
+					"command": "sidenotes.temp"
 				}
 			]
 		}
