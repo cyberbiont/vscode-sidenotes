@@ -4,12 +4,13 @@ type Storage<T> = Map<string, T>|Set<T>|{ [key: string]: T}| T[];
 
 export interface IDictionary<T> {
 	//обозначаем как generic, т.е. вместо <T> можно будет передать снаружи любой нужный нам тип, Sidenote в данном случае
-	list: Storage<T>;
-	add(item: T): Storage<T>;
-	get(id: string): (T|undefined);
-	delete(id: string): Storage<T>;
-	prune(cb: (T) => boolean): Storage<T>;
+	list: Storage<T>
+	add(item: T): this
+	get(id: string): T|undefined
+	delete(id: string): this
+	prune(cb: (T) => boolean): this
 	each(cb: (T)): void
+	clear(): this
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>
 }
 
@@ -84,50 +85,52 @@ interface IHasIdProperty {
 
 export class MapDictionary<T extends IHasIdProperty> implements IDictionary<T>{
 
-	list: Map<string, T>;
+	list: Map<string, T>
 
 	constructor() {
 		this.list = new Map();
 
 		//@see dictionary pattern https://2ality.com/2013/10/dict-pattern.html
 	}
-	add(item: T) {
-		return this.list.set(item.id, item);
+	add(item: T): this {
+		this.list.set(item.id, item);
+		return this
 	}
-	get(id) {
+	get(id: string): T|undefined {
 		return this.list.get(id);
 	}
-	delete(id) {
+	delete(id: string): this {
 		this.list.delete(id);
-		return this.list;
+		return this;
 	}
 	each(cb) {
 		this.list.forEach((prop, key) => {
 			cb(prop);
 		});
 	}
-	prune(cb) {
+	prune(cb): this {
 		this.list.forEach((prop, key) => {
 			if (cb(prop)) this.delete(key);
 		});
 		// for (let prop of this.list) { if (cb(prop[1])) this.delete(prop[0]); }
-		return this.list;
+		return this;
 	}
 
 	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
 		let sidenote;
 		for (let id of this.list.keys()) {
-			sidenote = this.get(id)
+			sidenote = this.get(id);
 			await cb(sidenote);
 			yield sidenote;
 		}
 	}
 
-	contains(id): boolean {
+	contains(id: string): boolean {
 		return this.list.has(id);
 	}
-	clear(): void {
+	clear(): this {
 		this.list.clear();
+		return this;
 	}
 	count(): number {
 		return this.list.size;

@@ -1,44 +1,28 @@
 import * as vscode from 'vscode';
-/**
-* @global {object} contains user configuration for this extension
-*/
+import { IDesignerCfg } from './designer';
+import { IAnchorerCfg } from './anchorer';
+import { IActiveEditorUtilsCfg, IMarkerUtilsCfg } from './utils';
+import { IFileStorageCfg } from './storageService';
+import { IStylerCfg } from './styler';
+import { IWatchTrackerCfg } from './watcher';
 
-const cfg: {
-	// UUID_REGEXP_STRING: string,
-	// UUID_REGEXP: RegExp,
-	// sidenoteIdMarkerRegExp: RegExp
-	notesSubfolder: string
-	prefix: string
-	steadyPrefix: string
-	anchorFormula: string
-	decorations: {
-		// typeStyle: vscode.DecorationRenderOptions,
-		// decorationType: vscode.TextEditorDecorationType
-		// presets: {
-		[preset: string]: {
-			style: vscode.DecorationRenderOptions
-			message?: string
-		}
-		// }
-		// [preset: string]: {
-		// 	style: vscode.DecorationRenderOptions,
-		// 	message?: string
-		// }
-	},
-	externalEditor?: string
-	autoPreview?: boolean
-	createFileAtOnce?: boolean
-	useMultilineComments ?: boolean
-	fileFormatsAllowedForTranfer  ?: string[]
-	// transferSelection ?: boolean,
-} = {
-	// UUID_REGEXP_STRING: ('(\\d|[a-z]){8}-(\\d|[a-z]){5}-(\\d|[a-z]){4}-(\\d|[a-z]){4}-(\\d|[a-z]){12}'),
-	// UUID_REGEXP: new RegExp(this.UUID_REGEXP_STRING, 'g'),
-	// sidenoteIdMarkerRegExp: new RegExp(`${this.steadyPrefix}${this.UUID_REGEXP_STRING}`, 'g'),
+// using type instead of interface allows to view Intellisense on all "of the extended" types
+export type ICfg =
+	IAnchorerCfg &
+	IActiveEditorUtilsCfg &
+	IMarkerUtilsCfg &
+	IFileStorageCfg &
+	IDesignerCfg &
+	IStylerCfg &
+	IWatchTrackerCfg
+
+const cfg: ICfg = {
 	notesSubfolder: vscode.workspace.getConfiguration('sidenotes').get('notesSubfolder') || '.sidenotes',
-	prefix: vscode.workspace.getConfiguration('sidenotes').get('markerPrefix') || 'NOTE ',
-	steadyPrefix: '✎', // must be steady and included in Regexp search to disambiguate with other uuid entries that can happen in your code
-	anchorFormula: 'NOTE %s ✎',
+	marker: {
+		prefix: vscode.workspace.getConfiguration('sidenotes').get('markerPrefix') || 'NOTE ',
+		salt: '✎', // must be steady and included in RegExp search to disambiguate with other uuid entries that can happen in your code
+		// template: '%p %id',
+	},
 	decorations: {
 		common: {
 			style: {
@@ -49,7 +33,6 @@ const cfg: {
 				// overviewRulerLane: vscode.OverviewRulerLane.Right,
 			}
 		},
-		// decorationType: vscode.window.createTextEditorDecorationType(this.typeStyle),
 		active: {
 			style: {
 				borderColor: 'green'
@@ -60,8 +43,7 @@ const cfg: {
 				borderColor: 'red'
 			},
 			message: `< BROKEN file associated with this comment can not be found.
-			you can delete this comment with sidenotes:delete
-			you can annotate this comment, file will re-created >`
+			you can delete this comment with sidenotes:delete >`
 		},
 		empty: {
 			style: {
@@ -70,7 +52,7 @@ const cfg: {
 			message: `< EMPTY this sidenote is empty >`
 		}
 	},
-	fileFormatsAllowedForTranfer: ['.md', '.markdown', '.mdown', '.txt'],
+	fileFormatsAllowedForTransfer: ['.md', '.markdown', '.mdown', '.txt'],
 	useMultilineComments: true
 }
 

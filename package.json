@@ -43,41 +43,56 @@
 				}
 			}
 		],
-		"commands": [{
+		"commands": [
+			{
 				"command": "sidenotes.display",
 				"title": "Display sidenotes",
 				"category": "Sidenotes"
-			}, {
+			},
+			{
 				"command": "sidenotes.annotate",
 				"title": "Add or edit sidenote",
 				"category": "Sidenotes",
 				"icon": "images/icon.png"
-			}, {
+			},
+			{
 				"command": "sidenotes.delete",
 				"title": "Delete sidenote",
 				"category": "Sidenotes"
-			}, {
+			},
+			{
 				"command": "sidenotes.pruneBroken",
 				"title": "Delete broken sidenotes",
 				"category": "Sidenotes"
-			}, {
+			},
+			{
 				"command": "sidenotes.pruneEmpty",
 				"title": "Delete empty sidenotes",
 				"category": "Sidenotes"
-			}, {
+			},
+			{
 				"command": "sidenotes.temp",
-				"title": "Temporary command to run fucntions",
+				"title": "Temporary command to run funtions",
+				"category": "Sidenotes"
+			},
+			{
+				"command": "sidenotes.internalize",
+				"title": "Put sidenote content into document and delete sidenote",
 				"category": "Sidenotes"
 			}
 		],
 		"menus": {
-			"editor/context": [ {
+			"editor/context": [
+				{
 					"command": "sidenotes.annotate"
-				}, {
+				},
+				{
 					"command": "sidenotes.display"
-				}, {
+				},
+				{
 					"command": "sidenotes.delete"
-				}, {
+				},
+				{
 					"command": "sidenotes.temp"
 				}
 			]
@@ -103,6 +118,7 @@
 		"vscode-test": "^1.2.0"
 	},
 	"dependencies": {
+		"chokidar": "^3.2.2",
 		"uuid": "^3.3.3"
 	}
 }

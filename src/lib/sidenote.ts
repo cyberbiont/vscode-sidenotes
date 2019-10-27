@@ -1,229 +1,210 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
-import cfg from './cfg';
-import Document from './document';
-const uuidv4 = require('uuid/v4');
+import { IStylable, IStylableDecorations } from './styler';
+// import { IPrunable } from './pruner';
+import Designer, { IDesignable } from './designer';
+import { IIdMaker } from './idMaker';
+import Anchorer, { IAnchorable, IAnchor} from './anchorer';
+import { IStorable, IStorageService } from './storageService';
+import { ActiveEditorUtils } from './utils';
 
-class Sidenote {
+
+export enum CreationScenario {	new, init, edit }
+
+export interface ISidenote
+	extends
+		IDesignable,
+		IStorable,
+		IStylable,
+		IAnchorable
+		// IPrunable
+	{}
+
+export class Sidenote implements ISidenote {
 	id: string
-	ext: string
-	path: string
-	content?: string
-	// editor?: vscode.TextEditor
-	anchorEditor?: vscode.TextEditor
-	decorations ?: Array<{
-		category: string
-		options: vscode.DecorationOptions
-	}>
-
-	constructor(id: string, ext: string) {
-		this.id = id;
-		this.ext = '.md';
-		this.path = this._getPath(); // calculated path for file
+	content: string|undefined
+	anchor: IAnchor
+	decorations: IStylableDecorations
+	constructor(
+		sidenote: ISidenote,
+	) {
+		Object.assign(this, sidenote);
 	}
-
-	// * @returns { string } path to folder for sidenote
-	_getPath(): string {
-		const folder = path.join(Document.workspaceFolderPath, cfg.notesSubfolder);
-		if (!fs.existsSync(folder)) fs.mkdirSync(folder);
-		const absPath = path.join(folder, `${this.id}${this.ext}`);
-		return absPath;
-	}
-
-	get _isBroken(): boolean {
-		return typeof this.content === 'undefined';
-	}
-
-	get _isEmpty(): boolean {
-		return this.content === '';
-	}
-
-	get _hasAnchor(): boolean {
-		return 'anchorEditor' in this;
-	}
-
-	async wipe(): Promise<this> {
-		this._deleteNoteFile();
-		await this._deleteAnchorComment();
-		return this;
-	}
-	_deleteNoteFile(): this {
-		try{
-			fs.unlinkSync(this.path);
-		} catch (e) {
-			// if file is not present, continue
-		}
-		return this;
-	}
-	async _deleteAnchorComment(): Promise<this> {
-		// TODO надо обновить декорации везде глобально
-		await this._toggleComment();
-		await this.anchorEditor.edit(
-			edit => { edit.delete( this.getRangeForMarker() ); }, // вычисляем range по новой т.к. после тоггла коммента позиция сместилась
-			{ undoStopAfter: false, undoStopBefore: false }
-		);
-		return this;
-	}
-
-	async _toggleComment() {
-		if(cfg.useMultilineComments) {
-			const range = this.getRangeForMarker();
-			const selection = new vscode.Selection(range.start, range.end);
-			this.anchorEditor.selection = selection;
-			vscode.commands.executeCommand('editor.action.blockComment');
-		} else {
-			vscode.commands.executeCommand('editor.action.commentLine');
-		}
-	}
-
-	async write(): Promise<this> {
-		await this._writeNoteFile();
-		await this._writeAnchorComment();
-		return this;
-	}
-	async _writeNoteFile(): Promise<this> {
-		const initialContent = await Document.getInitialContent(this.ext);
-		this.content = initialContent;
-		if (!fs.existsSync(this.path)) {
-			fs.writeFileSync(this.path, initialContent);
-		}
-		return this;
-	}
-	/**
-	* creates anchor comment to document at current cursor position
-	*/
-	async _writeAnchorComment(): Promise<this> {
-		if(this._hasAnchor) return this; // if file already has anchor, no need to write it
-		this.anchorEditor = Document.editor;
-
-		const position = Document.currentSelection.anchor;
-		await this.anchorEditor.edit(
-			edit => { edit.insert(position, this.marker); },
-			{ undoStopAfter: false, undoStopBefore: false }
-		);
-		this._toggleComment();
-
-		return this;
-	}
-
-	updateFromFile(): this {
-		try {
-			this.content = fs.readFileSync(this.path, { encoding: 'utf8' });
-		} catch (error)	{
-			// vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`);
-		}
-		return this;
-	}
-
-	updateState({ readFile = true }: { readFile?: boolean } = {}): this {
-		if (readFile) this.updateFromFile();
-		this.updateDecorationOptions();
-		return this;
-	}
-
-	get marker(): string { //get full marker to be written in document
-		return `${cfg.prefix}${cfg.steadyPrefix}${this.id}`;
-	}
-
-	getRangeForMarker(start: vscode.Position = (() => {
-			const index = this.anchorEditor.document.getText().indexOf(this.marker);
-			return this.anchorEditor.document.positionAt(index);
-			// с помощью обычного match можно получить ИЛИ все маркеры, или маркер + индекс,
-			// поэтому в inventorize получаем все маркеры, а тут дополнительно ищем индекс через indexof
-			// мы не можем привязывать Range коммента включая символы комментария, потом что для разных языков они могут быть разными
-		})()) {
-		const end = start.translate({ characterDelta: this.marker.length })
-		return new vscode.Range(start, end);
-	}
-
-	updateDecorationOptions(): this {
-		this.decorations = [];
-		this.decorations.length = 0;
-		const range = this.getRangeForMarker();
-		const categories = getDecorationCategories.call(this);
-		categories.forEach(prepareCategoryOptions.bind(this));
-
-		function getDecorationCategories(): string[] {
-			const categories = [];
-			if (this._isBroken) categories.push('broken');
-			else if (this._isEmpty) categories.push('empty');
-			else categories.push('active');
-
-			// if (this._isOpen) categories.push('open');
-			return categories;
-		}
-
-		function prepareCategoryOptions(category) {
-			const hoverMessage = cfg.decorations[category].message ?
-				cfg.decorations[category].message : this.content;
-			this.decorations.push({
-				options: { range, hoverMessage },
-				category
-			});
-			return this.decorations;
-		}
-
-		return this;
-	}
-
-	/**
-	* opens sidenote document, associated with comment anchor in current line, creating comment and document if they don't exits
-	* in new editor window
-	*/
-	async open(scheme: string = 'file'): Promise<this> {
-
-		const URI = vscode.Uri.parse(`${scheme}:${this.path}`);
-		await vscode.workspace.openTextDocument(URI).then(
-			doc => vscode.window.showTextDocument(doc, {
-				viewColumn: vscode.ViewColumn.Beside,
-				// preserveFocus: true // otherwise decorationUpdate triggers on new editor and 'open' note doesn't get highlight
-				// preview: true,
-			}),
-			error => vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`)
-		);
-		// TODO add watch
-		return this;
-	}
-
-	static create(id: string, dictionary, keepId: boolean = true): Sidenote {
-		let sidenote;
-		if (id) {
-			sidenote = dictionary.get(id);
-			if (sidenote) return sidenote;
-		}
-		if (keepId) {
-			sidenote = spawn(id);
-			sidenote.anchorEditor = Document.editor; // passed id means that there is a comment anchor already, hence the flag
-			return sidenote;
-		}
-
-		return spawn(uuidv4());
-
-		/**
-		* creates sidenote instance with given id
-		*
-		* @param {string} id  sidenote identifier
-		* @param {string} ext='.md' extension of the file to be created
-		* @returns {Sidenote} sidenote class instance
-		*/
-		function spawn(id: string, ext:string = '.md') {
-			// function spawn({ id, ext = '.md'}: {id?: string, ext?: string } = {}) {
-			const sidenote = new Sidenote(id, ext);
-			dictionary.add(sidenote);
-			return sidenote;
-		}
-	}
-
-	/**
-	* TODO opens sidenote document in Typora
-	*/
-	// async openInTypora() {
-	// 	if (!cfg.externalEditors.typora.includes(this.ext)) {
-	// 		throw new Error('this file extension is not supported')
-	// 	}
-	// }
-
+	// isBroken(): boolean { return typeof this.content === 'undefined'; }
+	// isEmpty(): boolean { return this.content === ''; }
 }
 
-export default Sidenote;
+export class Inspector {
+	isBroken(sidenote): boolean { return typeof sidenote.content === 'undefined'; }
+	isEmpty(sidenote): boolean { return sidenote.content === ''; }
+}
+
+export class SidenoteBuilder implements Partial<Sidenote> {
+	// TODO а что если сделать обязательными (попробовать)
+	id?: string
+	anchor?: IAnchor
+	content?: string|undefined
+	decorations?: IStylableDecorations
+
+	withId(id: string): this & Pick<Sidenote, 'id'> {
+		return Object.assign(this, { id });
+	}
+
+	withAnchor(anchor: IAnchor): this & Pick<Sidenote, 'anchor'> {
+		return Object.assign(this, { anchor });
+	}
+
+	withContent(content: string|undefined): this & Pick<Sidenote, 'content'> {
+		return Object.assign(this, { content });
+	}
+
+	withDecorations(decorations: IStylableDecorations): this & Pick<Sidenote, 'decorations'> {
+		return Object.assign(this, { decorations });
+	}
+
+	build(this: Sidenote) {
+		return new Sidenote(this);
+	}
+}
+
+export class SidenoteFactory {
+	constructor(
+		private idMaker: IIdMaker,
+		private anchorer: Anchorer,
+		private storageService: IStorageService,
+		private designer: Designer,
+		private activeEditorUtils: ActiveEditorUtils,
+		private SidenoteBuilder
+	) {
+		this.idMaker = idMaker;
+		this.anchorer = anchorer;
+		this.storageService = storageService;
+		this.designer = designer;
+		this.activeEditorUtils = activeEditorUtils;
+		this.SidenoteBuilder = SidenoteBuilder;
+	}
+
+	async build(predefinedId: string|null, markerStartPos?: vscode.Position): Promise <ISidenote> {
+
+		let id: string;
+		let sidenote: ISidenote;
+
+		if (!predefinedId) { // buildNewSidenote
+			id = this.idMaker.makeId();
+			const undecorated = new SidenoteBuilder()
+				.withId(id)
+				.withContent(await this.activeEditorUtils.extractSelectionContent())
+				.withAnchor(this.anchorer.getAnchor(id));
+			/* cannot generate decoration with proper range before write method,
+			because comment toggling changes range and it may vary with language,
+			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
+			const writeResults = await Promise.all([
+				this.storageService.write(undecorated),
+				this.anchorer.write(undecorated)
+			]);
+			let uncommentedMarkerStartPos = writeResults[1];
+			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { uncommentedMarkerStartPos }))
+				.build();
+
+		} else {
+			id = predefinedId;
+			const undecorated = new SidenoteBuilder()
+				.withId(id)
+				.withContent(this.storageService.get(id).content)
+				.withAnchor(this.anchorer.getAnchor(id));
+			// markerStartPos может быть undefined при глобальном сканировании
+			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { markerStartPos }))
+				.build();
+		}
+
+		// const draftDesignable = new SidenoteBuilder()
+		// 	.withId(id)
+
+		// 	.withContent(buildNewSidenote ?
+		// 		await this.activeEditorUtils.extractSelectionContent() :
+		// 		this.storageService.get(id).content
+		// 	)
+
+		// 	.withAnchor(this.anchorer.getAnchor(id)); // используем id, для консистентности с get content
+		// // cannot generate decoration with proper range before write method,
+		// // because comment toggling changes range and it may vary with language,
+		// //  so regexp rescan is needed inside designer(we can limit it to current line based on position)
+
+		// const markerStartPos = buildNewSidenote ?
+		// 	markerStartPos :
+		// 	await this.anchorer.write(draftDesignable);
+
+		// const sidenote =
+		// 	draftDesignable.withDecorations(this.designer.get(draftDesignable, markerStartPos))
+		// 	.build();
+
+		// return sidenote;
+	}
+}
+
+
+
+/* interface IUsebleInX {
+	x: number
+}
+interface IUsebleInY {
+	y: number
+}
+
+interface IPoint {
+	x: number
+	y: number
+	z?: number
+}
+
+class Point implements IPoint  {
+	x: number
+	y: number
+	z?: number
+	constructor(point: Point) {
+		Object.assign(this, point);
+	}
+} */
+
+// function isIAble(draft): draft is IAble {
+// 	return (draft as IAble).x !== undefined;
+// }
+
+/* class PointBuilder implements Partial<Point> {
+	x?: number;
+	y?: number;
+	z?: number;
+
+	withX(value: number): this & Pick<Point, 'x'> {
+	// withX(value: number): IAble {
+		return Object.assign(this, { x: value });
+	}
+
+	withY(value: number): this & Pick<Point, 'y'> {
+		return Object.assign(this, { y: value });
+	}
+
+	withZ(value: number): this & Required<Pick<Point, 'z'>> {
+		return Object.assign(this, { z: value });
+	}
+
+	build(this: Point) {
+		return new Point(this);
+	}
+}
+
+const point = new PointBuilder()
+	.withX(1)
+	.withY(1)
+	.build()
+
+const draft = new PointBuilder()
+
+const draftX = draft.withX(1);
+x(draftX);
+
+const draftY = draftX.withY(2);
+y(draftY);
+
+function x(input: IUsebleInX) {	console.log(input); }
+function y(input: IUsebleInY) {	console.log(input); }
+ */
