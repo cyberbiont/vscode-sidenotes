@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 
-import { IDictionary } from './dictionary';
-import { IAnchor } from './anchorer'
-
+import {
+	IDictionary,
+	IAnchor
+} from './types';
 
 export interface IStylableDecorations extends Array<{
 	category: string

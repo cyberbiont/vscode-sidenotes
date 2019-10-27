@@ -1,40 +1,9 @@
 import * as vscode from 'vscode';
-import { MarkerUtils, ActiveEditorUtils } from './utils';
-import Scanner from './scanner';
-
-/* export class Anchor implements IAnchor {
-	constructor(
-		public editor: vscode.TextEditor,
-		public marker: string
-	) {
-		this.editor = editor,
-		this.marker = marker
-	}
-
-	static create(
-		id: string,
-		activeEditorUtils: ActiveEditorUtils,
-		markerUtils: MarkerUtils
-	) {
-		return new Anchor(
-			activeEditorUtils.editor,
-			markerUtils.getMarker(id)
-		);
-	}
-} */
-
-/* export class Anch implements IAnchor {
-	editor: vscode.TextEditor
-	marker: string
-	constructor(
-		id,
-		activeEditorUtils,
-		markerUtils
-	) {
-		this.editor = activeEditorUtils.editor,
-		this.marker = markerUtils.getMarker(id)
-	}
-} */
+import {
+	MarkerUtils,
+	ActiveEditorUtils,
+	Scanner
+} from './types';
 
 /* 2 возможных подхода (действуем аналогично со storage и content):
 - если прописывать anchor в объект только после того, как коммент был уже вписан
@@ -58,16 +27,10 @@ import Scanner from './scanner';
 export interface IAnchor {
 	marker: string
 	editor: vscode.TextEditor
-	// anchored: boolean
 }
 export interface IAnchorable {
 	anchor: IAnchor
 }
-
-// export interface IAnchored {
-// 	anchor: IAnchor
-// 	anchored: true
-// }
 
 export type IAnchorerCfg = {
 	useMultilineComments ?: boolean
@@ -92,15 +55,6 @@ export default class Anchorer {
 			marker: this.markerUtils.getMarker(id)
 		}
 	}
-
-	// getAnchorRange(anchor: IAnchor, index?: number): vscode.Range {
-	// 	const position = index ?
-	// 		this.markerUtils.getPositionFromIndex(anchor, index):
-	// 		undefined;
-	// 	return this.markerUtils.getMarkerRange.apply(this,
-	// 		position ? [anchor, position] : [anchor]
-	// 	);
-	// }
 
 	/**
 	* creates anchor comment to document at current cursor position

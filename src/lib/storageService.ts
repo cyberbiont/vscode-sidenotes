@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ActiveEditorUtils } from  './utils';
+import { ActiveEditorUtils } from  './types';
 import * as fs from 'fs';
 import * as path from 'path';
 

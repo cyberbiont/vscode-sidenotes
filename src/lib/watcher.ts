@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
-import { EventEmitter } from 'events';
-import { IIdMaker } from './idMaker';
-import { ActiveEditorUtils } from './utils'
-import { IDictionary } from './dictionary';
-import * as fs from 'fs';
-import * as chokidar from 'chokidar';
+import {
+	IIdMaker,
+	ActiveEditorUtils,
+	IDictionary,
+	EventEmitter,
+	// FSWatcher
+} from './types';
+
 import * as path from 'path';
 
 // TODO update styles on file delete (delete corresponding anchor?)
@@ -66,13 +68,9 @@ export class VscodeChangeTracker extends ChangeTracker {
 	}
 }
 
-export interface IWatch { id: string, watch: fs.FSWatcher }
-// 2 варианта: можно установить слежение за всей папкой файлов сразу и по filename в лисенере вычислять id, какой из них изменился
-// это больше похоже на случай есл  используем vscodechangetracker
-// либо поддерживать pool watch ей (добавлять в пул при открытии документа)
-// т.е. независимый watch для каждого файла. плюс - сразу можно рассчитать id для вотча и не гонять match на change каждый раз
 
-export type IWatchTrackerCfg = {
+
+export type IFileChangeTrackerCfg = {
 	notesSubfolder: string
 }
 
@@ -81,7 +79,7 @@ export abstract class FileChangeTracker extends ChangeTracker {
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
-		public cfg: IWatchTrackerCfg,
+		public cfg: IFileChangeTrackerCfg,
 		public context: vscode.ExtensionContext
 	) {
 		super(idMaker, eventEmitter);
@@ -120,12 +118,13 @@ export abstract class FileChangeTracker extends ChangeTracker {
 	}
 }
 
+import * as chokidar from 'chokidar';
 export class ChokidarChangeTracker extends FileChangeTracker {
 	protected watcher
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
-		cfg: IWatchTrackerCfg,
+		cfg: IFileChangeTrackerCfg,
 		context: vscode.ExtensionContext
 	) {
 		super(idMaker, eventEmitter, cfg, context);
@@ -144,8 +143,6 @@ export class ChokidarChangeTracker extends FileChangeTracker {
 		.on('change', this.chokidarOnChangeCb.bind(this));
 
 		this.initListeners();
-		// super.init();
-
 	}
 
 	chokidarOnChangeCb(path) {
@@ -161,12 +158,12 @@ export class ChokidarChangeTracker extends FileChangeTracker {
 	}
 }
 
+import * as fs from 'fs';
 export class FSWatchChangeTracker extends FileChangeTracker {
-
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
-		cfg: IWatchTrackerCfg,
+		cfg: IFileChangeTrackerCfg,
 		context: vscode.ExtensionContext,
 		public watcher: IFileWatcher,
 		public pool: IDictionary<IWatch>,
@@ -217,7 +214,11 @@ export class FSWatchChangeTracker extends FileChangeTracker {
 export interface IFileWatcher {
 	watch(path, cb: (event, filename) => void): fs.FSWatcher
 }
-
+export interface IWatch { id: string, watch: fs.FSWatcher }
+// 2 варианта: можно установить слежение за всей папкой файлов сразу и по filename в лисенере вычислять id, какой из них изменился
+// это больше похоже на случай есл  используем vscodechangetracker
+// либо поддерживать pool watch ей (добавлять в пул при открытии документа)
+// т.е. независимый watch для каждого файла. плюс - сразу можно рассчитать id для вотча и не гонять match на change каждый раз
 export class FsWatcher implements IFileWatcher {
 	watch(path,...args): fs.FSWatcher {
 		return fs.watch(path, ...args);

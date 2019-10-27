@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
-import { IStorageService } from './storageService';
-import { IEditorService } from './editorService';
-import { IDictionary } from './dictionary';
-import Anchorer from './anchorer';
-import Designer from './designer';
-import { ISidenote, SidenoteFactory, CreationScenario } from './sidenote';
-import { IScanResultData} from './scanner';
+import {
+	IStorageService,
+	IEditorService,
+	IDictionary,
+	Anchorer,
+	Designer,
+	ISidenote,
+	SidenoteFactory,
+	IScanResultData
+ } from './types';
 
 export default class SidenoteProcessor {
 	constructor(

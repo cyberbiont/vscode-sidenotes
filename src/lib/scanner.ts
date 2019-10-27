@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
-import { MarkerUtils, ActiveEditorUtils } from './utils';
-import { IAnchor } from './anchorer';
+import {
+	IAnchor,
+	MarkerUtils,
+	ActiveEditorUtils
+} from './types';
 
 export interface IScanResultData {
 	id: string,

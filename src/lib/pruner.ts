@@ -1,7 +1,9 @@
-import { IDictionary } from './dictionary';
-import { ISidenote, Inspector } from './sidenote';
-import SidenoteProcessor from './sidenoteProcessor';
-// import { Inspector } from './designer';
+import {
+	IDictionary,
+	ISidenote,
+	Inspector,
+	SidenoteProcessor
+} from './types';
 
 // export interface IPrunable {
 // 	isBroken(): boolean

@@ -1,9 +1,13 @@
 import * as vscode from 'vscode';
-import { MarkerUtils, ActiveEditorUtils } from './utils';
-import { IAnchor } from './anchorer';
-import { IStylableDecorations, IStylerCfg } from './styler';
-import { Inspector } from './sidenote';
-import Scanner from './scanner';
+import {
+	MarkerUtils,
+	ActiveEditorUtils,
+	IAnchor,
+	IStylableDecorations,
+	IStylerCfg,
+	Inspector,
+	Scanner
+} from './types';
 
 export interface IDesignable {
 	// isBroken(): boolean

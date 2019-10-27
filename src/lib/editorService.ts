@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
-import { IChangeTracker, VscodeChangeTracker, FileChangeTracker } from  './watcher';
-import { ActiveEditorUtils } from './utils';
+import {
+	ActiveEditorUtils,
+	IChangeTracker,
+	VscodeChangeTracker,
+	FileChangeTracker
+} from  './types';
 
 export interface IEditorService {
 	changeTracker: IChangeTracker;

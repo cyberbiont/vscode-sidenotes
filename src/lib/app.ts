@@ -1,23 +1,42 @@
 import * as vscode from 'vscode';
 import Commands from './commands';
-import { EventEmitter } from 'events';//TODO: use vScode eventemitter
-import { ICfg } from './cfg';
-import { IDictionary, MapDictionary } from './dictionary';
+import { EventEmitter } from 'events';//TODO: use vScode eventemitter?
+import {
+	ICfg,
+	IDictionary,
+	IStorageService,
+	IEditorService,
+	IChangeData,
+	IWatch,
+	ISidenote,
+	IScanResultData
+} from './types';
+import { MapDictionary } from './dictionary';
 import Styler from './styler';
-import { IStorageService, FileStorage } from './storageService';
-import { IEditorService, VscodeEditor, TyporaEditor } from './editorService';
-import { VscodeChangeTracker, FSWatchChangeTracker, FsWatcher, ChokidarChangeTracker, IChangeData, IWatch } from './watcher';
-import { ISidenote, SidenoteFactory, SidenoteBuilder, Inspector, CreationScenario } from './sidenote';
+import { FileStorage } from './storageService';
+import { VscodeEditor, TyporaEditor } from './editorService';
+import {
+	VscodeChangeTracker,
+	FSWatchChangeTracker,
+	FsWatcher,
+	ChokidarChangeTracker
+} from './watcher';
+import {
+	SidenoteFactory,
+	SidenoteBuilder,
+	Inspector
+} from './sidenote';
 import SidenoteProcessor from './sidenoteProcessor';
 import Anchorer from './anchorer';
 import UuidMaker from './idMaker';
-import { MarkerUtils, ActiveEditorUtils } from './utils';
+import {
+	MarkerUtils,
+	ActiveEditorUtils
+} from './utils';
 import Pruner from './pruner';
 import Designer from './designer';
-import Scanner, { IScanResultData } from './scanner';
-import { FSWatcher } from 'chokidar';
+import Scanner from './scanner';
 
-// TODO import all interfaces from single file (which will do rexporting)
 // TODO JSDoc
 
 export default class App {
@@ -44,25 +63,24 @@ export default class App {
 		const scanner = new Scanner(markerUtils, activeEditorUtils);
 
 		const vscodeChangeTracker = new VscodeChangeTracker(uuidMaker, eventEmitter, this.context);
+		const vscodeEditor = new VscodeEditor(vscodeChangeTracker);
 		const chokidarChangeTracker = new ChokidarChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
+		const typoraEditor = new TyporaEditor(chokidarChangeTracker, activeEditorUtils);
 
-		const watchPool = new MapDictionary<IWatch>();
-		const fileWatcher = new FsWatcher();
-		const watchChangeTracker = new FSWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context, fileWatcher, watchPool);
-
-		const editorService = new TyporaEditor(chokidarChangeTracker, activeEditorUtils);
+		// const watchPool = new MapDictionary<IWatch>();
+		// const fileWatcher = new FsWatcher();
+		// const watchChangeTracker = new FSWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context, fileWatcher, watchPool);
 		// const editorService = new TyporaEditor(watchChangeTracker, activeEditorUtils);
-		// const editorService = new VscodeEditor(vscodeChangeTracker);
+
 		const storageService = new FileStorage(activeEditorUtils, this.cfg);
 		const anchorer = new Anchorer(markerUtils, activeEditorUtils, scanner, this.cfg);
 		const inspector = new Inspector;
 		const designer = new Designer(markerUtils, inspector, activeEditorUtils, scanner, this.cfg);
 		const sidenoteFactory = new SidenoteFactory(uuidMaker, anchorer, storageService, designer, activeEditorUtils, SidenoteBuilder);
-		const sidenoteProcessor = new SidenoteProcessor(storageService, anchorer, editorService, sidenoteFactory, pool, designer);
+		const sidenoteProcessor = new SidenoteProcessor(storageService, anchorer, typoraEditor, sidenoteFactory, pool, designer);
 		const styler = new Styler<ISidenote>(pool, this.cfg);
 		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
 		const commands = new Commands(styler, pruner, sidenoteProcessor, scanner, pool);
-
 
 		this.styler = styler;
 		this.sidenoteProcessor = sidenoteProcessor;

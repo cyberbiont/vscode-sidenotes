@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IAnchor } from './anchorer';
+import { IAnchor } from './types';
 
 export type IActiveEditorUtilsCfg = {
 	fileFormatsAllowedForTransfer: string[]

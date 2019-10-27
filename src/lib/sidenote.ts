@@ -1,14 +1,20 @@
 import * as vscode from 'vscode';
-import { IStylable, IStylableDecorations } from './styler';
-// import { IPrunable } from './pruner';
-import Designer, { IDesignable } from './designer';
-import { IIdMaker } from './idMaker';
-import Anchorer, { IAnchorable, IAnchor} from './anchorer';
-import { IStorable, IStorageService } from './storageService';
-import { ActiveEditorUtils } from './utils';
+import {
+	IStylable,
+	IStylableDecorations,
+	IIdMaker,
+	Anchorer,
+	IAnchorable,
+	IAnchor,
+	IStorable,
+	IStorageService,
+	Designer,
+	IDesignable,
+	ActiveEditorUtils
+	// IPrunable
+} from './types';
 
-
-export enum CreationScenario {	new, init, edit }
+// export enum CreationScenario {	new, init, edit }
 
 export interface ISidenote
 	extends

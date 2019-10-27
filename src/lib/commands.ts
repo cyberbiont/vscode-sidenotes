@@ -1,10 +1,14 @@
 import * as vscode from 'vscode';
-import Scanner, { IScanResultData } from './scanner';
-import { ISidenote } from './sidenote';
-import Pruner from './pruner';
-import SidenoteProcessor from './sidenoteProcessor';
-import Styler from './styler';
-import { IDictionary } from './dictionary';
+import {
+	Scanner,
+	IScanResultData,
+	Pruner,
+	SidenoteProcessor,
+	Styler,
+	IDictionary,
+	ISidenote
+} from './types'
+
 
 export default class Commands {
 	constructor(

@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
-import { IDesignerCfg } from './designer';
-import { IAnchorerCfg } from './anchorer';
-import { IActiveEditorUtilsCfg, IMarkerUtilsCfg } from './utils';
-import { IFileStorageCfg } from './storageService';
-import { IStylerCfg } from './styler';
-import { IWatchTrackerCfg } from './watcher';
+import {
+	IDesignerCfg,
+	IAnchorerCfg,
+	IActiveEditorUtilsCfg,
+	IMarkerUtilsCfg,
+	IFileStorageCfg,
+	IStylerCfg,
+	IWatchTrackerCfg
+ } from './types';
 
 // using type instead of interface allows to view Intellisense on all "of the extended" types
 export type ICfg =
