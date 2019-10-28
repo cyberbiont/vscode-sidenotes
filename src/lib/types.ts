@@ -1,55 +1,68 @@
 export { IIdMaker } from './idMaker';
+
 export { IDictionary } from './dictionary';
+
 export {
 	default as Designer,
 	IDesignerCfg,
 	IDesignable
 } from './designer';
+
 export {
 	default as Anchorer,
 	IAnchor,
 	IAnchorerCfg,
 	IAnchorable
 } from './anchorer';
+
 export {
 	IActiveEditorUtilsCfg,
 	IMarkerUtilsCfg,
 	ActiveEditorUtils,
 	MarkerUtils
 } from './utils';
+
 export {
 	IFileStorageCfg,
 	IStorable,
 	IStorageService
 } from './storageService';
-export { IFileChangeTrackerCfg as IWatchTrackerCfg } from './watcher';
+
 export {
 	default as Scanner,
 	IScanResultData
 } from './scanner';
+
 export {
 	default as Styler,
 	IStylableDecorations,
 	IStylerCfg,
 	IStylable,
-}  from './styler';
+} from './styler';
+
 export {
 	default as Pruner,
 	// Prunable
 } from './pruner';
+
 export { default as SidenoteProcessor } from './sidenoteProcessor';
+
 export {
 	ISidenote,
 	Inspector,
 	SidenoteFactory
 } from './sidenote';
+
 export {
+	IChangeTrackerCfg,
+	IFileChangeTrackerCfg,
+	IVscodeChangeTrackerCfg,
 	IChangeTracker,
-	VscodeChangeTracker,
 	FileChangeTracker,
-	IChangeData,
-	IWatch
-} from  './watcher';
+	VscodeChangeTracker,
+	IChangeData
+} from './changeTracker';
+
 export { IEditorService } from './editorService';
 export { ICfg } from './cfg'
 
