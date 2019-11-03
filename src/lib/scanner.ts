@@ -20,7 +20,7 @@ export default class Scanner {
 	}
 	// we should convert indexes to position at once,
 	// otherwise it will differ depending on was line matched or whole document
-	getIdFromText(
+	getIdsFromText(
 		text: string = this.activeEditorUtils.editor.document.getText()
 	): IScanResultData[]|undefined {
 		const match = text.match(this.markerUtils.bareMarkerRegex);
@@ -64,4 +64,6 @@ export default class Scanner {
 		return undefined;
 		//TODO support several notes in one line, open depending on cursor position
 	}
+
+
 }

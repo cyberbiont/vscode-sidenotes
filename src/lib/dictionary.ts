@@ -8,7 +8,7 @@ export interface IDictionary<T> {
 	add(item: T): this
 	get(id: string): T|undefined
 	delete(id: string): this
-	prune(cb: (T) => boolean): this
+	// prune(cb: (T) => boolean): this
 	each(cb: (T)): void
 	clear(): this
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>
@@ -108,13 +108,13 @@ export class MapDictionary<T extends IHasIdProperty> implements IDictionary<T>{
 			cb(prop);
 		});
 	}
-	prune(cb): this {
-		this.list.forEach((prop, key) => {
-			if (cb(prop)) this.delete(key);
-		});
-		// for (let prop of this.list) { if (cb(prop[1])) this.delete(prop[0]); }
-		return this;
-	}
+	// prune(cb): this {
+	// 	this.list.forEach((prop, key) => {
+	// 		if (cb(prop)) this.delete(key);
+	// 	});
+	// 	// for (let prop of this.list) { if (cb(prop[1])) this.delete(prop[0]); }
+	// 	return this;
+	// }
 
 	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
 		let sidenote;

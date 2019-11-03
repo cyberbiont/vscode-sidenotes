@@ -1,27 +1,27 @@
 import * as vscode from 'vscode';
 import {
 	IStorageService,
-	IEditorService,
 	IDictionary,
 	Anchorer,
 	Designer,
 	ISidenote,
 	SidenoteFactory,
-	IScanResultData
+	IScanResultData,
+	IStorable
  } from './types';
+
+import { FileStorage } from './storageService'; //TODO @? импортируем класс чтобы сравнить
 
 export default class SidenoteProcessor {
 	constructor(
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
-		public editorService: IEditorService,
 		public sidenoteFactory: SidenoteFactory,
 		public pool: IDictionary<ISidenote>,
 		public designer: Designer
 	) {
 		this.storageService = storageService;
 		this.anchorer = anchorer;
-		this.editorService = editorService;
 		this.sidenoteFactory = sidenoteFactory;
 		this.pool = pool;
 		this.designer = designer;
@@ -35,17 +35,18 @@ export default class SidenoteProcessor {
 		this.pool.delete(sidenote.id);
 	}
 
-	async write(sidenote: ISidenote): Promise<vscode.Position> {
-		const writeResults = await Promise.all([
-			this.storageService.write(sidenote),
-			this.anchorer.write(sidenote)
-		]);
-		this.pool.add(sidenote);
-		return writeResults[1];
-
-		// технически возможна ситуация, когда нужно добавить в пул, но не использовать write;
-		// с другой стороны, если используем write, практически всег надо  добавлять в пул,
-		//  т.к. это означает, то создается новая заметка. хотя не факт
+	async write(sidenote: ISidenote): Promise<vscode.Position|void> {
+		if (sidenote.content) {
+			// const { id, content } = sidenote;
+			const writeResults = await Promise.all([
+				this.storageService.write(sidenote as IStorable),
+				this.anchorer.write(sidenote)
+			]);
+			this.pool.add(sidenote);
+			return writeResults[1];
+		} else {
+			vscode.window.showErrorMessage('no content to write!');
+		}
 	}
 
 	update(sidenote: ISidenote): ISidenote {
@@ -56,11 +57,9 @@ export default class SidenoteProcessor {
 
 		return sidenote;
 	}
-	// update(sidenote: ISidenote, { useStorage = true }: { useStorage?: boolean }): ISidenote {
 
 	async open(sidenote: ISidenote): Promise<vscode.TextEditor> {
-		const path = this.storageService.getFilePath(sidenote.id);
-		return this.editorService.open(path);
+		return this.storageService.open(sidenote.id);
 	}
 
 	// TODO сделать все-таки чтобы функция принимала id + option bag
@@ -88,5 +87,73 @@ export default class SidenoteProcessor {
 		}
 
 		return sidenote;
+	}
+
+	async handleBroken(sidenote): Promise<ISidenote|undefined> {
+
+		const promptUserForAction = async (): Promise<vscode.QuickPickItem|undefined> => {
+
+			const actions: vscode.QuickPickItem[] = [
+				{
+					label: 'delete',
+					description: 'delete note comment'
+				}, {
+					label: 'create',
+					description: 're-create storage entry for this note comment'
+				}
+			]
+			if (this.storageService.lookup) actions.push({
+				label: 'lookup',
+				description: 'look for the missing sidenote file (select folder)'
+			});
+
+			const chosen = await vscode.window.showQuickPick(actions, {
+				placeHolder: 'No corresponding file is found in workspace sidenotes folder. What do you want to do?'
+			});
+
+			return chosen;
+		}
+
+		const action = await promptUserForAction();
+
+		if (!action) return undefined;
+
+		switch (action.label) {
+			case 'delete':
+				this.anchorer.delete(sidenote);
+				this.pool.delete(sidenote.id);
+				return undefined;
+
+			case 'create':
+				sidenote.content = '';
+				this.storageService.write(sidenote);
+				return sidenote;
+
+			case 'lookup':
+				const lookup = async (sidenote): Promise<ISidenote|undefined> => {
+
+					const lookupUri = await vscode.window.showOpenDialog({
+						canSelectFolders: true,
+						canSelectMany: false
+						// defaultUri: this.getCurrentWorkspacePath()
+					});
+
+					if (lookupUri) {
+						const success = await this.storageService.lookup!(sidenote.id, lookupUri[0].fsPath);
+						if (success) {
+							sidenote = this.update(sidenote);
+							return sidenote;
+						}
+					}
+					return undefined;
+
+				}
+				return lookup(sidenote);
+
+			default: return undefined;
+		}
+
+
+
 	}
 }

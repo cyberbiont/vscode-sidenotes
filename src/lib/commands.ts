@@ -6,9 +6,11 @@ import {
 	SidenoteProcessor,
 	Styler,
 	IDictionary,
-	ISidenote
-} from './types'
+	ISidenote,
+	Inspector
+} from './types';
 
+import { FileStorage } from './storageService';
 
 export default class Commands {
 	constructor(
@@ -16,13 +18,15 @@ export default class Commands {
 		private pruner: Pruner,
 		private sidenoteProcessor: SidenoteProcessor,
 		private scanner: Scanner,
-		private pool: IDictionary<ISidenote>
+		private pool: IDictionary<ISidenote>,
+		private inspector: Inspector
 	) {
 		this.scanner = scanner;
 		this.styler = styler;
 		this.pruner = pruner;
 		this.sidenoteProcessor = sidenoteProcessor;
 		this.pool = pool;
+		this.inspector = inspector;
 	}
 
 	/**
@@ -31,7 +35,7 @@ export default class Commands {
 	*/
 	async initAnchors(): Promise<void> {
 		try {
-			const scanResults = this.scanner.getIdFromText();
+			const scanResults = this.scanner.getIdsFromText();
 			if (!scanResults) {
 				vscode.window.showInformationMessage('no sidenotes found in current document');
 				return;
@@ -54,13 +58,22 @@ export default class Commands {
 		try {
 			const scanResult = this.scanner.getFromCurrentLine();
 			// if (scanResult) { const { id, markerStartPos } = scanResult; }
-			let sidenote = await this.sidenoteProcessor.get(scanResult);
-			await this.sidenoteProcessor.open(sidenote);
+
+			let obtainedSidenote = await this.sidenoteProcessor.get(scanResult);
+
+			let sidenote: ISidenote|undefined;
+			if (this.inspector.isBroken(obtainedSidenote)) {
+				sidenote = await this.sidenoteProcessor.handleBroken(obtainedSidenote);
+			} else sidenote = obtainedSidenote;
+
+			if (sidenote) await this.sidenoteProcessor.open(sidenote);
 
 			this.styler.updateDecorations();
+
 		} catch(e) {;
 			console.log(e);
 		}
+
 	}
 
 	async delete(): Promise<void> {
@@ -92,6 +105,22 @@ export default class Commands {
 		this.styler.decReset();
 		this.pool.clear();
 	}
+
+	async migrate() {
+		const options: vscode.OpenDialogOptions = {
+			canSelectMany: false,
+			openLabel: 'Open',
+			// filters: {
+			// 	'Text files': ['txt'],
+			// 	'All files': ['*']
+			// }
+		};
+
+		const uri = await vscode.window.showOpenDialog(options)[0];
+		const folder = uri.fsPath;
+	}
+
+
 
 	// checkForOrphanedSidenotes() {}  //TODO
 	// migrate(targetFolder: string) {} //TODO

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
+import * as nodeFs from 'fs';
 import {
 	IIdMaker,
 	IDictionary,
@@ -20,7 +20,7 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		cfg: IFileChangeTrackerCfg,
 		context: vscode.ExtensionContext,
 		public pool: IDictionary<IWatch> = new MapDictionary(),
-		public watcherService = fs
+		public watcherService = nodeFs
 	) {
 		super(idMaker, eventEmitter, cfg, context);
 		this.pool = pool;
@@ -69,5 +69,5 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 
 export interface IWatch {
 	id: string;
-	watch: fs.FSWatcher;
+	watch: nodeFs.FSWatcher;
 }

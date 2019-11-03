@@ -23,9 +23,10 @@ export {
 } from './utils';
 
 export {
-	IFileStorageCfg,
 	IStorable,
-	IStorageService
+	IStorageService,
+	IFileStorage,
+	IFileStorageCfg
 } from './storageService';
 
 export {

@@ -4,6 +4,7 @@ import {
 	ICfg,
 	IDictionary,
 	IStorageService,
+	IFileStorage,
 	IEditorService,
 	IChangeData,
 	ISidenote,
@@ -54,7 +55,11 @@ export default class App {
 	constructor(private cfg: ICfg, private context: vscode.ExtensionContext) {
 		this.context = context;
 		this.cfg = cfg;
-		this.wire();
+		this.init();
+	}
+
+	async init() {
+		await this.wire();
 		this.checkRequirements();
 		this.registerCommands();
 		this.setEventListeners();
@@ -75,15 +80,15 @@ export default class App {
 		const editorService = new VscodeEditor(vscodeChangeTracker);
 		// const editorService = new TyporaEditor(chokidarChangeTracker, activeEditorUtils);
 
-		const storageService = new FileStorage(activeEditorUtils, this.cfg);
+		const storageService = new FileStorage(editorService, activeEditorUtils, this.cfg);
 		const anchorer = new Anchorer(markerUtils, activeEditorUtils, scanner, this.cfg);
 		const inspector = new Inspector;
 		const designer = new Designer(markerUtils, inspector, activeEditorUtils, scanner, this.cfg);
 		const sidenoteFactory = new SidenoteFactory(uuidMaker, anchorer, storageService, designer, activeEditorUtils, SidenoteBuilder);
-		const sidenoteProcessor = new SidenoteProcessor(storageService, anchorer, editorService, sidenoteFactory, pool, designer);
+		const sidenoteProcessor = new SidenoteProcessor(storageService, anchorer, sidenoteFactory, pool, designer);
 		const styler = new Styler<ISidenote>(pool, this.cfg);
 		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
-		const commands = new Commands(styler, pruner, sidenoteProcessor, scanner, pool);
+		const commands = new Commands(styler, pruner, sidenoteProcessor, scanner, pool, inspector);
 
 		this.styler = styler;
 		this.sidenoteProcessor = sidenoteProcessor;
@@ -92,11 +97,7 @@ export default class App {
 	}
 
 	checkRequirements() {
-		if (this.sidenoteProcessor.storageService instanceof FileStorage
-			&& !vscode.workspace.workspaceFolders
-		) {
-			throw new Error('Adding notes requires an open folder.'); // TODO only if FileStorage service is used
-		}
+		if (this.sidenoteProcessor.storageService.checkRequirements) this.sidenoteProcessor.storageService.checkRequirements();
 
 		if (!vscode.window.activeTextEditor) {
 			throw new Error('active text editor is undefined');

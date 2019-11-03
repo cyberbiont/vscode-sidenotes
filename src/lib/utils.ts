@@ -17,7 +17,10 @@ export class ActiveEditorUtils {
 	}
 
 	onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+		// console.log(this.editor.document);
 		this.editor = editor;
+		console.log(vscode.workspace.textDocuments);
+
 	}
 
 	getWorkspaceFolderPath(): string {
@@ -54,7 +57,7 @@ export class ActiveEditorUtils {
 				// return content;
 			}
 		// }
-		return content; // to prevent node writeFile from writing 'undefined'
+		return content;
 	}
 }
 

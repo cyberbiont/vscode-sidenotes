@@ -79,6 +79,11 @@
 				"command": "sidenotes.internalize",
 				"title": "Put sidenote content into document and delete sidenote",
 				"category": "Sidenotes"
+			},
+			{
+				"command": "sidenotes.migrate",
+				"title": "Migrate sidenotes from another worskspace",
+				"category": "Sidenotes"
 			}
 		],
 		"menus": {

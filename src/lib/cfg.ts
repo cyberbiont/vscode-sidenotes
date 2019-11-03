@@ -6,7 +6,8 @@ import {
 	IMarkerUtilsCfg,
 	IFileStorageCfg,
 	IStylerCfg,
-	IWatchTrackerCfg
+	IFileChangeTrackerCfg,
+	IChangeTrackerCfg
  } from './types';
 
 // using type instead of interface allows to view Intellisense on all "of the extended" types
@@ -17,7 +18,8 @@ export type ICfg =
 	IFileStorageCfg &
 	IDesignerCfg &
 	IStylerCfg &
-	IWatchTrackerCfg
+	IFileChangeTrackerCfg &
+	IChangeTrackerCfg
 
 const cfg: ICfg = {
 	notesSubfolder: vscode.workspace.getConfiguration('sidenotes').get('notesSubfolder') || '.sidenotes',
