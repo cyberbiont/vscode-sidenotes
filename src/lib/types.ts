@@ -1,6 +1,9 @@
 export { IIdMaker } from './idMaker';
 
-export { IDictionary } from './dictionary';
+export {
+	IDictionary,
+	IHasIdProperty
+} from './dictionary';
 
 export {
 	default as Designer,
