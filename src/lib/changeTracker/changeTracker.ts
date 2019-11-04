@@ -2,15 +2,17 @@ import {
 	IIdMaker,
 	EventEmitter,
 	IFileChangeTrackerCfg,
-	IVscodeChangeTrackerCfg
+	// IVscodeChangeTrackerCfg
 } from '../types';
 
 import * as path from 'path';
 
 // TODO update styles on file delete (delete corresponding anchor?)
-export type IChangeTrackerCfg = IFileChangeTrackerCfg | IVscodeChangeTrackerCfg;
+export type IChangeTrackerCfg =
+	IFileChangeTrackerCfg
+	//  | IVscodeChangeTrackerCfg;
 
-export interface IChangeData {
+export type IChangeData = {
 	id: string
 }
 
@@ -19,6 +21,7 @@ export interface IChangeTracker {
 	generateCustomEvent(fileName: string, event: string): void
 	dispatch(changeData: IChangeData): void
 	init(path?: String): void
+	getIdFromFileName(fileName: string): string|null
 }
 
 export default abstract class ChangeTracker {
@@ -27,7 +30,7 @@ export default abstract class ChangeTracker {
 		public eventEmitter: EventEmitter
 	) {}
 
-	generateCustomEvent(fileName: string, event:string): void {;
+	generateCustomEvent(fileName: string, event: string): void {;
 		const changeData = this.processEventData({ event, fileName });
 		if (changeData) this.dispatch(changeData);
 	}
@@ -44,7 +47,7 @@ export default abstract class ChangeTracker {
 		}
 	}
 
-	protected getIdFromFileName(fileName: string): string|null {
+	getIdFromFileName(fileName: string): string|null {
 		const match = fileName.match(this.idMaker.ID_REGEX)
 		if (match) return match[0];
 		return null;

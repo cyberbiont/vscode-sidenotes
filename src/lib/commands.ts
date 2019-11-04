@@ -5,9 +5,10 @@ import {
 	Pruner,
 	SidenoteProcessor,
 	Styler,
-	IDictionary,
+	// IDictionary,
 	ISidenote,
-	Inspector
+	Inspector,
+	Pool
 } from './types';
 
 import { FileStorage } from './storageService';
@@ -18,7 +19,8 @@ export default class Commands {
 		private pruner: Pruner,
 		private sidenoteProcessor: SidenoteProcessor,
 		private scanner: Scanner,
-		private pool: IDictionary<ISidenote>,
+		// private pool: IDictionary<ISidenote>,
+		private pool: Pool<ISidenote>,
 		private inspector: Inspector
 	) {}
 
@@ -26,25 +28,34 @@ export default class Commands {
 	*  scans current document, registers sidenotes and activates comments decorations
 	*  should be called on extension activation and changes of active editor
 	*/
-	async initAnchors(): Promise<void> {
-		try {
-			const scanResults = this.scanner.getIdsFromText();
-			if (!scanResults) {
-				vscode.window.showInformationMessage('no sidenotes found in current document');
-				return;
+	async scanDocumentAnchors(): Promise<void> {
+		// TODO: import acriveEditorUtils?
+		// const pool = this.pool.getDictionary(vscode.window.activeTextEditor!.document);
+		// надо просто знать, если уже уже пул для этого документа или нет, если есть, то не пересканируем, просто апдейтим декорации
+		if (!this.pool.getIsInitialized()) {
+			try {
+				const scanResults = this.scanner.getIdsFromText();
+				if (!scanResults) {
+					// vscode.window.showInformationMessage('no sidenotes found in current document');
+					return;
+				}
+
+				const recreate = async (scanResult): Promise<ISidenote> => {
+					let sidenote = await this.sidenoteProcessor.get(scanResult);
+					return sidenote;
+				}
+				await scanResults.forEach(recreate, this);
+				this.pool.setIsInitialized(true);
+				// если вручную очистил пул, должен ставиться признак tobeInit
+				// и сразу же вероятно рескан (но это не обязательно)
+				// tobeinbit должен непосредственно на dictionary, чтобы не терялся при
+
+			} catch(e) {;
+				console.log(e);
 			}
-
-			const recreate = async (scanResult): Promise<ISidenote> => {
-				let sidenote = await this.sidenoteProcessor.get(scanResult);
-				return sidenote;
-			}
-			await scanResults.forEach(recreate, this);
-
-			this.styler.updateDecorations();
-
-		} catch(e) {;
-			console.log(e);
 		}
+
+		this.styler.updateDecorations();
 	}
 
 	async run(): Promise<void> {
@@ -66,7 +77,6 @@ export default class Commands {
 		} catch(e) {;
 			console.log(e);
 		}
-
 	}
 
 	async delete(): Promise<void> {
@@ -83,7 +93,7 @@ export default class Commands {
 	}
 
 	async prune(category) {
-		this.initAnchors();
+		this.scanDocumentAnchors();
 
 		switch (category) {
 			case 'broken': await this.pruner.pruneBroken(); break

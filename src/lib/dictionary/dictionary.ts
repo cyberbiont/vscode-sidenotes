@@ -3,15 +3,14 @@
 type Storage<T> = Map<string, T>|Set<T>|{ [key: string]: T }|T[];
 
 export interface IDictionary<T> {
-	//обозначаем как generic, т.е. вместо <T> можно будет передать снаружи любой нужный нам тип, Sidenote в данном случае
 	list: Storage<T>
 	add(item: T): this
 	get(id: string): T|undefined
 	delete(id: string): this
 	// prune(cb: (T) => boolean): this
-	each(cb: (T)): void
+	each(cb: (T) => void): void
 	clear(): this
-	[Symbol.asyncIterator](cb): AsyncGenerator<T>
+	// [Symbol.asyncIterator](cb): AsyncGenerator<T>
 }
 
 export interface IHasIdProperty {
@@ -19,16 +18,26 @@ export interface IHasIdProperty {
 }
 
 export default abstract class Dictionary<T> {
-	abstract list;
+	abstract list: Storage<T>
+	// isInitialized: boolean
+
+	// constructor() {
+	// 	this.isInitialized = false;
+	// }
 
 	abstract get(id: string)
 
-	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// clear() {
+	// 	this.isInitialized = false;
+	// }
+
+	/* async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+		// FIXME
 		let sidenote;
 		for (let id of this.list.keys()) {
 			sidenote = this.get(id);
 			await cb(sidenote);
 			yield sidenote;
 		}
-	}
+	} */
 }

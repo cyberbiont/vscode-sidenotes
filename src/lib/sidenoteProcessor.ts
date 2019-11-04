@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import {
 	IStorageService,
-	IDictionary,
+	// IDictionary,
+	Pool,
 	Anchorer,
 	Designer,
 	ISidenote,
@@ -17,7 +18,8 @@ export default class SidenoteProcessor {
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
 		public sidenoteFactory: SidenoteFactory,
-		public pool: IDictionary<ISidenote>,
+		// public pool: IDictionary<ISidenote>,
+		public pool: Pool<ISidenote>,
 		public designer: Designer
 	) {}
 
@@ -92,7 +94,7 @@ export default class SidenoteProcessor {
 					label: 'delete',
 					description: 'delete note comment'
 				}, {
-					label: 'create',
+					label: 're-create',
 					description: 're-create storage entry for this note comment'
 				}
 			]
@@ -118,7 +120,7 @@ export default class SidenoteProcessor {
 				this.pool.delete(sidenote.id);
 				return undefined;
 
-			case 'create':
+			case 're-create':
 				sidenote.content = '';
 				this.storageService.write(sidenote);
 				return sidenote;

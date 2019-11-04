@@ -14,8 +14,6 @@ import {
 	// IPrunable
 } from './types';
 
-// export enum CreationScenario { new, init, edit }
-
 export interface ISidenote
 	extends
 		IDesignable,
@@ -45,10 +43,10 @@ export class Inspector {
 	isBroken(sidenote): boolean { return typeof sidenote.content === 'undefined'; }
 	isEmpty(sidenote): boolean { return sidenote.content === ''; }
 }
-// оставить отдельным классом (можно переименовать в stats), но вложить в sidenote
+// TODO оставить отдельным классом (можно переименовать в stats), но вложить в sidenote
 
 export class SidenoteBuilder implements Partial<Sidenote> {
-	// TODO а что если сделать обязательными (попробовать)
+	// works even without making all properties optional
 	id?: string
 	anchor?: IAnchor
 	content?: string|undefined
@@ -116,7 +114,7 @@ export class SidenoteFactory {
 				.withId(id)
 				.withContent(content)
 				.withAnchor(this.anchorer.getAnchor(id));
-			// markerStartPos может быть undefined при глобальном сканировании
+			// markerStartPos can be undefined if we did document-wide scanning
 			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { markerStartPos }))
 				.build();
 		}

@@ -8,18 +8,16 @@ export class ActiveEditorUtils {
 	//active Editor manager
 	editor: vscode.TextEditor
 	constructor(
-		context,
+		// context,
 		public cfg: IActiveEditorUtilsCfg
 	) {
 		this.editor = vscode.window.activeTextEditor!;
-		vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
+		// vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
 	}
 
 	onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
 		// console.log(this.editor.document);
 		this.editor = editor;
-		console.log(vscode.workspace.textDocuments);
-
 	}
 
 	getWorkspaceFolderPath(): string {

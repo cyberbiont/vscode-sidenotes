@@ -15,6 +15,7 @@ export type IFileChangeTrackerCfg = {
 // это больше похоже на случай есл  используем vscodechangetracker
 // либо поддерживать pool watch ей (добавлять в пул при открытии документа)
 // т.е. независимый watch для каждого файла. плюс - сразу можно рассчитать id для вотча и не гонять match на change каждый раз
+
 export default abstract class FileChangeTracker extends ChangeTracker {
 	abstract watcherService;
 	constructor(

@@ -1,8 +1,9 @@
 import {
-	IDictionary,
+	// IDictionary,
 	ISidenote,
 	Inspector,
-	SidenoteProcessor
+	SidenoteProcessor,
+	Pool
 } from './types';
 
 // export interface IPrunable {
@@ -12,7 +13,8 @@ import {
 
 export default class Pruner {
 	constructor(
-		public pool: IDictionary<ISidenote>,
+		// public pool: IDictionary<ISidenote>,
+		public pool: Pool<ISidenote>,
 		public sidenoteProcessor: SidenoteProcessor,
 		public inspector: Inspector
 	) {}

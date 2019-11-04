@@ -49,6 +49,8 @@ export {
 	// Prunable
 } from './pruner';
 
+export { default as Pool } from './pool';
+
 export { default as SidenoteProcessor } from './sidenoteProcessor';
 
 export {
@@ -60,7 +62,7 @@ export {
 export {
 	IChangeTrackerCfg,
 	IFileChangeTrackerCfg,
-	IVscodeChangeTrackerCfg,
+	// IVscodeChangeTrackerCfg,
 	IChangeTracker,
 	FileChangeTracker,
 	VscodeChangeTracker,

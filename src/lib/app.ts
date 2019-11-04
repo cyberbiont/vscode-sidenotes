@@ -8,7 +8,8 @@ import {
 	IEditorService,
 	IChangeData,
 	ISidenote,
-	IScanResultData
+	IScanResultData,
+	IChangeTracker
 } from './types';
 
 import {
@@ -44,6 +45,7 @@ import UuidMaker from './idMaker';
 import Pruner from './pruner';
 import Designer from './designer';
 import Scanner from './scanner';
+import Pool from './pool';
 
 // TODO JSDoc
 export default class App {
@@ -51,6 +53,10 @@ export default class App {
 	private sidenoteProcessor: SidenoteProcessor
 	private eventEmitter: EventEmitter
 	private commands: Commands
+	private pool: Pool<ISidenote>
+	private activeEditorUtils: ActiveEditorUtils
+	private changeTracker: IChangeTracker
+	private editorService: IEditorService
 
 	constructor(
 		private cfg: ICfg,
@@ -69,16 +75,18 @@ export default class App {
 	async wire() {
 		const uuidMaker = new UuidMaker;
 		const eventEmitter = new EventEmitter;
-		const pool = new MapDictionary<ISidenote>();
-		const activeEditorUtils = new ActiveEditorUtils(this.context, this.cfg);
+		// const pool = new MapDictionary<ISidenote>();
+		const pool = new Pool<ISidenote>(MapDictionary);
+
+		const activeEditorUtils = new ActiveEditorUtils(this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
 		const scanner = new Scanner(markerUtils, activeEditorUtils);
 
-		const vscodeChangeTracker = new VscodeChangeTracker(uuidMaker, eventEmitter, this.context);
-		const chokidarChangeTracker = new ChokidarChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
+		const changeTracker = new VscodeChangeTracker(uuidMaker, eventEmitter, this.context);
+		// const changeTracker = new ChokidarChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
 		// const fsWatchChangeTracker: FsWatchChangeTracker = new FsWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
 		// const editorService = new TyporaEditor(fsWatchChangeTracker, activeEditorUtils);
-		const editorService = new VscodeEditor(vscodeChangeTracker);
+		const editorService = new VscodeEditor(changeTracker);
 		// const editorService = new TyporaEditor(chokidarChangeTracker, activeEditorUtils);
 
 		const storageService = new FileStorage(editorService, activeEditorUtils, this.cfg);
@@ -95,6 +103,10 @@ export default class App {
 		this.sidenoteProcessor = sidenoteProcessor;
 		this.eventEmitter = eventEmitter;
 		this.commands = commands;
+		this.pool = pool;
+		this.activeEditorUtils = activeEditorUtils;
+		this.changeTracker = changeTracker;
+		this.editorService = editorService;
 	}
 
 	checkRequirements() {
@@ -111,20 +123,36 @@ export default class App {
 			const sidenote = await this.sidenoteProcessor.get({ id: changeData.id });
 			this.sidenoteProcessor.update(sidenote);
 			this.styler.updateDecorations();
-		})
-		// действия update и update decorations должны выполяться последовательно, т.е. должны быть в одной функции
-		// требуется обращение к styler, поэтому не можем разместить ниже styler,
-		// или в самом styler, т.к. styler у нас generic, а тут одно действий происходит над конкретным типом
-		// надо либо весь styler переписать на ISidenote,
-		// либо присвоить sidenote конкретный тип ISidenote перед выполнением update (вряд ли получится)
-		// const sidenote = this.pool.get(id) as unknown as ISidenote;
+			// действия update и update decorations должны выполяться последовательно, т.е. должны быть в одной функции
+			// требуется обращение к styler, поэтому не можем разместить ниже styler,
+			// или в самом styler, т.к. styler у нас generic, а тут одно действий происходит над конкретным типом
+			// надо либо весь styler переписать на ISidenote,
+			// либо присвоить sidenote конкретный тип ISidenote перед выполнением update (вряд ли получится)
+			// const sidenote = this.pool.get(id) as unknown as ISidenote;
+		});
+
+		const updateOnEditorChange = (editor: vscode.TextEditor) => {
+			// run updates in order
+			this.activeEditorUtils.onDidChangeActiveTextEditor(editor);
+			this.pool.onDidChangeActiveTextEditor(editor);
+			this.commands.scanDocumentAnchors();
+		}
+
+		const onDidChangeActiveEditorHandler = this.editorService instanceof VscodeEditor ?
+			(editor: vscode.TextEditor) => {
+				// add additional check to prevent triggering scan on sidenote files
+				if(this.changeTracker.getIdFromFileName(editor.document.fileName)) return;
+				updateOnEditorChange(editor);
+			} :
+			(editor: vscode.TextEditor) => updateOnEditorChange(editor);
+
+		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveEditorHandler, this, this.context.subscriptions);
 	}
 
 	registerCommands() {
-		// const self = this;
 		return this.context.subscriptions.push(
 			vscode.commands.registerCommand('sidenotes.annotate', this.commands.run, this.commands),
-			vscode.commands.registerCommand('sidenotes.display', this.commands.initAnchors, this.commands),
+			vscode.commands.registerCommand('sidenotes.display', this.commands.scanDocumentAnchors, this.commands),
 			vscode.commands.registerCommand('sidenotes.delete', this.commands.delete, this.commands),
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.commands.prune.bind(this, 'broken'), this.commands),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.commands.prune.bind(this, 'empty'), this.commands),

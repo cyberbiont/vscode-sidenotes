@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 
 import {
-	IDictionary,
+	// IDictionary,
+	Pool,
 	IAnchor
 } from './types';
 
@@ -35,7 +36,8 @@ export default class Styler<T> {
 		[category: string]: ISetDecorationFnConfig
 	}
 	constructor(
-		public pool: IDictionary<T>,
+		// public pool: IDictionary<T>,
+		public pool: Pool<T>,
 		public cfg: IStylerCfg,
 	) {
 		this.decorations = this.initDecorationConfig();
