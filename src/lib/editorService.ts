@@ -44,8 +44,6 @@ export class TyporaEditor implements IEditorService {
 		public changeTracker: FileChangeTracker,
 		public activeEditorUtils: ActiveEditorUtils
 	) {
-		this.activeEditorUtils = activeEditorUtils;
-		this.changeTracker = changeTracker;
 		this.terminal = vscode.window.createTerminal('Typora');
 		this.changeTracker.init();
 	}

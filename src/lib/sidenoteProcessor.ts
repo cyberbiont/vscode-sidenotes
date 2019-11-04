@@ -19,13 +19,7 @@ export default class SidenoteProcessor {
 		public sidenoteFactory: SidenoteFactory,
 		public pool: IDictionary<ISidenote>,
 		public designer: Designer
-	) {
-		this.storageService = storageService;
-		this.anchorer = anchorer;
-		this.sidenoteFactory = sidenoteFactory;
-		this.pool = pool;
-		this.designer = designer;
-	}
+	) {}
 
 	async delete(sidenote: ISidenote): Promise<void> {
 		await Promise.all([

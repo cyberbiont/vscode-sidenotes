@@ -15,11 +15,7 @@ export default class Pruner {
 		public pool: IDictionary<ISidenote>,
 		public sidenoteProcessor: SidenoteProcessor,
 		public inspector: Inspector
-	) {
-		this.pool = pool;
-		this.sidenoteProcessor = sidenoteProcessor;
-		this.inspector = inspector;
-	}
+	) {}
 
 	async pruneAll(): Promise<void> {
 		this.pruneEmpty();

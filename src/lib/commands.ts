@@ -20,14 +20,7 @@ export default class Commands {
 		private scanner: Scanner,
 		private pool: IDictionary<ISidenote>,
 		private inspector: Inspector
-	) {
-		this.scanner = scanner;
-		this.styler = styler;
-		this.pruner = pruner;
-		this.sidenoteProcessor = sidenoteProcessor;
-		this.pool = pool;
-		this.inspector = inspector;
-	}
+	) {}
 
 	/**
 	*  scans current document, registers sidenotes and activates comments decorations

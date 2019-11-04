@@ -16,7 +16,6 @@ export default class VscodeChangeTracker extends ChangeTracker {
 		public context: vscode.ExtensionContext
 	) {
 		super(idMaker, eventEmitter);
-		this.context = context;
 	}
 
 	init() {

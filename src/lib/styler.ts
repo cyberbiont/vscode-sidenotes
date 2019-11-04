@@ -38,8 +38,6 @@ export default class Styler<T> {
 		public pool: IDictionary<T>,
 		public cfg: IStylerCfg,
 	) {
-		this.cfg = cfg;
-		this.pool = pool;
 		this.decorations = this.initDecorationConfig();
 	}
 

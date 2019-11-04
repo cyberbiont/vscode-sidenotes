@@ -26,13 +26,7 @@ export default class Designer {
 		public activeEditorUtils: ActiveEditorUtils,
 		public scanner: Scanner,
 		public cfg: IDesignerCfg
-	) {
-		this.cfg = cfg
-		this.markerUtils = markerUtils;
-		this.inspector = inspector;
-		this.activeEditorUtils = activeEditorUtils;
-		this.scanner = scanner;
-	}
+	) {}
 
 	get(
 		designable: IDesignable,

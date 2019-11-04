@@ -24,8 +24,6 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 		public context: vscode.ExtensionContext
 	) {
 		super(idMaker, eventEmitter);
-		this.cfg = cfg;
-		this.context = context;
 	}
 
 	getFullPath(workspace) {

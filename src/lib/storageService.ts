@@ -68,12 +68,7 @@ export class FileStorage
 		// public ext: string = '.md',
 		public fs = nodeFs
 	) {
-		this.editorService = editorService;
-		// this.cfg = cfg;
-		// this.ext = ext;
 		this.pathCache = {};
-		this.activeEditorUtils = activeEditorUtils;
-		this.fs = fs;
 		this.o = Object.assign({
 			ext: '.md'
 		}, cfg);

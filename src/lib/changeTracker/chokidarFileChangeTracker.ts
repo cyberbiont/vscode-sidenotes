@@ -19,7 +19,6 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 		public watcherService = chokidar
 	) {
 		super(idMaker, eventEmitter, cfg, context);
-		this.watcherService = watcherService;
 	}
 
 	init(targetPath?: string) {

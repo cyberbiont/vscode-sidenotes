@@ -52,9 +52,10 @@ export default class App {
 	private eventEmitter: EventEmitter
 	private commands: Commands
 
-	constructor(private cfg: ICfg, private context: vscode.ExtensionContext) {
-		this.context = context;
-		this.cfg = cfg;
+	constructor(
+		private cfg: ICfg,
+		private context: vscode.ExtensionContext
+	) {
 		this.init();
 	}
 

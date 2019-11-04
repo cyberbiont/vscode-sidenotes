@@ -10,7 +10,6 @@ export default class MapDictionary<T extends IHasIdProperty>
 	constructor() {
 		super();
 		this.list = new Map();
-
 		//@see dictionary pattern https://2ality.com/2013/10/dict-pattern.html
 	}
 

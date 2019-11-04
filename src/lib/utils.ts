@@ -12,7 +12,6 @@ export class ActiveEditorUtils {
 		public cfg: IActiveEditorUtilsCfg
 	) {
 		this.editor = vscode.window.activeTextEditor!;
-		this.cfg = cfg;
 		vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
 	}
 
@@ -80,8 +79,6 @@ export class MarkerUtils {
 		public idMaker: IIdMaker,
 		public cfg: IMarkerUtilsCfg
 	) {
-		this.idMaker = idMaker;
-		this.cfg = cfg;
 		this.bareMarkerRegexString = `${this.cfg.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
 		this.bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
 		this.bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);

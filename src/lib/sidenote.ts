@@ -83,14 +83,7 @@ export class SidenoteFactory {
 		private designer: Designer,
 		private activeEditorUtils: ActiveEditorUtils,
 		private SidenoteBuilder
-	) {
-		this.idMaker = idMaker;
-		this.anchorer = anchorer;
-		this.storageService = storageService;
-		this.designer = designer;
-		this.activeEditorUtils = activeEditorUtils;
-		this.SidenoteBuilder = SidenoteBuilder;
-	}
+	) {}
 
 	async build(predefinedId: string|null, markerStartPos?: vscode.Position): Promise <ISidenote> {
 

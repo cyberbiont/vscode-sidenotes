@@ -42,12 +42,7 @@ export default class Anchorer {
 		public activeEditorUtils: ActiveEditorUtils,
 		public scanner: Scanner,
 		public cfg: IAnchorerCfg
-	) {
-		this.cfg = cfg;
-		this.markerUtils = markerUtils;
-		this.activeEditorUtils = activeEditorUtils;
-		this.scanner = scanner;
-	}
+	) {}
 
 	getAnchor(id: string): IAnchor {
 		return {

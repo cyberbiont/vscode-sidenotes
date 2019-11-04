@@ -23,8 +23,6 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		public watcherService = nodeFs
 	) {
 		super(idMaker, eventEmitter, cfg, context);
-		this.pool = pool;
-		this.watcherService = watcherService;
 	}
 	init(targetPath?: string) {
 		if (targetPath) {

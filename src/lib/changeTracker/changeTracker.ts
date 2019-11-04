@@ -25,10 +25,7 @@ export default abstract class ChangeTracker {
 	constructor(
 		public idMaker: IIdMaker,
 		public eventEmitter: EventEmitter
-	) {
-		this.idMaker = idMaker;
-		this.eventEmitter = eventEmitter;
-	}
+	) {}
 
 	generateCustomEvent(fileName: string, event:string): void {;
 		const changeData = this.processEventData({ event, fileName });

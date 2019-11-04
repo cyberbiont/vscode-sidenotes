@@ -14,10 +14,7 @@ export default class Scanner {
 	constructor(
 		public markerUtils: MarkerUtils,
 		public activeEditorUtils: ActiveEditorUtils
-	) {
-		this.markerUtils = markerUtils;
-		this.activeEditorUtils = activeEditorUtils;
-	}
+	) {}
 	// we should convert indexes to position at once,
 	// otherwise it will differ depending on was line matched or whole document
 	getIdsFromText(
