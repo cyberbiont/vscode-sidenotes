@@ -48,6 +48,7 @@ import Scanner from './scanner';
 import Pool from './pool';
 
 // TODO JSDoc
+// TODO unit tests
 export default class App {
 	private styler: Styler<ISidenote>
 	private sidenoteProcessor: SidenoteProcessor
@@ -157,7 +158,9 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.commands.prune.bind(this, 'broken'), this.commands),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.commands.prune.bind(this, 'empty'), this.commands),
 			vscode.commands.registerCommand('sidenotes.temp', this.commands.temp, this.commands),
-			vscode.commands.registerCommand('sidenotes.internalize', this.commands.internalize, this.commands)
+			vscode.commands.registerCommand('sidenotes.internalize', this.commands.internalize, this.commands),
+			vscode.commands.registerCommand('sidenotes.migrate', this.commands.migrate, this.commands),
+			vscode.commands.registerCommand('sidenotes.extraneous', this.commands.cleanExtraneous, this.commands)
 		)
 	}
 }

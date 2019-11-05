@@ -25,7 +25,6 @@ export default class Commands {
 	) {}
 
 	/**
-	*  scans current document, registers sidenotes and activates comments decorations
 	*  should be called on extension activation and changes of active editor
 	*/
 	async scanDocumentAnchors(): Promise<void> {
@@ -110,34 +109,58 @@ export default class Commands {
 	}
 
 	async migrate() {
+		// только для FileService
+		// TODO если используется другой тип StoragService, не регистрируем эту команду просто
+
+		// TODO вынести в класс userInteractions
 		const options: vscode.OpenDialogOptions = {
 			canSelectMany: false,
-			openLabel: 'Open',
+			canSelectFolders: true,
+			// defaultUri: this.getCurrentWorkspacePath() //TODO default URI
+			openLabel: 'Select folder to look for missing sidenotes',
 			// filters: {
 			// 	'Text files': ['txt'],
 			// 	'All files': ['*']
 			// }
 		};
 
-		const uri = await vscode.window.showOpenDialog(options)[0];
-		const folder = uri.fsPath;
+		//TODO try to read files for all sidenotes and report statictics if there are ny broken sidenotes
+
+		const lookupUri = await vscode.window.showOpenDialog(options);
+		if (!lookupUri) return;
+
+		const ids = Array.from(await this.scanner.scanCurrentWorkspace());
+
+		// TODO build sidenote instances from ids to check if they are broken
+
+		const results = await Promise.all(
+			ids.map(async id => {
+				return this.sidenoteProcessor.storageService.lookup!(id, lookupUri[0].fsPath);
+			})
+		);
+		const successfulResults = results.filter(result => result); // TODO map to just file names
+		const message = successfulResults.length === 0 ?
+			'No missing files were found in specified directory ' :
+			`The following files have been found and copied to the current workspace:
+			${successfulResults.join(',\n')}`
+		vscode.window.showInformationMessage(message);
+
+
 	}
 
-
-
-	// checkForOrphanedSidenotes() {}  //TODO
-	// migrate(targetFolder: string) {} //TODO
-	// findAnchorsInCurrentRoot(path): string {
-	// }
-	// findAnchorsInDirectory() { //TODO: add to explorer context menu
-	// 	fs.readdirSync(target dir). for each => content.match(sidenote.regexp) -> recreate sidenotes -> foreach fs.modeFile(sidenote.path, {didenotes.subfolder}targetdir)
-	// }
-
-	//TODO unit tests
+	async cleanExtraneous() {
+		// только для FileService
+		const ids = await this.scanner.scanCurrentWorkspace();
+		// const sidenoteFiles = await this.scanner.readDirectoryRecursive(workspace + cfg.notesSubfolder);
+		// sidenoteFiles.forEach(filepath => {
+		// 	const id = getIdFromFilename(filapath);
+		// 	if(!ids.has(id)) sidenoteProcessor.storageService.delete(id);
+		// })
+	}  //TODO
 
 	async internalize() {
 		// TODO comment regexp match document for content, select and toggle comment)
-		if (!vscode.window.activeTextEditor) return
+		if (!vscode.window.activeTextEditor) return;
 		const scanResult = this.scanner.getFromCurrentLine();
 		if (!scanResult) {
 			vscode.window.showInformationMessage('There is no sidenotes attached at current cursor position');

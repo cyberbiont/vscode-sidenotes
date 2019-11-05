@@ -128,6 +128,7 @@ export default class SidenoteProcessor {
 			case 'lookup':
 				const lookup = async (sidenote): Promise<ISidenote|undefined> => {
 
+					// TODO вынести в класс userInteractions
 					const lookupUri = await vscode.window.showOpenDialog({
 						canSelectFolders: true,
 						canSelectMany: false
@@ -148,8 +149,5 @@ export default class SidenoteProcessor {
 
 			default: return undefined;
 		}
-
-
-
 	}
 }

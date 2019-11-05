@@ -24,7 +24,7 @@ export interface IStorageService {
 		lookupFolderPath?: string,
 		workspace?: string,
 		resolveAction?: string
-	): Promise<boolean>
+	): Promise<string|boolean>
 }
 
 export interface IFileStorage extends IStorageService {
@@ -33,7 +33,7 @@ export interface IFileStorage extends IStorageService {
 		lookupFolderPath?: string,
 		workspace?: string,
 		resolveAction?: string
-	): Promise<boolean>
+	): Promise<string|boolean>
 	// getFilePath(id: string): string,
 }
 
@@ -52,7 +52,6 @@ export class FileStorage
 	// extends StorageService
 	implements IFileStorage	{
 	//TODO handle uri instead of file paths;
-
 	private pathCache: {
 		[id: string]: string
 	}
@@ -142,7 +141,7 @@ export class FileStorage
 			// if file is not present, continue
 		}
 	}
-
+	// TODO use fs.promises
 	async write(data: IStorable): Promise<boolean> {
 		const path = this.getFilePath(data.id);
 		if (!this.fs.existsSync(path)) {
@@ -157,7 +156,7 @@ export class FileStorage
 		lookupFolderPath: string,
 		workspace: string = this.getCurrentWorkspacePath(),
 		resolveAction: string = 'copy'
-	): Promise<boolean> {
+	): Promise<string|boolean> {
 
 		const fileName = this.getFileName(id);
 
@@ -177,55 +176,12 @@ export class FileStorage
 				if (err) throw err;
 			});
 			else if (resolveAction === 'copy') this.fs.copyFileSync(lookupFilePath, currentFilePath);
-			return true;
+			return currentFilePath;
 		} else {
 			vscode.window.showErrorMessage(`Cannot find sidenote file: there is no such file in the directory that you have selected!`);
 			return false;
 		}
 	}
 
-	/* async scanCurrentWorkspace() {
 
-		interface IFile {
-			filename: string,
-			content: string
-		}
-		const readFilePromises: Promise<IFile>[] = [];
-		const foundIds: string[] = [];
-		const readFiles = filename => {
-			if (!filename) {} // TODO filter allowed file types
-			// const name = path.parse(filename).name;
-			// const ext = path.parse(filename).ext;
-			const filepath = path.resolve(workspace, filename);
-
-			readFilePromises.push(
-				new Promise((res, rej) => {
-					this.fs.readFile(filepath, 'utf-8', (err, content) => {
-						if (err) return rej(err);
-						return res({ filename, content });
-					});
-				})
-			);
-		};
-		const scanFileText = text => {
-			const fileMatches = this.scanner.getIdsFromText(text);
-			foundIds.push(...fileMatches);
-		};
-
-		const workspace = this.getCurrentWorkspacePath();
-		const filenames = await new Promise<string[]>((rs, rj) => this.fs.readdir(workspace, (err, filenames) => {
-			if (err) rj(err);
-			else rs(filenames);
-		}));
-
-		filenames.forEach(readFiles);
-		const fileTexts = await Promise.all(readFilePromises);
-
-		fileTexts.forEach(scanFileText);
-
-		// foundIds.forEach()
-		// matches.map()
-
-	}
- */
 }

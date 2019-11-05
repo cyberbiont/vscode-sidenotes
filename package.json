@@ -84,6 +84,11 @@
 				"command": "sidenotes.migrate",
 				"title": "Migrate sidenotes from another worskspace",
 				"category": "Sidenotes"
+			},
+			{
+				"command": "sidenotes.extranesous",
+				"title": "Clean extraneous (orphaned) files from current sidenotes folder",
+				"category": "Sidenotes"
 			}
 		],
 		"menus": {
@@ -99,6 +104,9 @@
 				},
 				{
 					"command": "sidenotes.temp"
+				},
+				{
+					"command": "sidenotes.migrate"
 				}
 			]
 		}

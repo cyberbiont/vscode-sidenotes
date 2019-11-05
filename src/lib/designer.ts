@@ -38,7 +38,7 @@ export default class Designer {
 		this.decorations = [];
 		let range;
 
-		if (positionHints && positionHints.markerStartPos) {//only get end postion
+		if (positionHints && positionHints.markerStartPos) {//only get end position
 			range = this.markerUtils.getMarkerRange(
 				designable.anchor,
 				positionHints.markerStartPos

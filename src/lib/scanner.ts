@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
+
 import {
 	IAnchor,
 	MarkerUtils,
@@ -61,6 +64,58 @@ export default class Scanner {
 		return undefined;
 		//TODO support several notes in one line, open depending on cursor position
 	}
+
+	async readDirectoryRecursive(dir: string): Promise<string[]> {
+		const dirents: fs.Dirent[] = await fs.promises.readdir(dir, { withFileTypes: true });
+		const files = await Promise.all(
+			dirents.map(async dirent => {
+				const fullPath = path.resolve(dir, dirent.name);
+				return dirent.isDirectory() ? this.readDirectoryRecursive(fullPath) : fullPath;
+			})
+		);
+		return Array.prototype.concat(...files);
+		// return files.flat();
+	}
+	// TODO dынести все что связано с файлами из сканера и StoragService в fsUtils
+	async scanCurrentWorkspace() {
+
+		// const getFiles = async (dir: string): Promise<string[]> => {
+		// 	const dirents: fs.Dirent[] = await fs.promises.readdir(dir, { withFileTypes: true });
+		// 	const files = await Promise.all(
+		// 		dirents.map(async dirent => {
+		// 			const fullPath = path.resolve(dir, dirent.name);
+		// 			return dirent.isDirectory() ? getFiles(fullPath) : fullPath;
+		// 		})
+		// 	);
+		// 	return Array.prototype.concat(...files);
+		// 	// return files.flat();
+		// }
+
+		const readFiles = async (filePaths: string[]) => {
+			return Promise.all(
+				filePaths.map(filePath => fs.promises.readFile(filePath, { encoding: 'utf-8' }) as Promise<string>) // returns string when encoding is sepecifie, see fs docs
+			);
+		}
+
+
+		const scanContents = (contents: string[]) => {
+			const fileMatches = contents.map(content => this.getIdsFromText(content))
+				.filter(scanData => scanData !== undefined) as unknown as IScanResultData[]; // remove undefined values
+				// https://codereview.stackexchange.com/questions/135363/filtering-undefined-elements-out-of-an-array
+			const flat = Array.prototype.concat(...fileMatches);
+			const idsOnly: string[] = flat.map(scanData => scanData.id);
+			return idsOnly;
+			// return files.flat();
+		};
+
+		const workspace = this.activeEditorUtils.getWorkspaceFolderPath();
+		const filePaths = await this.readDirectoryRecursive(workspace);
+		const contents = await readFiles(filePaths);
+		const ids = scanContents(contents);
+		const uniqueIds = new Set(ids);
+		return uniqueIds;
+	}
+
 
 
 }
