@@ -36,6 +36,12 @@ export default class ArrayDictionary<T extends IHasIdProperty>
 		this.list.length = 0;
 		return this;
 	}
+
+	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+		for(const item of this.list) {
+			yield cb(item);
+		}
+	}
 	// prune(cb) {
 	// 	this.list.forEach((el, i, arr) => { if (cb(el)) arr.splice(i, 1); });
 	// 	return this.list;

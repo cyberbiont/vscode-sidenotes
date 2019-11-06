@@ -26,7 +26,8 @@ import {
 
 export interface IAnchor {
 	marker: string
-	editor: vscode.TextEditor
+	editor: vscode.TextEditor,
+	// positions: vscode.Position[]
 }
 export interface IAnchorable {
 	anchor: IAnchor
@@ -44,10 +45,13 @@ export default class Anchorer {
 		public cfg: IAnchorerCfg
 	) {}
 
-	getAnchor(id: string): IAnchor {
+	getAnchor(id: string,
+		// positions: vscode.Position[]
+		): IAnchor {
 		return {
 			editor: this.activeEditorUtils.editor,
-			marker: this.markerUtils.getMarker(id)
+			marker: this.markerUtils.getMarker(id),
+			// positions
 		}
 	}
 
@@ -79,23 +83,29 @@ export default class Anchorer {
 		return markerStartPos;
 	}
 
-	async delete(anchored: IAnchorable): Promise<boolean> {
-		// const range = markerStartPos ?
-		// this.markerUtils.getMarkerRange(anchor);
-		// range = this.markerUtils.getMarkerRange(designable.anchor, initialPositionData.markerStartPos);
+	async delete(anchored: IAnchorable): Promise<void> {
 		// вычисляем range по новой т.к. после тоггла коммента позиция сместилась
-		// const range = this.getAnchorRange(anchored.anchor);
+		const ranges = this.markerUtils.getMarkerRange(anchored.anchor);
 
-		const range = this.markerUtils.getMarkerRange(anchored.anchor); // т.к. старт не передаем,
-		if (this.cfg.useMultilineComments) await this.toggleComment(anchored.anchor, range);
-		else await this.toggleComment(anchored.anchor);
+		ranges[Symbol.asyncIterator] = async function* () {
+			for (let i = 0; i < this.length; i++) {	yield this[i]; }
+		};
 
-		const commentedRange = this.scanner.rescanLineForMarkerRange(anchored.anchor, range.start);
-		// TODO FIXME рескан текущем строки после уборки коммента
-		return await anchored.anchor.editor.edit(
-			edit => { edit.delete(commentedRange); },
-			{ undoStopAfter: false, undoStopBefore: false }
-		);
+		const deleteRange = async range => {
+			if (this.cfg.useMultilineComments) await this.toggleComment(anchored.anchor, range);
+			else await this.toggleComment(anchored.anchor);
+
+			const commentedRange = this.scanner.rescanLineForMarkerRange(anchored.anchor, range.start);
+
+			return await anchored.anchor.editor.edit(
+				edit => { edit.delete(commentedRange); },
+				{ undoStopAfter: false, undoStopBefore: false }
+			);
+		}
+
+		for await (let range of ranges) {
+			await deleteRange(range);
+		}
 	}
 
 	private async toggleComment(

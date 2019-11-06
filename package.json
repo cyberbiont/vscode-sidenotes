@@ -71,8 +71,8 @@
 				"category": "Sidenotes"
 			},
 			{
-				"command": "sidenotes.temp",
-				"title": "Temporary command to run funtions",
+				"command": "sidenotes.reset",
+				"title": "Reset extension cache",
 				"category": "Sidenotes"
 			},
 			{
@@ -86,7 +86,7 @@
 				"category": "Sidenotes"
 			},
 			{
-				"command": "sidenotes.extranesous",
+				"command": "sidenotes.extraneous",
 				"title": "Clean extraneous (orphaned) files from current sidenotes folder",
 				"category": "Sidenotes"
 			}
@@ -103,10 +103,13 @@
 					"command": "sidenotes.delete"
 				},
 				{
-					"command": "sidenotes.temp"
+					"command": "sidenotes.reset"
 				},
 				{
 					"command": "sidenotes.migrate"
+				},
+				{
+					"command": "sidenotes.internalize"
 				}
 			]
 		}

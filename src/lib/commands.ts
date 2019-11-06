@@ -5,7 +5,6 @@ import {
 	Pruner,
 	SidenoteProcessor,
 	Styler,
-	// IDictionary,
 	ISidenote,
 	Inspector,
 	Pool
@@ -85,6 +84,8 @@ export default class Commands {
 			return;
 		}
 
+		// TODO ask user if he wants to delete anchor only or associated file too (in this case scan for other remaining anchors with this id in workspace and delete them);
+
 		const sidenote = await this.sidenoteProcessor.get(scanResult);
 		await this.sidenoteProcessor.delete(sidenote);
 
@@ -103,7 +104,7 @@ export default class Commands {
 		this.styler.updateDecorations();
 	}
 
-	temp() {
+	reset() {
 		this.styler.decReset();
 		this.pool.clear();
 	}
@@ -148,15 +149,15 @@ export default class Commands {
 
 	}
 
-	async cleanExtraneous() {
+	async cleanExtraneous() { //TODO
 		// только для FileService
-		const ids = await this.scanner.scanCurrentWorkspace();
-		// const sidenoteFiles = await this.scanner.readDirectoryRecursive(workspace + cfg.notesSubfolder);
+		// const ids = await this.scanner.scanCurrentWorkspace();
+		// const sidenoteFiles = await this.scanner.scanCurrentSidenotesDir();
 		// sidenoteFiles.forEach(filepath => {
-		// 	const id = getIdFromFilename(filapath);
+		// 	const id = getIdFromFilename(filepath);
 		// 	if(!ids.has(id)) sidenoteProcessor.storageService.delete(id);
 		// })
-	}  //TODO
+	}
 
 	async internalize() {
 		// TODO comment regexp match document for content, select and toggle comment)
@@ -175,6 +176,8 @@ export default class Commands {
 				{ undoStopAfter: false, undoStopBefore: false }
 			);
 		}
+		// TODO get range for comment toggle comment
+
 		this.styler.updateDecorations();
 	}
 }

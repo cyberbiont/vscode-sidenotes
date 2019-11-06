@@ -56,4 +56,10 @@ export default class SetDictionary<T extends IHasIdProperty>
 	count(): number {
 		return this.list.size;
 	}
+
+	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+		for(const item of this.list) {
+			yield cb(item);
+		}
+	}
 }

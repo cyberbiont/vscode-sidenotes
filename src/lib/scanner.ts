@@ -39,7 +39,7 @@ export default class Scanner {
 	rescanLineForMarkerRange(anchor: IAnchor, positionHint: vscode.Position): vscode.Range {
 		const line = this.activeEditorUtils.getTextLine(positionHint);
 		let scanResult = this.scanLine(line)!;
-		return this.markerUtils.getMarkerRange(anchor, scanResult.markerStartPos);
+		return this.markerUtils.getMarkerRange(anchor, scanResult.markerStartPos!);
 	}
 
 	scanLine(line: vscode.TextLine): IScanResultData|undefined {
@@ -76,27 +76,14 @@ export default class Scanner {
 		return Array.prototype.concat(...files);
 		// return files.flat();
 	}
-	// TODO dынести все что связано с файлами из сканера и StoragService в fsUtils
+	// TODO вынести все что связано с файлами из сканера и StorageService в fsUtils
 	async scanCurrentWorkspace() {
-
-		// const getFiles = async (dir: string): Promise<string[]> => {
-		// 	const dirents: fs.Dirent[] = await fs.promises.readdir(dir, { withFileTypes: true });
-		// 	const files = await Promise.all(
-		// 		dirents.map(async dirent => {
-		// 			const fullPath = path.resolve(dir, dirent.name);
-		// 			return dirent.isDirectory() ? getFiles(fullPath) : fullPath;
-		// 		})
-		// 	);
-		// 	return Array.prototype.concat(...files);
-		// 	// return files.flat();
-		// }
 
 		const readFiles = async (filePaths: string[]) => {
 			return Promise.all(
 				filePaths.map(filePath => fs.promises.readFile(filePath, { encoding: 'utf-8' }) as Promise<string>) // returns string when encoding is sepecifie, see fs docs
 			);
 		}
-
 
 		const scanContents = (contents: string[]) => {
 			const fileMatches = contents.map(content => this.getIdsFromText(content))
@@ -115,6 +102,11 @@ export default class Scanner {
 		const uniqueIds = new Set(ids);
 		return uniqueIds;
 	}
+
+	// async scanCurrentSidenotesDir() {
+	// 	const workspace = this.activeEditorUtils.getWorkspaceFolderPath();
+	// 	const filePaths = await this.readDirectoryRecursive(workspace);
+	// }
 
 
 

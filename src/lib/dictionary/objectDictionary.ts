@@ -51,4 +51,10 @@ export default class ObjectDictionary<T extends IHasIdProperty>
 		}
 		return this;
 	}
+
+	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+		for(const key in this.list) {
+			yield cb(this.list[key]);
+		}
+	}
 }

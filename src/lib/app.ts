@@ -2,62 +2,62 @@ import * as vscode from 'vscode';
 
 import {
 	ICfg,
-	IDictionary,
-	IStorageService,
-	IFileStorage,
-	IEditorService,
 	IChangeData,
-	ISidenote,
+	IChangeTracker,
+	IDictionary,
+	IEditorService,
+	IFileStorage,
 	IScanResultData,
-	IChangeTracker
+	ISidenote,
+	IStorageService,
 } from './types';
 
 import {
+	TyporaEditor,
 	VscodeEditor,
-	TyporaEditor
 } from './editorService';
 
 import {
-	VscodeChangeTracker,
 	ChokidarChangeTracker,
 	FsWatchChangeTracker,
+	VscodeChangeTracker,
 } from './changeTracker';
 
 import {
-	SidenoteFactory,
+	Inspector,
 	SidenoteBuilder,
-	Inspector
+	SidenoteFactory,
 } from './sidenote';
 
 import {
 	MarkerUtils,
-	ActiveEditorUtils
+	ActiveEditorUtils,
 } from './utils';
 
-import Commands from './commands';
-import { EventEmitter } from 'events';//TODO: use vScode eventemitter?
-import { MapDictionary } from './dictionary';
-import Styler from './styler';
-import { FileStorage } from './storageService';
-import SidenoteProcessor from './sidenoteProcessor';
 import Anchorer from './anchorer';
-import UuidMaker from './idMaker';
-import Pruner from './pruner';
+import Commands from './commands';
 import Designer from './designer';
-import Scanner from './scanner';
 import Pool from './pool';
+import Pruner from './pruner';
+import Scanner from './scanner';
+import SidenoteProcessor from './sidenoteProcessor';
+import Styler from './styler';
+import UuidMaker from './idMaker';
+import { EventEmitter } from 'events';//TODO: use vScode eventemitter?
+import { FileStorage } from './storageService';
+import { MapDictionary } from './dictionary';
 
 // TODO JSDoc
 // TODO unit tests
 export default class App {
-	private styler: Styler<ISidenote>
-	private sidenoteProcessor: SidenoteProcessor
-	private eventEmitter: EventEmitter
-	private commands: Commands
-	private pool: Pool<ISidenote>
 	private activeEditorUtils: ActiveEditorUtils
 	private changeTracker: IChangeTracker
+	private commands: Commands
 	private editorService: IEditorService
+	private eventEmitter: EventEmitter
+	private pool: Pool<ISidenote>
+	private sidenoteProcessor: SidenoteProcessor
+	private styler: Styler<ISidenote>
 
 	constructor(
 		private cfg: ICfg,
@@ -155,9 +155,9 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.annotate', this.commands.run, this.commands),
 			vscode.commands.registerCommand('sidenotes.display', this.commands.scanDocumentAnchors, this.commands),
 			vscode.commands.registerCommand('sidenotes.delete', this.commands.delete, this.commands),
-			vscode.commands.registerCommand('sidenotes.pruneBroken', this.commands.prune.bind(this, 'broken'), this.commands),
-			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.commands.prune.bind(this, 'empty'), this.commands),
-			vscode.commands.registerCommand('sidenotes.temp', this.commands.temp, this.commands),
+			vscode.commands.registerCommand('sidenotes.pruneBroken', this.commands.prune.bind(this.commands, 'broken')),
+			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.commands.prune.bind(this.commands, 'empty')),
+			vscode.commands.registerCommand('sidenotes.reset', this.commands.reset, this.commands),
 			vscode.commands.registerCommand('sidenotes.internalize', this.commands.internalize, this.commands),
 			vscode.commands.registerCommand('sidenotes.migrate', this.commands.migrate, this.commands),
 			vscode.commands.registerCommand('sidenotes.extraneous', this.commands.cleanExtraneous, this.commands)

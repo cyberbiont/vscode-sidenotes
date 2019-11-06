@@ -123,13 +123,62 @@ export class MarkerUtils {
 	// }
 	// TODO duiambiguate commentedMarker, bareMarker
 
-	getMarkerRange(
-		anchor: IAnchor,
-		start?: vscode.Position
-	): vscode.Range {
-		start = start ? start : this.getMarkerStartPosition(anchor);
-		const end = start.translate({ characterDelta: anchor.marker.length });
-		return new vscode.Range(start, end);
+	// getMarkerRange(anchor: IAnchor,start: vscode.Position): vscode.Range
+	// getMarkerRange(anchor: IAnchor): vscode.Range[] {
+	// 	start = start ? start : this.getMarkerStartPosition(anchor);
+	// 	const end = start.translate({ characterDelta: anchor.marker.length });
+	// 	return new vscode.Range(start, end);
+	// }
+
+	getMarkerRangeFromStartPosition(marker, start: vscode.Position): vscode.Range {
+		return new vscode.Range(
+			start,
+			start.translate({ characterDelta: marker.length })
+		);
 	}
+
+	getMarkerRange(anchor: IAnchor, start: vscode.Position): vscode.Range
+	getMarkerRange(anchor: IAnchor): vscode.Range[]
+	getMarkerRange(anchor: IAnchor, start?: vscode.Position) {
+		if (start) return this.getMarkerRangeFromStartPosition(anchor.marker, start);
+		else {
+			const starts = this.getAllMarkerStartPositions(anchor);
+			return starts.map(start => this.getMarkerRangeFromStartPosition(anchor.marker, start));
+		}
+	}
+
+	// TODO: combine with getMarlerRange
+	// getAllMarkerRanges(
+	// 	anchor: IAnchor,
+	// 	starts?: vscode.Position[]
+	// ): vscode.Range[] {
+	// 	starts = starts ? starts : this.getAllMarkerStartPositions(anchor);
+	// 	const ranges = starts.map(start => new vscode.Range(
+	// 		start,
+	// 		start.translate({ characterDelta: anchor.marker.length })
+	// 	));
+	// 	return ranges;
+	// }
+
+	getAllMarkerStartPositions(anchor: IAnchor): vscode.Position[] {
+
+		const text = anchor.editor.document.getText();
+		const indexes: number[] = [];
+
+		function find(fromIndex = 0) {
+			let index = text.indexOf(anchor.marker, fromIndex);
+			if (~index) {
+				indexes.push(index);
+				find(++index);
+			}
+			else return;
+		}
+		find();
+
+		const positions = indexes.map(index => this.getPositionFromIndex(anchor, index));
+
+		return positions;
+	}
+
 
 }

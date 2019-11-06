@@ -87,9 +87,11 @@ export class SidenoteFactory {
 
 		let id: string;
 		let sidenote: ISidenote;
+		let position: vscode.Position;
 
 		if (!predefinedId) { // buildNewSidenote
 			id = this.idMaker.makeId();
+			// position = vscode.window.activeTextEditor!.selection.anchor; //REVIEW
 			const undecorated = new SidenoteBuilder()
 				.withId(id)
 				.withContent(await this.activeEditorUtils.extractSelectionContent())
@@ -108,6 +110,7 @@ export class SidenoteFactory {
 
 		} else {
 			id = predefinedId;
+			// position = markerStartPos || vscode.window.activeTextEditor!.selection.anchor;
 			const storageEntry = this.storageService.get(id);
 			const content = storageEntry ? storageEntry.content : undefined;
 			const undecorated = new SidenoteBuilder()

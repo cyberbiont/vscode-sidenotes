@@ -71,7 +71,14 @@ export default class SidenoteProcessor {
 		if (scanResult) {
 			const { id, markerStartPos } = scanResult;
 			queryResult = this.pool.get(scanResult.id);
+
 			if (queryResult) {
+				// if (!queryResult.anchor.positions.includes(markerStartPos)) {
+				// 	queryResult.anchor.positions.push(markerStartPos);
+				// }
+				if (!queryResult.decorations.some(decoration => decoration.options.range.start === markerStartPos)) {
+					queryResult.decorations.push(...this.designer.get(queryResult, { markerStartPos }));
+				}
 				sidenote = queryResult;
 			} else {
 				sidenote = await this.sidenoteFactory.build(id, markerStartPos);

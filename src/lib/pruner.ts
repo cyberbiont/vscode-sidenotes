@@ -32,18 +32,14 @@ export default class Pruner {
 
 	private async prune(getCondition): Promise<void> {
 
-		const cb = async (sidenote: ISidenote): Promise<boolean> => {
+		const processSidenote = async (sidenote: ISidenote): Promise<boolean> => {
 			const condition = getCondition(sidenote);
 			if (condition) await this.sidenoteProcessor.delete(sidenote);
 			return condition;
 		}
 
-		for await (let sidenote of this.pool[Symbol.asyncIterator](cb)) {
-			// REVIEW
-			// if (getCondition()) {
-			// 	await sidenote.wipe();
-			// 	this.dictionary.delete(sidenote.id);
-			// }
+		for await (let sidenote of this.pool.activeDictionary[Symbol.asyncIterator](processSidenote)) {
+			// processSidenote(sidenote);
 		}
 	}
 

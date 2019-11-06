@@ -52,4 +52,10 @@ export default class MapDictionary<T extends IHasIdProperty>
 	count(): number {
 		return this.list.size;
 	}
+
+	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+		for(const item of this.list.values()) {
+			yield cb(item);
+		}
+	}
 }
