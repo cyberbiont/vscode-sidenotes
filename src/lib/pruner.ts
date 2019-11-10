@@ -14,7 +14,7 @@ import {
 export default class Pruner {
 	constructor(
 		// public pool: IDictionary<ISidenote>,
-		public pool: Pool<ISidenote>,
+		public pool: Pool,
 		public sidenoteProcessor: SidenoteProcessor,
 		public inspector: Inspector
 	) {}

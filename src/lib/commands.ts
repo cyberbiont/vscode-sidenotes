@@ -19,7 +19,7 @@ export default class Commands {
 		private sidenoteProcessor: SidenoteProcessor,
 		private scanner: Scanner,
 		// private pool: IDictionary<ISidenote>,
-		private pool: Pool<ISidenote>,
+		private pool: Pool,
 		private inspector: Inspector
 	) {}
 
@@ -42,11 +42,29 @@ export default class Commands {
 					let sidenote = await this.sidenoteProcessor.get(scanResult);
 					return sidenote;
 				}
-				await scanResults.forEach(recreate, this);
+				scanResults[Symbol.asyncIterator] = async function* () {
+					for (const item of this) { yield recreate(item); }
+				}
+				for await(let result of scanResults) {}
+				/* 'for await' при обходе цикла анализировать результаты предыдущих итераций
+					(нужно для поддержки множественных заметок, чтобы отcлеживать,
+					повторяется ли id и позиция)
+					но это замедляет цикл */
+
+				/* т.к. у нас в цикле выполняется асинхронная функция, forEach происходит
+				асинхронно, соответственно, мы не имеем возможности в одном из циклов проверить
+				результат предыдущего (т.е. достать что-либо из pool) можно тут применить
+				асинхронный итератор, но пострадает производительность (лучше все-таки в цикле
+				все делать) т.о. проверка должна происходить в момент добавления элемента в пул,
+				но мы, строго говоря, не знаем, в каком порядке будут добавляться элементы
+				set использовать нельзя, т.к. у нас коллекция объектов, которые по сути разные, но
+				нам надо проверить на св-во id
+				с другой стороны, нам не ваен порядок, главное чтобы одинаковые объекты не добавлялись
+				*/
+
+
+				// await scanResults.forEach(recreate, this);
 				this.pool.setIsInitialized(true);
-				// если вручную очистил пул, должен ставиться признак tobeInit
-				// и сразу же вероятно рескан (но это не обязательно)
-				// tobeinbit должен непосредственно на dictionary, чтобы не терялся при
 
 			} catch(e) {;
 				console.log(e);
@@ -59,7 +77,6 @@ export default class Commands {
 	async run(): Promise<void> {
 		try {
 			const scanResult = this.scanner.getFromCurrentLine();
-			// if (scanResult) { const { id, markerStartPos } = scanResult; }
 
 			let obtainedSidenote = await this.sidenoteProcessor.get(scanResult);
 

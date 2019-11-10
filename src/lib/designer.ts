@@ -1,26 +1,25 @@
 import * as vscode from 'vscode';
 import {
-	MarkerUtils,
 	ActiveEditorUtils,
 	IAnchor,
+	ISidenote,
 	IStylableDecorations,
 	IStylerCfg,
 	Inspector,
+	MarkerUtils,
 	Scanner,
-	ISidenote
 } from './types';
 
 export interface IDesignable {
 	// isBroken(): boolean
 	// isEmpty(): boolean
-	content: string | undefined;
 	anchor: IAnchor;
+	content: string | undefined;
 }
 
 export interface IDesignerCfg extends IStylerCfg {}
 
 export default class Designer {
-	// private decorations: IStylableDecorations
 	constructor(
 		public markerUtils: MarkerUtils,
 		public inspector: Inspector,
@@ -36,28 +35,24 @@ export default class Designer {
 			markerStartPos?: vscode.Position;
 		}
 	): IStylableDecorations {
-		// this.decorations = [];
-
 		let ranges: vscode.Range[] = [];
-		let range: vscode.Range;
 
 		if (positionHints && positionHints.markerStartPos) {
-			// only get end position
-			range = this.markerUtils.getMarkerRange(
+			// only get the end position
+			let range: vscode.Range = this.markerUtils.getMarkerRange(
 				designable.anchor,
 				positionHints.markerStartPos
 			);
 			ranges.push(range);
 		} else if (positionHints && positionHints.uncommentedMarkerStartPos) {
-			// search same line
-			range = this.scanner.rescanLineForMarkerRange(
+			// search in the same line
+			let range: vscode.Range = this.scanner.rescanLineForMarkerRange(
 				designable.anchor,
 				positionHints.uncommentedMarkerStartPos
 			);
 			ranges.push(range);
 		} else {
 			// search whole document
-			// range = this.markerUtils.getMarkerRange(designable.anchor);
 			ranges = this.markerUtils.getMarkerRange(designable.anchor);
 		}
 		const decorations = Array.prototype.concat(
@@ -66,17 +61,6 @@ export default class Designer {
 
 		return decorations;
 	}
-
-	// getRanges(
-	// 	designable: IDesignable,
-	// 	positionHints?: {
-	// 		uncommentedMarkerStartPos?: vscode.Position,
-	// 		markerStartPos?: vscode.Position
-	// 	}
-	// ) {
-
-	// 	return range;
-	// }
 
 	getRangeDecorations(
 		range: vscode.Range,

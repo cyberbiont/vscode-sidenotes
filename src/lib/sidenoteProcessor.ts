@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import {
-	IStorageService,
 	// IDictionary,
-	Pool,
 	Anchorer,
 	Designer,
-	ISidenote,
-	SidenoteFactory,
 	IScanResultData,
-	IStorable
+	ISidenote,
+	IStorable,
+	IStorageService,
+	Pool,
+	SidenoteFactory,
  } from './types';
 
 import { FileStorage } from './storageService'; //TODO @? импортируем класс чтобы сравнить
@@ -19,7 +19,7 @@ export default class SidenoteProcessor {
 		public anchorer: Anchorer,
 		public sidenoteFactory: SidenoteFactory,
 		// public pool: IDictionary<ISidenote>,
-		public pool: Pool<ISidenote>,
+		public pool: Pool,
 		public designer: Designer
 	) {}
 
@@ -58,33 +58,54 @@ export default class SidenoteProcessor {
 		return this.storageService.open(sidenote.id);
 	}
 
-	// TODO сделать все-таки чтобы функция принимала id + option bag
-	// реализовать через overloading
-	// async get(id?: string): Promise<ISidenote>
-	async get(
-		scanResult?: IScanResultData
-	): Promise<ISidenote> {
+	async get(scanResult: IScanResultData|undefined): Promise<ISidenote>
+	async get(id: string): Promise<ISidenote>
+	async get(): Promise<ISidenote>
+	async get(arg?: string|IScanResultData|undefined): Promise<ISidenote> {
 
 		let sidenote: ISidenote;
-		let queryResult: ISidenote|undefined;
 
-		if (scanResult) {
-			const { id, markerStartPos } = scanResult;
-			queryResult = this.pool.get(scanResult.id);
+		if (arg) {
+			let id: string;
+			let position: vscode.Position|undefined;
+
+			if (typeof arg === 'string') {
+				id = arg;
+				position = undefined;
+			} else if (typeof arg === 'object' && arg !== null) {
+				({ id, position } = arg as IScanResultData);
+			} else {
+				throw new Error(
+					'invalid arguments provided for getSidenote function'
+				);
+			}
+
+			const queryResult: ISidenote | undefined = this.pool.get(id);
+
 
 			if (queryResult) {
-				// if (!queryResult.anchor.positions.includes(markerStartPos)) {
-				// 	queryResult.anchor.positions.push(markerStartPos);
-				// }
-				if (!queryResult.decorations.some(decoration => decoration.options.range.start === markerStartPos)) {
-					queryResult.decorations.push(...this.designer.get(queryResult, { markerStartPos }));
+
+				if (position) {	// if position was passed
+					if (!queryResult.decorations.some(
+							decoration =>
+								decoration.options.range.start.character === position!.character &&
+								decoration.options.range.start.line ===	position!.line
+						)
+					) {
+						queryResult.decorations.push(
+							...this.designer.get(queryResult, {
+								markerStartPos: position!
+							})
+						);
+					}
 				}
 				sidenote = queryResult;
 			} else {
-				sidenote = await this.sidenoteFactory.build(id, markerStartPos);
+				sidenote = await this.sidenoteFactory.build(id, position);
 				this.pool.add(sidenote);
 			}
-		} else { // new sidenote
+		} else {
+			// new sidenote
 			sidenote = await this.sidenoteFactory.build(null);
 			this.pool.add(sidenote);
 		}

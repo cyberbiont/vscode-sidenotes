@@ -10,7 +10,7 @@ import {
 
 export interface IScanResultData {
 	id: string,
-	markerStartPos?: vscode.Position
+	position: vscode.Position
 }
 
 export default class Scanner {
@@ -23,32 +23,38 @@ export default class Scanner {
 	getIdsFromText(
 		text: string = this.activeEditorUtils.editor.document.getText()
 	): IScanResultData[]|undefined {
-		const match = text.match(this.markerUtils.bareMarkerRegex);
-		// предусматриваем в дальнейшем возможность передачи index вместе с id, когда перейдем на метод MatchAll
+
 		const result: IScanResultData[] = [];
-		if (match) {
-			match.forEach(el => result.push({
-				id: this.markerUtils.getIdFromMarker(el)
-			}));
-			return result;
-		} else {
-			return undefined;
+
+		let match;
+		let regex = this.markerUtils.bareMarkerRegex;
+		//TODO use matchAll юпредусматриваем в дальнейшем возможность передачи index вместе с id, когда перейдем на метод MatchAll
+		while ((match = regex.exec(text)) !== null) {
+			result.push({
+				id: this.markerUtils.getIdFromMarker(match[0]),
+				position: this.markerUtils.getPositionFromIndex(this.activeEditorUtils.editor, match.index)
+			});
 		}
+		if (result.length !== 0) return result;
+		else return undefined;
 	}
 
 	rescanLineForMarkerRange(anchor: IAnchor, positionHint: vscode.Position): vscode.Range {
 		const line = this.activeEditorUtils.getTextLine(positionHint);
 		let scanResult = this.scanLine(line)!;
-		return this.markerUtils.getMarkerRange(anchor, scanResult.markerStartPos!);
+		return this.markerUtils.getMarkerRange(anchor, scanResult.position);
 	}
 
 	scanLine(line: vscode.TextLine): IScanResultData|undefined {
 		if (line.isEmptyOrWhitespace) return undefined;
 		const match = line.text.match(this.markerUtils.bareMarkerRegexNonG);
-		if (match && match.index) {
+		if (match) {
 			return {
 				id: this.markerUtils.getIdFromMarker(match[0]),
-				markerStartPos: line.range.start.translate({ characterDelta: match.index - this.markerUtils.getPrefixLength() })
+				position: line.range.start.translate({
+					characterDelta: match.index
+					// - this.markerUtils.getPrefixLength()
+				})
 			}
 		}
 	}

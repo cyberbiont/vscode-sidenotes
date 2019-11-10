@@ -5,26 +5,26 @@ import * as path from 'path';
 import {
 	ActiveEditorUtils,
 	IEditorService,
-} from  './types';
+} from './types';
 
 export interface IStorable {
-	id: string
-	content: string
+	id: string;
+	content: string;
 }
 
 export interface IStorageService {
-	delete(id: string): boolean|Promise<boolean>
-	write(data: IStorable): boolean|Promise<boolean>
-	get(id: string): IStorable|undefined
+	delete(id: string): boolean | Promise<boolean>;
+	write(data: IStorable): boolean | Promise<boolean>;
+	get(id: string): IStorable | undefined;
 	open(id: string);
-	checkRequirements?(): void
-	// TODO как разрешить имплементацию с другими аругментами, например?
+	checkRequirements?(): void;
+	//TODO как разрешить имплементацию с другими аругментами, например?
 	lookup?(
 		id: string,
 		lookupFolderPath?: string,
 		workspace?: string,
 		resolveAction?: string
-	): Promise<string|boolean>
+	): Promise<string | boolean>;
 }
 
 export interface IFileStorage extends IStorageService {
@@ -33,13 +33,13 @@ export interface IFileStorage extends IStorageService {
 		lookupFolderPath?: string,
 		workspace?: string,
 		resolveAction?: string
-	): Promise<string|boolean>
+	): Promise<string | boolean>;
 	// getFilePath(id: string): string,
 }
 
 export type IFileStorageCfg = {
-	notesSubfolder: string
-}
+	notesSubfolder: string;
+};
 
 // export abstract class StorageService implements IStorageService {
 // 	abstract delete(id: string): boolean|Promise<boolean>
@@ -49,16 +49,17 @@ export type IFileStorageCfg = {
 // }
 
 export class FileStorage
-	// extends StorageService
-	implements IFileStorage	{
+	implements
+		// extends StorageService
+		IFileStorage {
 	//TODO handle uri instead of file paths;
 	private pathCache: {
-		[id: string]: string
-	}
+		[id: string]: string;
+	};
 
 	private o: {
-		ext: string
-	} & IFileStorageCfg
+		ext: string;
+	} & IFileStorageCfg;
 
 	constructor(
 		public editorService: IEditorService,
@@ -68,25 +69,38 @@ export class FileStorage
 		public fs = nodeFs
 	) {
 		this.pathCache = {};
-		this.o = Object.assign({
-			ext: '.md'
-		}, cfg);
+		this.o = Object.assign(
+			{
+				ext: '.md'
+			},
+			cfg
+		);
 	}
 
 	checkRequirements(): void {
 		if (!vscode.workspace.workspaceFolders) {
 			throw new Error('Adding notes requires an open folder.');
 		}
+		const notesFolder = path.join(
+			this.getCurrentWorkspacePath(),
+			this.o.notesSubfolder
+		);
+
+		if (!this.fs.existsSync(notesFolder)) {
+			this.fs.mkdirSync(notesFolder);
+		}
 	}
 
-	get(id: string): IStorable|undefined {
+	get(id: string): IStorable | undefined {
 		try {
-			const content = this.fs.readFileSync(this.getFilePath(id), { encoding: 'utf8' });
+			const content = this.fs.readFileSync(this.getFilePath(id), {
+				encoding: 'utf8'
+			});
 			return {
 				id,
 				content
-			}
-		} catch (e)	{
+			};
+		} catch (e) {
 			// const action = this.handleBroken(id);
 			// vscode.window.showErrorMessage(`<Failed to open file>. ${e.message}`);
 			// return {
@@ -124,7 +138,7 @@ export class FileStorage
 			this.getCurrentWorkspacePath(),
 			this.o.notesSubfolder,
 			this.getFileName(id)
-		)
+		);
 		// const filePath = this.getFilePathFromParts(notesSubfolderPath, id);
 
 		this.pathCache[id] = filePath;
@@ -156,32 +170,36 @@ export class FileStorage
 		lookupFolderPath: string,
 		workspace: string = this.getCurrentWorkspacePath(),
 		resolveAction: string = 'copy'
-	): Promise<string|boolean> {
-
+	): Promise<string | boolean> {
 		const fileName = this.getFileName(id);
 
 		const lookupFilePath = path.join(
 			lookupFolderPath,
 			// this.o.notesSubfolder,
 			fileName
-		 );
+		);
 		const currentFilePath = path.join(
 			workspace,
 			this.o.notesSubfolder,
 			fileName
 		);
 
-		if (this.fs.existsSync(lookupFilePath) && !this.fs.existsSync(currentFilePath)) {
-			if (resolveAction === 'move') this.fs.rename(lookupFilePath, currentFilePath, err => {
-				if (err) throw err;
-			});
-			else if (resolveAction === 'copy') this.fs.copyFileSync(lookupFilePath, currentFilePath);
+		if (
+			this.fs.existsSync(lookupFilePath) &&
+			!this.fs.existsSync(currentFilePath)
+		) {
+			if (resolveAction === 'move')
+				this.fs.rename(lookupFilePath, currentFilePath, err => {
+					if (err) throw err;
+				});
+			else if (resolveAction === 'copy')
+				this.fs.copyFileSync(lookupFilePath, currentFilePath);
 			return currentFilePath;
 		} else {
-			vscode.window.showErrorMessage(`Cannot find sidenote file: there is no such file in the directory that you have selected!`);
+			vscode.window.showErrorMessage(
+				`Cannot find sidenote file: there is no such file in the directory that you have selected!`
+			);
 			return false;
 		}
 	}
-
-
 }

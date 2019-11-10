@@ -89,27 +89,28 @@ export class MarkerUtils {
 
 	getMarker(id: string): string { //get full marker to be written in document
 		let marker: string;
-		if (this.cfg.marker.template) {
-			marker = this.cfg.marker.template
-				.replace('%p', this.cfg.marker.prefix)
-				.replace('%id', `${this.cfg.marker.salt}${id}`);
-		} else {
-			marker = `${this.cfg.marker.prefix}${this.cfg.marker.salt}${id}`;
-		}
+		// if (this.cfg.marker.template) {
+		// 	marker = this.cfg.marker.template
+		// 		.replace('%p', this.cfg.marker.prefix)
+		// 		.replace('%id', `${this.cfg.marker.salt}${id}`);
+		// } else {
+			// marker = `${this.cfg.marker.prefix}${this.cfg.marker.salt}${id}`;
+			marker = `${this.cfg.marker.salt}${id}`;
+		// }
 		return marker;
 	}
 
-	getPrefixLength() {
-		return this.cfg.marker.prefix.length;
-	}
+	// getPrefixLength(): number {
+	// 	return this.cfg.marker.prefix;
+	// }
 
-	getPositionFromIndex(anchor: IAnchor, index: number): vscode.Position {
-		return anchor.editor.document.positionAt(index);
+	getPositionFromIndex(editor: vscode.TextEditor, index: number): vscode.Position {
+		return editor.document.positionAt(index);
 	}
 
 	getMarkerStartPosition(anchor: IAnchor) {
 		const index = anchor.editor.document.getText().indexOf(anchor.marker);
-		return this.getPositionFromIndex(anchor, index);
+		return this.getPositionFromIndex(anchor.editor, index);
 		// с помощью обычного match можно получить ИЛИ все маркеры, или маркер + индекс,
 		// поэтому в inventorize получаем все маркеры, а тут дополнительно ищем индекс через indexof
 		// мы не можем привязывать Range коммента включая символы комментария, потом что для разных языков они могут быть разными
@@ -146,20 +147,6 @@ export class MarkerUtils {
 			return starts.map(start => this.getMarkerRangeFromStartPosition(anchor.marker, start));
 		}
 	}
-
-	// TODO: combine with getMarlerRange
-	// getAllMarkerRanges(
-	// 	anchor: IAnchor,
-	// 	starts?: vscode.Position[]
-	// ): vscode.Range[] {
-	// 	starts = starts ? starts : this.getAllMarkerStartPositions(anchor);
-	// 	const ranges = starts.map(start => new vscode.Range(
-	// 		start,
-	// 		start.translate({ characterDelta: anchor.marker.length })
-	// 	));
-	// 	return ranges;
-	// }
-
 	getAllMarkerStartPositions(anchor: IAnchor): vscode.Position[] {
 
 		const text = anchor.editor.document.getText();
@@ -175,7 +162,7 @@ export class MarkerUtils {
 		}
 		find();
 
-		const positions = indexes.map(index => this.getPositionFromIndex(anchor, index));
+		const positions = indexes.map(index => this.getPositionFromIndex(anchor.editor, index));
 
 		return positions;
 	}

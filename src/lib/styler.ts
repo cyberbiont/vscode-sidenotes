@@ -37,7 +37,7 @@ export default class Styler<T> {
 	}
 	constructor(
 		// public pool: IDictionary<T>,
-		public pool: Pool<T>,
+		public pool: Pool,
 		public cfg: IStylerCfg,
 	) {
 		this.decorations = this.initDecorationConfig();

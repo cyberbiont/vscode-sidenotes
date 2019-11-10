@@ -88,7 +88,8 @@ export default class Anchorer {
 		const ranges = this.markerUtils.getMarkerRange(anchored.anchor);
 
 		ranges[Symbol.asyncIterator] = async function* () {
-			for (let i = 0; i < this.length; i++) {	yield this[i]; }
+			for (const item of this) { yield item; }
+			// for (let i = 0; i < this.length; i++) {	yield this[i]; }
 		};
 
 		const deleteRange = async range => {

@@ -83,15 +83,14 @@ export class SidenoteFactory {
 		private SidenoteBuilder
 	) {}
 
-	async build(predefinedId: string|null, markerStartPos?: vscode.Position): Promise <ISidenote> {
+	async build(predefinedId: string|null, position?: vscode.Position): Promise <ISidenote> {
 
 		let id: string;
 		let sidenote: ISidenote;
-		let position: vscode.Position;
+		// let position: vscode.Position;
 
 		if (!predefinedId) { // buildNewSidenote
 			id = this.idMaker.makeId();
-			// position = vscode.window.activeTextEditor!.selection.anchor; //REVIEW
 			const undecorated = new SidenoteBuilder()
 				.withId(id)
 				.withContent(await this.activeEditorUtils.extractSelectionContent())
@@ -110,15 +109,14 @@ export class SidenoteFactory {
 
 		} else {
 			id = predefinedId;
-			// position = markerStartPos || vscode.window.activeTextEditor!.selection.anchor;
 			const storageEntry = this.storageService.get(id);
 			const content = storageEntry ? storageEntry.content : undefined;
 			const undecorated = new SidenoteBuilder()
 				.withId(id)
 				.withContent(content)
 				.withAnchor(this.anchorer.getAnchor(id));
-			// markerStartPos can be undefined if we did document-wide scanning
-			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { markerStartPos }))
+
+			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { markerStartPos: position }))
 				.build();
 		}
 	}
