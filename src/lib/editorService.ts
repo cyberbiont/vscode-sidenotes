@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import {
 	ActiveEditorUtils,
+	FileChangeTracker,
 	IChangeTracker,
 	VscodeChangeTracker,
-	FileChangeTracker
 } from  './types';
 
 export interface IEditorService {
@@ -39,14 +39,26 @@ export class VscodeEditor implements IEditorService {
 
 export class TyporaEditor implements IEditorService {
 
-	terminal: vscode.Terminal;
+	private terminal: vscode.Terminal = vscode.window.createTerminal('Typora');
+
 	constructor(
 		public changeTracker: FileChangeTracker,
 		public activeEditorUtils: ActiveEditorUtils
 	) {
-		this.terminal = vscode.window.createTerminal('Typora');
+		// this.terminal = vscode.window.createTerminal('Typora');
 		this.changeTracker.init();
+		// TODO // this.checkRequirements();
 	}
+
+	// checkRequirements() {
+	// 	const isWin = ~require('os').platform().indexOf('win');
+	// 	const where = isWin ? 'where' : 'whereis';
+	// 	const spawn = require('child_process').spawn;
+	// 	spawn(`${where} typora`, {encoding: 'utf8'})
+	// 		.on('close', code => {
+	// 			console.log('exit code : ' + code);
+	// 		});
+	// }
 
 	open(path: string): vscode.Terminal|false {
 		// TODO check file extension

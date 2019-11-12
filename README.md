@@ -50,19 +50,35 @@ If you want to display an image or some other type of html-supportedcontent, you
 
 The extension uses certain Regex, based on unique id, to identify sidenote anchors in your source document and operate on them. 
 
-There's also a configurable 'prefix' part.  The things to remember:
-
 
 
 
 
 Some configuration options, which define the structure of sidenote marker comment, may be respon 
 
-### Mulitine vs singleline comments
+### Multi-line (block) vs single-line comments
 
+There is a possibilty to use either single-line comments or multi-line. Advantages of multi-line comments:
 
+- straightforward selection of comment when marker hiding mode is engaged.
 
-## 
+- ability to add sidenotes to the end of existing line of code.
+
+- ability to have several comments (i.e. sidenotes) in one line, 
+
+- ability to place comments in between your code lines. 
+
+	Generally,  later two couldn't be considered good practice though, but if you need these features you can turn it on. 
+
+The main con: in certain language syntaxes (for example, bash shellScript and Pug) multi-line comments are not available or doesn't work (generally, if editor.action.blockComment is not feasible for current language, syntax extension must fall back to editor.action.commentLine, in this case everything will work, but not all extensions do so) .We cannot provide fallback manually since executeCommand method does not return anything in this case so we cannot detect if block comment was toggled successfully. (the only way is to manually check if the current line length has changed)
+
+All taken to all, using single-line comments is recommended.
+
+Using single-line comments engages Vscode editor.action.commentLine, which effectively toggle comments on the *whole* line. So, you won't be able to add sidenote comment at the end of the line of code; you'll always need a dedicated line for your note. Besides, when 'folding' your marker, with single-line comments if can be problematic to properly select the whole comment (if you want to manually move in to some other place) since comment lacks ending characters that can indicate that selection is done correctly. One way to do this right is to use ctrl + L shortcut to select the whole line.
+
+With single-line sidenotes, you can insert sidenotes inside block comments.
+
+One thing to remeber is that once you switch comments type in settings, extension will still properly display other comment type sidenotes, but won't be able to properly delete them (since another cmmand is used to toggle comment off). So you will have to do it manually.
 
 ## Commands
 
@@ -123,6 +139,14 @@ It's up to you whether you want to commint your sidenotes to VCS or leave them o
 You can also exclude your sidenotes folder from VCS. In that case, you get notes privacy (they won't be commited and therefore shared with other collaborators through VCS), but you are at risk of getting 'extraneous'  or 'broken' notes if you check out the version when sidenote anchor comment still doesn't exist, or, otherwise, still exists though you could have deleted note and content file in one of later versions. However, if you really want the sidenote to be independent of VCS, it's the way to go.
 
 If you want to exclude, it is recommended that you do it via global [git exclude](https://help.github.com/en/github/using-git/ignoring-files#explicit-repository-excludes) rather than .gitignore. 
+
+## Gotchas
+
+### Cut  / copy markers
+
+When you manually move / copy your anchor markers, the decorations need to be updated to account for new marker position, until then they will be rendered at their old position. Sadly, VSCode currently has no way of detecting cut/copy/paste events, so the closest event you can get after moving your marker is *document save* event.  On this event extension will scan changes and update decorations if any markersa are involved. So, when you manually paste fragment of code that includes sidenote markers, you'll have to save you document to update view.
+
+When you cut fragment of code that contains sidenote markers, 
 
 ## Credits
 

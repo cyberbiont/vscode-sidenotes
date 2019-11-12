@@ -58,6 +58,8 @@ export default class App {
 	private pool: Pool
 	private sidenoteProcessor: SidenoteProcessor
 	private styler: Styler<ISidenote>
+	private scanner: Scanner
+	private designer: Designer;
 
 	constructor(
 		private cfg: ICfg,
@@ -108,6 +110,8 @@ export default class App {
 		this.activeEditorUtils = activeEditorUtils;
 		this.changeTracker = changeTracker;
 		this.editorService = editorService;
+		this.scanner = scanner;
+		this.designer = designer;
 	}
 
 	checkRequirements() {
@@ -148,6 +152,60 @@ export default class App {
 			(editor: vscode.TextEditor) => updateOnEditorChange(editor);
 
 		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveEditorHandler, this, this.context.subscriptions);
+
+		const onDidChangeTextDocument = async (event: vscode.TextDocumentChangeEvent) => {
+			// if (activeEditor && event.document === activeEditor.document)
+
+			// if (timeout) {
+			// 	clearTimeout(timeout);
+			// 	timeout = undefined;
+			// }
+			// timeout = setTimeout(updateDecorations, 500);
+
+			const includesMarker = (text: string): boolean => {
+				return (text.length <= 40) && text.indexOf(this.cfg.anchor.marker.salt) !== -1;
+			}
+
+			const updateDecorationRange = async (scanResult): Promise<ISidenote> => {
+				const sidenote = await this.sidenoteProcessor.get(scanResult);
+				sidenote.decorations = this.designer.get(
+					sidenote, { markerStartPos: scanResult.position }
+				);
+				// в принципе можно обойтись без
+				return sidenote;
+			}
+
+			if (!event.contentChanges.some(
+				change => includesMarker(change.text)
+			)) return;
+
+			// const allScanResults: IScanResultData[] =[];
+			// rescan positions for decorations in current document
+			const scanResults = this.scanner.getIdsFromText();
+			if (!scanResults) return;
+			//  а зачем, если все декорации у нас есть в пуле для данного документа
+
+			scanResults.forEach(updateDecorationRange);
+
+			// event.contentChanges.forEach(change => {
+			// 	if (!includesMarker(change.text)) return;
+			// 	// TOD check for salt prefix? if !~indexOf(salt) return
+			// 	// console.log(change.text, change.rangeLength);
+			// 	const scanResults = this.scanner.getIdsFromText(change.text);
+			// 	if (scanResults) allScanResults.push(...scanResults);
+			// });
+			// return;
+			// if (scanResults.length === 0) return;
+
+			// allScanResults[Symbol.asyncIterator] = async function* () {
+			// 	for (const item of this) { yield update(item); }
+			// }
+			// for await(let result of allScanResults) {}
+
+			this.styler.updateDecorations();
+		}
+
+		vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument, this, this.context.subscriptions)
 	}
 
 	registerCommands() {

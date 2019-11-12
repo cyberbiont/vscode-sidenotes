@@ -33,8 +33,12 @@ export interface IAnchorable {
 	anchor: IAnchor
 }
 
-export type IAnchorerCfg = {
-	useMultilineComments ?: boolean
+export type OAnchorer = {
+	anchor: {
+		marker: {
+			useMultilineComments ?: boolean
+		}
+	}
 }
 
 export default class Anchorer {
@@ -42,7 +46,7 @@ export default class Anchorer {
 		public markerUtils: MarkerUtils,
 		public activeEditorUtils: ActiveEditorUtils,
 		public scanner: Scanner,
-		public cfg: IAnchorerCfg
+		public cfg: OAnchorer
 	) {}
 
 	getAnchor(id: string,
@@ -66,19 +70,23 @@ export default class Anchorer {
 	async write(anchorable: IAnchorable): Promise<vscode.Position> {
 		// if (anchorable.hasAnchor()) return anchorable; // if file already has anchor, no need to write it
 		// const anchorData = this.getAnchorData(anchorable.id);
-		const markerStartPos = anchorable.anchor.editor.selection.anchor;
+		const selection = anchorable.anchor.editor.selection;
+		const markerStartPos = selection.anchor;
 		// position is current cursor position
 
 		await anchorable.anchor.editor.edit(
-			edit => { edit.insert(markerStartPos, anchorable.anchor.marker); },
+			edit => {
+				edit.insert(markerStartPos, anchorable.anchor.marker);
+				// if (!this.cfg.anchor.marker.useMultilineComments) {
+				// 	// const line = selection.active.line.range.end;
+				// 	// edit.insert(selection.end, '\xa0');
+				// }
+			},
 			{ undoStopAfter: false, undoStopBefore: false }
 		);
 
-		if (this.cfg.useMultilineComments) {
-			const range = this.markerUtils.getMarkerRange(anchorable.anchor, markerStartPos);
-			await this.toggleComment(anchorable.anchor, range);
-		}
-		else await this.toggleComment(anchorable.anchor);
+		const range = this.markerUtils.getMarkerRange(anchorable.anchor, markerStartPos);
+		await this.toggleComment(anchorable.anchor, range);
 
 		return markerStartPos;
 	}
@@ -87,42 +95,46 @@ export default class Anchorer {
 		// вычисляем range по новой т.к. после тоггла коммента позиция сместилась
 		const ranges = this.markerUtils.getMarkerRange(anchored.anchor);
 
-		ranges[Symbol.asyncIterator] = async function* () {
-			for (const item of this) { yield item; }
-			// for (let i = 0; i < this.length; i++) {	yield this[i]; }
-		};
-
 		const deleteRange = async range => {
-			if (this.cfg.useMultilineComments) await this.toggleComment(anchored.anchor, range);
-			else await this.toggleComment(anchored.anchor);
 
-			const commentedRange = this.scanner.rescanLineForMarkerRange(anchored.anchor, range.start);
+			let rangeToDelete: vscode.Range;
 
-			return await anchored.anchor.editor.edit(
-				edit => { edit.delete(commentedRange); },
+			if (!this.cfg.anchor.marker.useMultilineComments) {
+				rangeToDelete = this.activeEditorUtils.getTextLine(range.start).rangeIncludingLineBreak;
+			} else {
+				await this.toggleComment(anchored.anchor, range);
+				const commentedRange = this.scanner.rescanLineForMarkerRange(anchored.anchor, range.start);
+				rangeToDelete = commentedRange;
+			}
+			return anchored.anchor.editor.edit(
+				edit => { edit.delete(rangeToDelete); },
 				{ undoStopAfter: false, undoStopBefore: false }
 			);
 		}
 
+		ranges[Symbol.asyncIterator] = async function* () {
+			for (const range of this) { yield deleteRange(range); }
+		};
+
 		for await (let range of ranges) {
-			await deleteRange(range);
+			// await deleteRange(range);
 		}
 	}
 
 	private async toggleComment(
 		anchor: IAnchor,
-		range?: vscode.Range
+		range: vscode.Range
 	): Promise<boolean> {
 		try {
-			if (range) {
-				const selection = new vscode.Selection(range.start, range.end);
-				anchor.editor.selection = selection;
+			const selection = new vscode.Selection(range.start, range.end);
+			anchor.editor.selection = selection;
+			if (this.cfg.anchor.marker.useMultilineComments) {
 				await vscode.commands.executeCommand('editor.action.blockComment');
 			} else {
 				await vscode.commands.executeCommand('editor.action.commentLine');
 			}
 			return true;
-		} catch(e) {
+		} catch (e) {
 			return false
 		}
 	}

@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import * as nodeFs from 'fs';
 import {
-	IIdMaker,
-	IDictionary,
 	EventEmitter,
 	IChangeData,
-	IFileChangeTrackerCfg
+	IDictionary,
+	IIdMaker,
+	OFileChangeTracker
 	// FSWatcher
 } from '../types';
 
@@ -13,11 +13,10 @@ import FileChangeTracker from './fileChangeTracker';
 import { MapDictionary } from '../dictionary';
 
 export default class FsWatchChangeTracker extends FileChangeTracker {
-	// public watcher
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
-		cfg: IFileChangeTrackerCfg,
+		cfg: OFileChangeTracker,
 		context: vscode.ExtensionContext,
 		public pool: IDictionary<IWatch> = new MapDictionary(),
 		public watcherService = nodeFs

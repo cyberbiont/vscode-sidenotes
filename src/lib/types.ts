@@ -6,42 +6,44 @@ export {
 } from './dictionary';
 
 export {
+	IDesignable,
+	ODesigner,
 	default as Designer,
-	IDesignerCfg,
-	IDesignable
 } from './designer';
 
 export {
-	default as Anchorer,
 	IAnchor,
-	IAnchorerCfg,
-	IAnchorable
+	IAnchorable,
+	OAnchorer,
+	default as Anchorer,
 } from './anchorer';
 
 export {
-	IActiveEditorUtilsCfg,
-	IMarkerUtilsCfg,
 	ActiveEditorUtils,
-	MarkerUtils
+	MarkerUtils,
+	OActiveEditorUtils,
+	OMarkerUtils,
 } from './utils';
 
 export {
+	// IFileStorageCfg
+	IFileStorage,
 	IStorable,
 	IStorageService,
-	IFileStorage,
-	IFileStorageCfg
+	OFileStorage,
+	OStorageService,
 } from './storageService';
 
 export {
+	IScanResultData,
 	default as Scanner,
-	IScanResultData
 } from './scanner';
 
 export {
-	default as Styler,
-	IStylableDecorations,
-	IStylerCfg,
 	IStylable,
+	IStylableDecorations,
+	OStyler,
+	default as Styler,
 } from './styler';
 
 export {
@@ -60,13 +62,13 @@ export {
 } from './sidenote';
 
 export {
-	IChangeTrackerCfg,
-	IFileChangeTrackerCfg,
-	// IVscodeChangeTrackerCfg,
-	IChangeTracker,
 	FileChangeTracker,
+	IChangeData,
+	IChangeTracker,
+	OChangeTracker,
+	OFileChangeTracker,
+	OVscodeChangeTracker,
 	VscodeChangeTracker,
-	IChangeData
 } from './changeTracker';
 
 export { IEditorService } from './editorService';

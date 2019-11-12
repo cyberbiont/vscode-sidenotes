@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import {
-	IStylable,
-	IStylableDecorations,
-	IIdMaker,
+	ActiveEditorUtils,
 	Anchorer,
-	IAnchorable,
+	Designer,
 	IAnchor,
+	IAnchorable,
+	IDesignable,
+	IIdMaker,
 	IStorable,
 	IStorageService,
-	Designer,
-	IDesignable,
-	ActiveEditorUtils
+	IStylable,
+	IStylableDecorations,
 	// IPrunable
 } from './types';
 

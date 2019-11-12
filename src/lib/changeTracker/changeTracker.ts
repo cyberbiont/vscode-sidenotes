@@ -1,16 +1,15 @@
 import {
-	IIdMaker,
 	EventEmitter,
-	IFileChangeTrackerCfg,
+	IIdMaker,
 	// IVscodeChangeTrackerCfg
 } from '../types';
 
 import * as path from 'path';
 
 // TODO update styles on file delete (delete corresponding anchor?)
-export type IChangeTrackerCfg =
-	IFileChangeTrackerCfg
-	//  | IVscodeChangeTrackerCfg;
+export type OChangeTracker = {
+
+}
 
 export type IChangeData = {
 	id: string
@@ -52,6 +51,4 @@ export default abstract class ChangeTracker {
 		if (match) return match[0];
 		return null;
 	}
-
-
 }

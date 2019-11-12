@@ -4,9 +4,9 @@ import {
 	IAnchor,
 	ISidenote,
 	IStylableDecorations,
-	IStylerCfg,
 	Inspector,
 	MarkerUtils,
+	OStyler,
 	Scanner,
 } from './types';
 
@@ -17,15 +17,16 @@ export interface IDesignable {
 	content: string | undefined;
 }
 
-export interface IDesignerCfg extends IStylerCfg {}
+export type ODesigner = OStyler
 
 export default class Designer {
+
 	constructor(
 		public markerUtils: MarkerUtils,
 		public inspector: Inspector,
 		public activeEditorUtils: ActiveEditorUtils,
 		public scanner: Scanner,
-		public cfg: IDesignerCfg
+		public cfg: ODesigner
 	) {}
 
 	get(
@@ -86,8 +87,8 @@ export default class Designer {
 		range: vscode.Range,
 		designable: IDesignable
 	) {
-		const hoverMessage = this.cfg.decorations[category].message
-			? this.cfg.decorations[category].message
+		const hoverMessage = this.cfg.anchor.design.decorations[category].message
+			? this.cfg.anchor.design.decorations[category].message
 			: designable.content;
 
 		const decoration = {

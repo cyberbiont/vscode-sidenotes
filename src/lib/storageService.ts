@@ -5,12 +5,22 @@ import * as path from 'path';
 import {
 	ActiveEditorUtils,
 	IEditorService,
+	ICfg
 } from './types';
+import { throws } from 'assert';
 
 export interface IStorable {
 	id: string;
 	content: string;
 }
+
+export type OStorageService = {
+	storage: {
+		defaultEditorService: 'vscode'|'Typora'|'system default', //TODO
+	}
+}
+
+// TODO https://code.visualstudio.com/api/references/vscode-api#FileSystemProvider
 
 export interface IStorageService {
 	delete(id: string): boolean | Promise<boolean>;
@@ -18,7 +28,7 @@ export interface IStorageService {
 	get(id: string): IStorable | undefined;
 	open(id: string);
 	checkRequirements?(): void;
-	//TODO как разрешить имплементацию с другими аругментами, например?
+	//? как разрешить имплементацию метода с другими аргументами, например?
 	lookup?(
 		id: string,
 		lookupFolderPath?: string,
@@ -37,44 +47,36 @@ export interface IFileStorage extends IStorageService {
 	// getFilePath(id: string): string,
 }
 
-export type IFileStorageCfg = {
-	notesSubfolder: string;
-};
+export type OFileStorage = {
+	storage: {
+		files: {
+			notesSubfolder: string;
+			contentFileExtension: string;
+		}
+	}
+}
 
-// export abstract class StorageService implements IStorageService {
-// 	abstract delete(id: string): boolean|Promise<boolean>
-// 	abstract write(data: IStorable): boolean|Promise<boolean>
-// 	abstract get(id: string): IStorable
-// 	abstract open(id: string)
-// }
+// TODO implement separate 'run' command for each editor type
+// TODO handle uri instead of file paths;
+// TODO use fs.promises
+export class FileStorage implements IFileStorage {
 
-export class FileStorage
-	implements
-		// extends StorageService
-		IFileStorage {
-	//TODO handle uri instead of file paths;
 	private pathCache: {
 		[id: string]: string;
-	};
+	} = Object.create(null);
 
 	private o: {
-		ext: string;
-	} & IFileStorageCfg;
+		notesSubfolder: string;
+		contentFileExtension: string;
+	}
 
 	constructor(
 		public editorService: IEditorService,
 		public activeEditorUtils: ActiveEditorUtils,
-		cfg: IFileStorageCfg,
-		// public ext: string = '.md',
+		cfg: OFileStorage,
 		public fs = nodeFs
 	) {
-		this.pathCache = {};
-		this.o = Object.assign(
-			{
-				ext: '.md'
-			},
-			cfg
-		);
+		this.o = cfg.storage.files;
 	}
 
 	checkRequirements(): void {
@@ -101,12 +103,6 @@ export class FileStorage
 				content
 			};
 		} catch (e) {
-			// const action = this.handleBroken(id);
-			// vscode.window.showErrorMessage(`<Failed to open file>. ${e.message}`);
-			// return {
-			// 	id,
-			// 	content: undefined
-			// }
 			return undefined;
 		}
 	}
@@ -127,7 +123,7 @@ export class FileStorage
 	// }
 
 	private getFileName(id: string): string {
-		return `${id}${this.o.ext}`;
+		return `${id}${this.o.contentFileExtension}`;
 	}
 
 	getFilePath(id: string): string {
@@ -155,7 +151,7 @@ export class FileStorage
 			// if file is not present, continue
 		}
 	}
-	// TODO use fs.promises
+
 	async write(data: IStorable): Promise<boolean> {
 		const path = this.getFilePath(data.id);
 		if (!this.fs.existsSync(path)) {

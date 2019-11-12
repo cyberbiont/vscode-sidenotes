@@ -1,26 +1,28 @@
 import * as vscode from 'vscode';
 import { IAnchor } from './types';
 
-export type IActiveEditorUtilsCfg = {
-	fileFormatsAllowedForTransfer: string[]
+export type OActiveEditorUtils = {
+	sources: {
+		fileFormatsAllowedForTransfer: string[] //TODO
+	}
 }
+
 export class ActiveEditorUtils {
 	//active Editor manager
 	editor: vscode.TextEditor
 	constructor(
-		// context,
-		public cfg: IActiveEditorUtilsCfg
+		private cfg: OActiveEditorUtils
 	) {
 		this.editor = vscode.window.activeTextEditor!;
 		// vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
 	}
 
 	onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
-		// console.log(this.editor.document);
 		this.editor = editor;
 	}
 
 	getWorkspaceFolderPath(): string {
+		// TODO использовать vscode getWorkspaceFolder(uri: Uri): WorkspaceFolder | undefined
 		// because VSCode allows several equal root folders(workspaces), we need to check where current document resides every time
 		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find( // already handle undefined case in app requirements check
 			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
@@ -41,8 +43,8 @@ export class ActiveEditorUtils {
 
 	async extractSelectionContent(): Promise<string> {
 		// if (
-			// this.cfg.fileFormatsAllowedForTransfer &&
-			// this.cfg.fileFormatsAllowedForTransfer.includes(ext) &&
+			// this.cfg.sources.fileFormatsAllowedForTransfer &&
+			// this.cfg.sources.fileFormatsAllowedForTransfer.includes(ext) &&
 			// !this.editor.selection.isEmpty
 		// ) {
 			const content = this.editor.document.getText(this.editor.selection);
@@ -58,11 +60,13 @@ export class ActiveEditorUtils {
 	}
 }
 
-export type IMarkerUtilsCfg = {
-	marker: {
-		salt: string,
-		prefix: string
-		template?: string
+export type OMarkerUtils = {
+	anchor: {
+		marker: {
+			salt: string,
+			// prefix: string
+			// template?: string
+		}
 	}
 }
 
@@ -74,10 +78,10 @@ export class MarkerUtils {
 	bareMarkerRegexNonG: RegExp
 
 	constructor(
-		public idMaker: IIdMaker,
-		public cfg: IMarkerUtilsCfg
+		private idMaker: IIdMaker,
+		private cfg: OMarkerUtils
 	) {
-		this.bareMarkerRegexString = `${this.cfg.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
+		this.bareMarkerRegexString = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
 		this.bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
 		this.bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);
 	}
@@ -95,7 +99,7 @@ export class MarkerUtils {
 		// 		.replace('%id', `${this.cfg.marker.salt}${id}`);
 		// } else {
 			// marker = `${this.cfg.marker.prefix}${this.cfg.marker.salt}${id}`;
-			marker = `${this.cfg.marker.salt}${id}`;
+			marker = `${this.cfg.anchor.marker.salt}${id}`;
 		// }
 		return marker;
 	}

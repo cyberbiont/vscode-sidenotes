@@ -2,8 +2,8 @@ import {
 	// IDictionary,
 	ISidenote,
 	Inspector,
+	Pool,
 	SidenoteProcessor,
-	Pool
 } from './types';
 
 // export interface IPrunable {

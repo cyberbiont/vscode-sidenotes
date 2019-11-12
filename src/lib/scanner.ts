@@ -3,9 +3,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import {
+	ActiveEditorUtils,
 	IAnchor,
 	MarkerUtils,
-	ActiveEditorUtils
 } from './types';
 
 export interface IScanResultData {

@@ -38,12 +38,12 @@ export default class Commands {
 					return;
 				}
 
-				const recreate = async (scanResult): Promise<ISidenote> => {
-					let sidenote = await this.sidenoteProcessor.get(scanResult);
-					return sidenote;
-				}
-				scanResults[Symbol.asyncIterator] = async function* () {
-					for (const item of this) { yield recreate(item); }
+				// const recreate = async (scanResult): Promise<ISidenote> => {
+				// 	return (scanResult);
+				// }
+
+				scanResults[Symbol.asyncIterator] = async function* recreate () {
+					for (const result of this) { yield this.sidenoteProcessor.get(result); }
 				}
 				for await(let result of scanResults) {}
 				/* 'for await' при обходе цикла анализировать результаты предыдущих итераций
@@ -103,8 +103,8 @@ export default class Commands {
 
 		// TODO ask user if he wants to delete anchor only or associated file too (in this case scan for other remaining anchors with this id in workspace and delete them);
 
-		const sidenote = await this.sidenoteProcessor.get(scanResult);
-		await this.sidenoteProcessor.delete(sidenote);
+		let sidenote = await this.sidenoteProcessor.get(scanResult);
+		sidenote =	await this.sidenoteProcessor.delete(sidenote);
 
 		this.styler.updateDecorations();
 	}

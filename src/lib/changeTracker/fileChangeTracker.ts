@@ -2,14 +2,20 @@ import * as vscode from 'vscode';
 import ChangeTracker from './changeTracker';
 import * as path from 'path';
 import {
-	IIdMaker,
 	EventEmitter,
-	IChangeData
+	ICfg,
+	IChangeData,
+	IIdMaker,
 } from '../types';
 
-export type IFileChangeTrackerCfg = {
-	notesSubfolder: string
+export type OFileChangeTracker = {
+	storage: {
+		files: {
+			notesSubfolder: string
+		}
+	}
 }
+// TODO использовать VSOкоdовский вотчер? https://code.visualstudio.com/api/references/vscode-api#FileSystemWatcher
 
 // 2 варианта: можно установить слежение за всей папкой файлов сразу и по filename в лисенере вычислять id, какой из них изменился
 // это больше похоже на случай есл  используем vscodechangetracker
@@ -18,17 +24,23 @@ export type IFileChangeTrackerCfg = {
 
 export default abstract class FileChangeTracker extends ChangeTracker {
 	abstract watcherService;
+
+	private o:  {
+		notesSubfolder: string
+	}
+
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
-		public cfg: IFileChangeTrackerCfg,
+		public cfg: OFileChangeTracker,
 		public context: vscode.ExtensionContext
 	) {
 		super(idMaker, eventEmitter);
+		this.o = cfg.storage.files;
 	}
 
 	getFullPath(workspace) {
-		return path.join(workspace.uri.fsPath, this.cfg.notesSubfolder);
+		return path.join(workspace.uri.fsPath, this.o.notesSubfolder);
 	}
 
 	onWorkspaceChange(event: vscode.WorkspaceFoldersChangeEvent) {

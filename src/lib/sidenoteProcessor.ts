@@ -23,12 +23,13 @@ export default class SidenoteProcessor {
 		public designer: Designer
 	) {}
 
-	async delete(sidenote: ISidenote): Promise<void> {
+	async delete(sidenote: ISidenote): Promise<ISidenote> {
 		await Promise.all([
 			Promise.resolve(this.storageService.delete(sidenote.id)),
 			this.anchorer.delete(sidenote)
 		]);
 		this.pool.delete(sidenote.id);
+		return sidenote;
 	}
 
 	async write(sidenote: ISidenote): Promise<vscode.Position|void> {
@@ -68,6 +69,23 @@ export default class SidenoteProcessor {
 		if (arg) {
 			let id: string;
 			let position: vscode.Position|undefined;
+			let queryResult: ISidenote | undefined;
+
+			const updatePositions = (sidenote: ISidenote): ISidenote => {
+				if (!sidenote.decorations.some(
+						decoration =>
+							decoration.options.range.start.character === position!.character && //TODO disable this check for single-line comments
+							decoration.options.range.start.line ===	position!.line
+					)
+				) {
+					sidenote.decorations.push(
+						...this.designer.get(sidenote, {
+							markerStartPos: position!
+						})
+					);
+				}
+				return sidenote;
+			}
 
 			if (typeof arg === 'string') {
 				id = arg;
@@ -80,24 +98,13 @@ export default class SidenoteProcessor {
 				);
 			}
 
-			const queryResult: ISidenote | undefined = this.pool.get(id);
-
+			queryResult = this.pool.get(id);
 
 			if (queryResult) {
-
-				if (position) {	// if position was passed
-					if (!queryResult.decorations.some(
-							decoration =>
-								decoration.options.range.start.character === position!.character &&
-								decoration.options.range.start.line ===	position!.line
-						)
-					) {
-						queryResult.decorations.push(
-							...this.designer.get(queryResult, {
-								markerStartPos: position!
-							})
-						);
-					}
+				// во время аплейта декораций нам не надо, чтобы добавлялись новые позиции,
+				// без удаления старых
+				if (!this.pool.getIsInitialized() && position) {	// if position was passed
+					queryResult = updatePositions(queryResult);
 				}
 				sidenote = queryResult;
 			} else {

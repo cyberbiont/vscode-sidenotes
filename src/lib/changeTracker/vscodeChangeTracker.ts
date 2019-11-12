@@ -6,8 +6,8 @@ import {
 	IChangeData
 } from '../types';
 
-// export type IVscodeChangeTrackerCfg = {
-// }
+export type OVscodeChangeTracker = {
+}
 
 export default class VscodeChangeTracker extends ChangeTracker {
 	constructor(
