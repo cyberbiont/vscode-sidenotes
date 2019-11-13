@@ -17,8 +17,8 @@ export default class Pool {
 	// private dictionaryPool: {
 	// 	[ documentPath: string ]: IDictionary<T>
 	// }
-	private dictionaryMap: Map<vscode.TextDocument, IDictionaryMulti<ISidenote>>
-	activeDictionary: IDictionaryMulti<ISidenote>
+	private dictionaryMap: Map<vscode.TextDocument, IDictionaryMulti<ISidenote>>;
+	activeDictionary: IDictionaryMulti<ISidenote>;
 
 	constructor(
 		// context,

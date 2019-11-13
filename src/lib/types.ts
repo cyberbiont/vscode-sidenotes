@@ -35,7 +35,7 @@ export {
 } from './storageService';
 
 export {
-	IScanResultData,
+	IScanData,
 	default as Scanner,
 } from './scanner';
 

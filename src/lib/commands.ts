@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
 import {
-	Scanner,
-	IScanResultData,
-	Pruner,
-	SidenoteProcessor,
-	Styler,
+	ActiveEditorUtils,
+	IScanData,
 	ISidenote,
 	Inspector,
-	Pool
+	Pool,
+	Pruner,
+	Scanner,
+	SidenoteProcessor,
+	Styler,
 } from './types';
-
-import { FileStorage } from './storageService';
 
 export default class Commands {
 	constructor(
@@ -20,15 +19,16 @@ export default class Commands {
 		private scanner: Scanner,
 		// private pool: IDictionary<ISidenote>,
 		private pool: Pool,
-		private inspector: Inspector
+		private inspector: Inspector,
+		private activeEditorUtils: ActiveEditorUtils
 	) {}
 
 	/**
 	*  should be called on extension activation and changes of active editor
 	*/
 	async scanDocumentAnchors(): Promise<void> {
-		// TODO: import acriveEditorUtils?
-		// const pool = this.pool.getDictionary(vscode.window.activeTextEditor!.document);
+		// TODO: import activeEditorUtils?
+
 		// надо просто знать, если уже уже пул для этого документа или нет, если есть, то не пересканируем, просто апдейтим декорации
 		if (!this.pool.getIsInitialized()) {
 			try {
@@ -38,14 +38,13 @@ export default class Commands {
 					return;
 				}
 
-				// const recreate = async (scanResult): Promise<ISidenote> => {
-				// 	return (scanResult);
-				// }
+				await Promise.all(scanResults.map(this.sidenoteProcessor.create, this.sidenoteProcessor));
 
-				scanResults[Symbol.asyncIterator] = async function* recreate () {
-					for (const result of this) { yield this.sidenoteProcessor.get(result); }
-				}
-				for await(let result of scanResults) {}
+				// scanResults[Symbol.asyncIterator] = async function* recreate() {
+				// 	for (const result of this) { yield this.sidenoteProcessor.create(result); }
+				// }.bind(this);
+				// for await(let result of scanResults) {}
+
 				/* 'for await' при обходе цикла анализировать результаты предыдущих итераций
 					(нужно для поддержки множественных заметок, чтобы отcлеживать,
 					повторяется ли id и позиция)
@@ -66,7 +65,7 @@ export default class Commands {
 				// await scanResults.forEach(recreate, this);
 				this.pool.setIsInitialized(true);
 
-			} catch(e) {;
+			} catch(e) {
 				console.log(e);
 			}
 		}
@@ -75,10 +74,11 @@ export default class Commands {
 	}
 
 	async run(): Promise<void> {
-		try {
-			const scanResult = this.scanner.getFromCurrentLine();
 
-			let obtainedSidenote = await this.sidenoteProcessor.get(scanResult);
+		try {
+			const scanData = this.scanner.scanLine();
+
+			let obtainedSidenote = await this.sidenoteProcessor.getOrCreate(scanData);
 
 			let sidenote: ISidenote|undefined;
 			if (this.inspector.isBroken(obtainedSidenote)) {
@@ -89,22 +89,22 @@ export default class Commands {
 
 			this.styler.updateDecorations();
 
-		} catch(e) {;
+		} catch(e) {
 			console.log(e);
 		}
 	}
 
 	async delete(): Promise<void> {
-		const scanResult = this.scanner.getFromCurrentLine();
-		if (!scanResult) {
+		const scanData = this.scanner.scanLine();
+		if (!scanData) {
 			vscode.window.showInformationMessage('There is no sidenotes attached at current cursor position');
 			return;
 		}
 
 		// TODO ask user if he wants to delete anchor only or associated file too (in this case scan for other remaining anchors with this id in workspace and delete them);
 
-		let sidenote = await this.sidenoteProcessor.get(scanResult);
-		sidenote =	await this.sidenoteProcessor.delete(sidenote);
+		let sidenote = await this.sidenoteProcessor.getOrCreate(scanData);
+		await this.sidenoteProcessor.delete(sidenote);
 
 		this.styler.updateDecorations();
 	}
@@ -113,7 +113,7 @@ export default class Commands {
 		this.scanDocumentAnchors();
 
 		switch (category) {
-			case 'broken': await this.pruner.pruneBroken(); break
+			case 'broken': await this.pruner.pruneBroken(); break;
 			case 'empty': await this.pruner.pruneEmpty(); break;
 			default: await this.pruner.pruneAll();
 		}
@@ -160,7 +160,7 @@ export default class Commands {
 		const message = successfulResults.length === 0 ?
 			'No missing files were found in specified directory ' :
 			`The following files have been found and copied to the current workspace:
-			${successfulResults.join(',\n')}`
+			${successfulResults.join(',\n')}`;
 		vscode.window.showInformationMessage(message);
 
 
@@ -179,12 +179,12 @@ export default class Commands {
 	async internalize() {
 		// TODO comment regexp match document for content, select and toggle comment)
 		if (!vscode.window.activeTextEditor) return;
-		const scanResult = this.scanner.getFromCurrentLine();
-		if (!scanResult) {
+		const scanData = this.scanner.scanLine();
+		if (!scanData) {
 			vscode.window.showInformationMessage('There is no sidenotes attached at current cursor position');
 			return;
 		}
-		const sidenote = await this.sidenoteProcessor.get(scanResult);
+		const sidenote = await this.sidenoteProcessor.getOrCreate(scanData);
 		const content = sidenote.content;
 		if (content) {
 			await this.sidenoteProcessor.delete(sidenote);

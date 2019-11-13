@@ -13,7 +13,6 @@ import {
 export interface IDesignable {
 	// isBroken(): boolean
 	// isEmpty(): boolean
-	anchor: IAnchor;
 	content: string | undefined;
 }
 
@@ -22,45 +21,18 @@ export type ODesigner = OStyler
 export default class Designer {
 
 	constructor(
-		public markerUtils: MarkerUtils,
 		public inspector: Inspector,
-		public activeEditorUtils: ActiveEditorUtils,
-		public scanner: Scanner,
 		public cfg: ODesigner
 	) {}
 
 	get(
 		designable: IDesignable,
-		positionHints?: {
-			uncommentedMarkerStartPos?: vscode.Position;
-			markerStartPos?: vscode.Position;
-		}
+		ranges: vscode.Range[]
 	): IStylableDecorations {
-		let ranges: vscode.Range[] = [];
 
-		if (positionHints && positionHints.markerStartPos) {
-			// only get the end position
-			let range: vscode.Range = this.markerUtils.getMarkerRange(
-				designable.anchor,
-				positionHints.markerStartPos
-			);
-			ranges.push(range);
-		} else if (positionHints && positionHints.uncommentedMarkerStartPos) {
-			// search in the same line
-			let range: vscode.Range = this.scanner.rescanLineForMarkerRange(
-				designable.anchor,
-				positionHints.uncommentedMarkerStartPos
-			);
-			ranges.push(range);
-		} else {
-			// search whole document
-			ranges = this.markerUtils.getMarkerRange(designable.anchor);
-		}
-		const decorations = Array.prototype.concat(
+		return Array.prototype.concat(
 			...ranges.map(range => this.getRangeDecorations(range, designable))
 		); // TODO change to flat()
-
-		return decorations;
 	}
 
 	getRangeDecorations(
@@ -68,10 +40,9 @@ export default class Designer {
 		designable: IDesignable
 	): IStylableDecorations {
 		const categories = this.getDecorationCategories(designable);
-		const perRangeDecorations = categories.map(category =>
+		return categories.map(category =>
 			this.getCategoryDecoration(category, range, designable)
 		);
-		return perRangeDecorations;
 	}
 
 	getDecorationCategories(designable: IDesignable): string[] {

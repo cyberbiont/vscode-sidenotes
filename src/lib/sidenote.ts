@@ -7,10 +7,13 @@ import {
 	IAnchorable,
 	IDesignable,
 	IIdMaker,
+	MarkerUtils,
+	IScanData,
 	IStorable,
 	IStorageService,
 	IStylable,
 	IStylableDecorations,
+	Scanner,
 	// IPrunable
 } from './types';
 
@@ -80,16 +83,19 @@ export class SidenoteFactory {
 		private storageService: IStorageService,
 		private designer: Designer,
 		private activeEditorUtils: ActiveEditorUtils,
+		private markerUtils: MarkerUtils,
+		private scanner: Scanner,
 		private SidenoteBuilder
 	) {}
 
-	async build(predefinedId: string|null, position?: vscode.Position): Promise <ISidenote> {
+	async build(scanData?: IScanData): Promise <ISidenote> {
 
 		let id: string;
+		let ranges: vscode.Range[];
 		let sidenote: ISidenote;
 		// let position: vscode.Position;
 
-		if (!predefinedId) { // buildNewSidenote
+		if (!scanData) { // buildNewSidenote
 			id = this.idMaker.makeId();
 			const undecorated = new SidenoteBuilder()
 				.withId(id)
@@ -98,17 +104,23 @@ export class SidenoteFactory {
 			/* cannot generate decoration with proper range before write method,
 			because comment toggling changes range and it may vary with language,
 			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
-
-			const writeResults = await Promise.all([
+			const position = undecorated.anchor.editor.selection.anchor;
+			let range = this.markerUtils.getMarkerRange(undecorated.anchor, position);
+			const promises =	await Promise.all([
 				this.storageService.write(undecorated as IStorable),
-				this.anchorer.write(undecorated)
+				this.anchorer.write(undecorated, [range])
 			]);
-			let uncommentedMarkerStartPos = writeResults[1];
-			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { uncommentedMarkerStartPos }))
+			// await this.anchorer.write(undecorated, [range]);
+			// re-calculate range after comment toggle
+			({ ranges } = this.scanner.scanLine(
+				this.activeEditorUtils.getTextLine(range.start)
+			)!);
+
+			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, ranges))
 				.build();
 
 		} else {
-			id = predefinedId;
+			({ id, ranges } = scanData);
 			const storageEntry = this.storageService.get(id);
 			const content = storageEntry ? storageEntry.content : undefined;
 			const undecorated = new SidenoteBuilder()
@@ -116,7 +128,9 @@ export class SidenoteFactory {
 				.withContent(content)
 				.withAnchor(this.anchorer.getAnchor(id));
 
-			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, { markerStartPos: position }))
+			return sidenote = undecorated.withDecorations(
+				this.designer.get(undecorated, ranges)
+				)
 				.build();
 		}
 	}

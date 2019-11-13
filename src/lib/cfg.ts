@@ -68,7 +68,7 @@ const cfg: ICfg = {
 				'🕮', // 🕮  🗅 🗆 🗇 🗈 🗉 🗊 🗒 ⯌ 🟉 🖉 ✎ ✏ ✐  🖆
 				// '💬⯌',
 			ruler: settings.get('ruler') || true,
-			hideMarker: settings.get('hideMarker') || false,
+			hideMarker: settings.get('hideMarker') || true,
 			foldMarker: settings.get('foldMarker') || true,
 			gutterIcon: settings.get('gutterIcon') || false,
 			stateIndication: settings.get('stateIndication') || 'after',

@@ -22,15 +22,18 @@ export class ActiveEditorUtils {
 	}
 
 	getWorkspaceFolderPath(): string {
-		// TODO использовать vscode getWorkspaceFolder(uri: Uri): WorkspaceFolder | undefined
 		// because VSCode allows several equal root folders(workspaces), we need to check where current document resides every time
-		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find( // already handle undefined case in app requirements check
-			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
-		);
+
+		// const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find( // already handle undefined case in app requirements check
+		// 	folder => this.editor.document.fileName.includes(folder.uri.fsPath)
+		// );
+		const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(
+			this.editor.document.uri!
+		)!
 		if (currentWorkspaceFolder) {
 			return currentWorkspaceFolder.uri.fsPath;
 		}
-		else throw new Error();
+		else throw new Error('Files outside of a workspace cannot be annotated');
 	}
 
 	// returns textLine based on position, by default returns current tetLine
@@ -73,18 +76,24 @@ export type OMarkerUtils = {
 import { IIdMaker } from './idMaker';
 export class MarkerUtils {
 
-	bareMarkerRegexString: string
-	bareMarkerRegex: RegExp
-	bareMarkerRegexNonG: RegExp
+	// bareMarkerRegexString: string
+	// bareMarkerRegex: RegExp
+	// bareMarkerRegexNonG: RegExp
 
 	constructor(
 		private idMaker: IIdMaker,
 		private cfg: OMarkerUtils
 	) {
-		this.bareMarkerRegexString = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
-		this.bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
-		this.bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);
+		// this.bareMarkerSymbolsCount = this.idMaker.symbolsCount;
+		// this.bareMarkerRegexString = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
+		// this.bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
+		// this.bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);
 	}
+	public BARE_MARKER_SYMBOLS_COUNT: number = this.cfg.anchor.marker.salt.length + this.idMaker.symbolsCount;
+	public bareMarkerRegexString: string = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
+	public bareMarkerRegex: RegExp = new RegExp(this.bareMarkerRegexString, 'g');
+	public bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString);
+
 
 	getIdFromMarker(marker: string): string {
 		const match = marker.match(this.idMaker.ID_REGEX_STRING)!;

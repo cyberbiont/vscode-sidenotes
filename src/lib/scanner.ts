@@ -8,9 +8,9 @@ import {
 	MarkerUtils,
 } from './types';
 
-export interface IScanResultData {
-	id: string,
-	position: vscode.Position
+export interface IScanData {
+	id: string;
+	ranges: vscode.Range[];
 }
 
 export default class Scanner {
@@ -22,53 +22,71 @@ export default class Scanner {
 	// otherwise it will differ depending on was line matched or whole document
 	getIdsFromText(
 		text: string = this.activeEditorUtils.editor.document.getText()
-	): IScanResultData[]|undefined {
+	): IScanData[]|undefined {
 
-		const result: IScanResultData[] = [];
+		const result: {
+			[marker: string]: Set<number>
+		} = Object.create(null);
 
 		let match;
 		let regex = this.markerUtils.bareMarkerRegex;
-		//TODO use matchAll юпредусматриваем в дальнейшем возможность передачи index вместе с id, когда перейдем на метод MatchAll
+		//TODO use matchAll?
 		while ((match = regex.exec(text)) !== null) {
-			result.push({
-				id: this.markerUtils.getIdFromMarker(match[0]),
-				position: this.markerUtils.getPositionFromIndex(this.activeEditorUtils.editor, match.index)
-			});
+			let [ marker ] = match; // = match[0]
+			let { index } = match; // = match.index
+			// console.log(marker, index);
+
+			if (result[marker]) result[marker].add(index);
+			else result[marker] = new Set([index]);
 		}
-		if (result.length !== 0) return result;
-		else return undefined;
+		const entries = Object.entries(result);
+		if (entries.length === 0) return undefined;
+    	else return entries.map(entry => {
+			let [marker, positions] = entry;
+
+			return {
+				id: this.markerUtils.getIdFromMarker(marker),
+				ranges: Array.from(positions).map(index => {
+					const position = this.markerUtils.getPositionFromIndex(
+						this.activeEditorUtils.editor,
+						index
+					);
+					const range = this.markerUtils.getMarkerRangeFromStartPosition(
+						marker,
+						position
+					);
+					return range;
+				})
+			};
+		});
 	}
 
-	rescanLineForMarkerRange(anchor: IAnchor, positionHint: vscode.Position): vscode.Range {
-		const line = this.activeEditorUtils.getTextLine(positionHint);
-		let scanResult = this.scanLine(line)!;
-		return this.markerUtils.getMarkerRange(anchor, scanResult.position);
-	}
+	// rescanLineForMarkerRange(anchor: IAnchor, position: vscode.Position): IScanData {
+	// 	const line = this.activeEditorUtils.getTextLine(position);
+	// 	return this.scanLine(line)!;
+	// }
 
-	scanLine(line: vscode.TextLine): IScanResultData|undefined {
+	scanLine(line: vscode.TextLine = this.activeEditorUtils.getTextLine()): IScanData|undefined {
+
 		if (line.isEmptyOrWhitespace) return undefined;
 		const match = line.text.match(this.markerUtils.bareMarkerRegexNonG);
+
 		if (match) {
+			const [ marker ] = match;
+			const { index } = match;
+
+			const id = this.markerUtils.getIdFromMarker(marker);
+			const position = line.range.start.translate({
+				characterDelta:index
+				// this.markerUtils.getPrefixLength()
+			});
+			const range = this.markerUtils.getMarkerRangeFromStartPosition(marker, position);
+			// return range;
 			return {
-				id: this.markerUtils.getIdFromMarker(match[0]),
-				position: line.range.start.translate({
-					characterDelta: match.index
-					// - this.markerUtils.getPrefixLength()
-				})
+				id,
+				ranges: [range]
 			}
 		}
-	}
-
-	getFromCurrentLine(): IScanResultData|undefined {
-		if (!this.activeEditorUtils.getWorkspaceFolderPath()) {
-			throw new Error('Files outside of a workspace cannot be annotated.');
-		}
-		const line = this.activeEditorUtils.getTextLine();
-
-		const scanResult = this.scanLine(line);
-		if (scanResult) return scanResult;
-		return undefined;
-		//TODO support several notes in one line, open depending on cursor position
 	}
 
 	async readDirectoryRecursive(dir: string): Promise<string[]> {
@@ -93,7 +111,7 @@ export default class Scanner {
 
 		const scanContents = (contents: string[]) => {
 			const fileMatches = contents.map(content => this.getIdsFromText(content))
-				.filter(scanData => scanData !== undefined) as unknown as IScanResultData[]; // remove undefined values
+				.filter(scanData => scanData !== undefined) as unknown as IScanData[]; // remove undefined values
 				// https://codereview.stackexchange.com/questions/135363/filtering-undefined-elements-out-of-an-array
 			const flat = Array.prototype.concat(...fileMatches);
 			const idsOnly: string[] = flat.map(scanData => scanData.id);
@@ -108,6 +126,8 @@ export default class Scanner {
 		const uniqueIds = new Set(ids);
 		return uniqueIds;
 	}
+
+
 
 	// async scanCurrentSidenotesDir() {
 	// 	const workspace = this.activeEditorUtils.getWorkspaceFolderPath();

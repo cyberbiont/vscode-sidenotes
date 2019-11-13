@@ -3,14 +3,14 @@
 type Storage<T> = Map<string, T>|Set<T>|{ [key: string]: T }|T[];
 
 export interface IDictionary<T> {
-	list: Storage<T>
-	add(item: T): this
-	get(id: string): T|undefined
-	delete(id: string): this
+	list: Storage<T>;
+	add(item: T): this;
+	get(id: string): T|undefined;
+	delete(id: string): this;
 	// prune(cb: (T) => boolean): this
-	each(cb: (T) => void): void
-	clear(): this
-	[Symbol.asyncIterator](cb): AsyncGenerator<T>
+	each(cb: (T) => void): void;
+	clear(): this;
+	[Symbol.asyncIterator](cb): AsyncGenerator<T>;
 }
 
 export interface IHasIdProperty {
@@ -18,7 +18,7 @@ export interface IHasIdProperty {
 }
 
 export default abstract class Dictionary<T> {
-	abstract list: Storage<T>
+	abstract list: Storage<T>;
 	// isInitialized: boolean
 
 	// constructor() {

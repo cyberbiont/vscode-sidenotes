@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import {
-	// IDictionary,
 	Anchorer,
 	Designer,
-	IScanResultData,
+	IScanData,
 	ISidenote,
 	IStorable,
 	IStorageService,
@@ -18,13 +17,12 @@ export default class SidenoteProcessor {
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
 		public sidenoteFactory: SidenoteFactory,
-		// public pool: IDictionary<ISidenote>,
 		public pool: Pool,
 		public designer: Designer
 	) {}
 
 	async delete(sidenote: ISidenote): Promise<ISidenote> {
-		await Promise.all([
+		const promise = await Promise.all([
 			Promise.resolve(this.storageService.delete(sidenote.id)),
 			this.anchorer.delete(sidenote)
 		]);
@@ -32,26 +30,29 @@ export default class SidenoteProcessor {
 		return sidenote;
 	}
 
-	async write(sidenote: ISidenote): Promise<vscode.Position|void> {
+	async write(sidenote: ISidenote, ranges: vscode.Range[]): Promise<void> {
 		if (sidenote.content) {
 			// const { id, content } = sidenote;
 			const writeResults = await Promise.all([
 				this.storageService.write(sidenote as IStorable),
-				this.anchorer.write(sidenote)
+				this.anchorer.write(sidenote, ranges)
 			]);
 			this.pool.add(sidenote);
-			return writeResults[1];
+			// return writeResults[1];
 		} else {
 			vscode.window.showErrorMessage('no content to write!');
 		}
 	}
 
-	update(sidenote: ISidenote): ISidenote {
+	updateContent(sidenote: ISidenote): ISidenote {
 		const data = this.storageService.get(sidenote.id);
 		if (data) sidenote.content = data.content;
-
-		sidenote.decorations = this.designer.get(sidenote);
-
+		// assuming the ranges hasn't change; update onTExteditorChange us responsible for handling this
+		// so we can extract ranges from decorations
+		const ranges = Array.from(new Set(
+			sidenote.decorations.map(decoration => decoration.options.range)
+		));
+		sidenote.decorations = this.designer.get(sidenote, ranges);
 		return sidenote;
 	}
 
@@ -59,63 +60,23 @@ export default class SidenoteProcessor {
 		return this.storageService.open(sidenote.id);
 	}
 
-	async get(scanResult: IScanResultData|undefined): Promise<ISidenote>
-	async get(id: string): Promise<ISidenote>
-	async get(): Promise<ISidenote>
-	async get(arg?: string|IScanResultData|undefined): Promise<ISidenote> {
+	async get(id: string): Promise<ISidenote|undefined> {
+		return this.pool.get(id);
+	}
+	async create(scanData?: IScanData): Promise<ISidenote> {
+		const sidenote = await this.sidenoteFactory.build(scanData);
+		this.pool.add(sidenote);
+		return sidenote;
+	}
 
+	async getOrCreate(scanData?: IScanData): Promise<ISidenote>	{
 		let sidenote: ISidenote;
 
-		if (arg) {
-			let id: string;
-			let position: vscode.Position|undefined;
-			let queryResult: ISidenote | undefined;
-
-			const updatePositions = (sidenote: ISidenote): ISidenote => {
-				if (!sidenote.decorations.some(
-						decoration =>
-							decoration.options.range.start.character === position!.character && //TODO disable this check for single-line comments
-							decoration.options.range.start.line ===	position!.line
-					)
-				) {
-					sidenote.decorations.push(
-						...this.designer.get(sidenote, {
-							markerStartPos: position!
-						})
-					);
-				}
-				return sidenote;
-			}
-
-			if (typeof arg === 'string') {
-				id = arg;
-				position = undefined;
-			} else if (typeof arg === 'object' && arg !== null) {
-				({ id, position } = arg as IScanResultData);
-			} else {
-				throw new Error(
-					'invalid arguments provided for getSidenote function'
-				);
-			}
-
-			queryResult = this.pool.get(id);
-
-			if (queryResult) {
-				// во время аплейта декораций нам не надо, чтобы добавлялись новые позиции,
-				// без удаления старых
-				if (!this.pool.getIsInitialized() && position) {	// if position was passed
-					queryResult = updatePositions(queryResult);
-				}
-				sidenote = queryResult;
-			} else {
-				sidenote = await this.sidenoteFactory.build(id, position);
-				this.pool.add(sidenote);
-			}
-		} else {
-			// new sidenote
-			sidenote = await this.sidenoteFactory.build(null);
-			this.pool.add(sidenote);
-		}
+		if (scanData) {
+			let queryResult:ISidenote | undefined = this.pool.get(scanData.id);
+			if (queryResult) sidenote = queryResult;
+			else sidenote = await this.create(scanData);
+		} else sidenote = await this.create(); // new sidenote
 
 		return sidenote;
 	}
@@ -173,13 +134,13 @@ export default class SidenoteProcessor {
 					if (lookupUri) {
 						const success = await this.storageService.lookup!(sidenote.id, lookupUri[0].fsPath);
 						if (success) {
-							sidenote = this.update(sidenote);
+							sidenote = this.updateContent(sidenote);
 							return sidenote;
 						}
 					}
 					return undefined;
 
-				}
+				};
 				return lookup(sidenote);
 
 			default: return undefined;
