@@ -3,10 +3,10 @@ import * as chokidar from 'chokidar';
 import FileChangeTracker from './fileChangeTracker';
 
 import {
-	IIdMaker,
 	ActiveEditorUtils,
 	EventEmitter,
-	OFileChangeTracker
+	IIdMaker,
+	OFileChangeTracker,
 } from '../types';
 
 export default class ChokidarChangeTracker extends FileChangeTracker {

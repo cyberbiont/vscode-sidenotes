@@ -15,9 +15,9 @@ export interface IStorable {
 }
 
 export type OStorageService = {
-	storage: {
-		defaultEditorService: 'vscode'|'Typora'|'system default', //TODO
-	}
+	// storage: {
+	// 	defaultEditorService: 'vscode'|'Typora'|'system default', //TODO
+	// }
 }
 
 // TODO https://code.visualstudio.com/api/references/vscode-api#FileSystemProvider

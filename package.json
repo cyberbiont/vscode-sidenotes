@@ -25,9 +25,9 @@
 						"default": ".sidenotes",
 						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
 					},
-					"sidenotes.markerPrefix": {
+					"sidenotes.prefix": {
 						"type": "string",
-						"default": "NOTE ",
+						"default": "",
 						"description": "Specifies the string to use as a prefix for margin note comment markers. You can add some funky Unicode symbols here"
 					},
 					"sidenotes.useExternalEditor": {
@@ -39,6 +39,17 @@
 						"type": "string",
 						"default": "typora",
 						"description": "Specifies the external editor executable name to open sidenotes with. Editor should support Markdown. Executable must be in system's PATH to work."
+					},
+
+					"sidenotes.gutterIcon": {
+						"type": "boolean",
+						"default": "true",
+						"description": "whether to show gutter icon for each sidenote"
+					},
+					"sidenotes.ruler": {
+						"type": "boolean",
+						"default": "true",
+						"description": "whether to show sidenotes in overviewRuler"
 					}
 				}
 			}

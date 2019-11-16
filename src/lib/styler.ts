@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+
 import {
-	// IDictionary,
+	ISidenote,
 	IAnchor,
 	Pool,
 } from './types';
@@ -16,125 +17,130 @@ export interface IStylable {
 	anchor: IAnchor
 }
 
-interface ISetDecorationFnConfig {
-	type: vscode.TextEditorDecorationType
-	options: vscode.DecorationOptions[]
+interface IDecorations {
+		[category: string]: IConfigForSetDecorationFn
 }
+
+interface IConfigForSetDecorationFn {
+	type: vscode.TextEditorDecorationType,
+	options: vscode.DecorationOptions[],
+}
+
+interface ICategoryConfig {
+	style: vscode.DecorationRenderOptions
+	color: string | {
+		dark: string,
+		light: string
+	}
+	icon: string
+	message: string
+	condition?: (sidenote: ISidenote) => boolean
+}
+
+type categories = 'active'|'broken'|'empty';
+type colorIndication = 'text'|'after'|'before'|'ruler'
 
 export type OStyler = {
 	anchor: {
-		marker: {
-			useMultilineComments: boolean
-		}
-		design: {
-			before: string | false
-			after: string | false
-			hideMarker: boolean
-			foldMarker: true
-			gutterIcon: boolean
-
-			ruler: boolean
-			stateIndication: 'background'|'border'|'after'|'ruler'|false
-			onOffIndication: 'background'|'border'|'after'|false
-			decorations: {
-				[preset: string]: {
-					indicationColor: string
-					style: vscode.DecorationRenderOptions
-					message?: string
-				}
+		styles: {
+			settings: {
+				before: string | false
+				after: string | false
+				hideMarkers: boolean
+				gutterIcon: boolean
+				ruler: boolean
+				colorIndication: Array<colorIndication>|false
+			},
+			categories: {
+				common: ICategoryConfig,
+			} & {
+				[category in categories]: Partial<ICategoryConfig>
 			}
 		}
 	}
 }
 
-export default class Styler<T> {
-
-	private decorations: {
-		[category: string]: ISetDecorationFnConfig
-	} = this.initDecorationConfig();
-
+export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> {
+	private decorations: IDecorations  = this.initDecorationConfig();
 	constructor(
-		// public pool: IDictionary<T>,
-		private pool: Pool,
+		private pool: Pool<T>,
 		private cfg: OStyler
-	) {
-	}
+	) {}
 
-	initDecorationConfig(): {
-		[category: string]: ISetDecorationFnConfig
-	} {
+	initDecorationConfig(): IDecorations  {
+		const { settings: o, categories } = this.cfg.anchor.styles;
+
+		if (!categories.common || !categories.common.style) throw new Error(`sidenotes: cannot build decoration types.
+			the "common" section is not found inside styles configuration. It should contain `);
+
 		let result = Object.create(null);
 
-		const d = this.cfg.anchor.design;
-		const cs = d.decorations['common'].style;
-
-		// if (!this.cfg.anchor.marker.useMultilineComments)
-		// 	d.decorations['common'].style.isWholeLine = true;
-		if (d.hideMarker) {
-			cs.opacity = '0';
-			// if (d.foldMarker) cs.letterSpacing = '-0.61rem';
-			if (d.foldMarker) cs.letterSpacing = '-1rem';
-		}
-
-		if (d.gutterIcon)
-			cs.gutterIconPath = path.join(
-				__dirname,
-				'..',
-				'..',
-				'images',
-				'sidenote.svg'
-			);
-		if (d.before) cs.before = { contentText: d.before };
-		if (d.after) cs.after = { contentText: d.after };
-		if (d.ruler) {
-			cs.overviewRulerLane =	vscode.OverviewRulerLane.Right;
-			cs.overviewRulerColor = d.decorations['common'].indicationColor;
-		}
-		if (d.onOffIndication == 'border' || d.stateIndication == 'border') {
-			cs.border = `1px solid ${d.decorations['common'].indicationColor}`;
-		}
-		if (d.onOffIndication) setIndication('common', d.onOffIndication);
-
-		for (let category in d.decorations) {
+		for (const category in categories) {
 			if (category === 'common') continue;
 
-			if (d.stateIndication) {
-				setIndication(category, d.stateIndication);
+			// merge categories cfg over common cfg
+			const c: ICategoryConfig = Object.assign(
+				categories.common,
+				categories[category]
+			);
+
+			// set optional properties for sidenote categories:
+			if (o.hideMarkers) {
+				c.style.opacity = '0';
+				c.style.letterSpacing = '-1rem';
 			}
+			if (o.gutterIcon)	c.style.gutterIconPath = getIconPath(c.icon);
+			if (o.before) addNestedProperty(c.style, 'before.contentText', o.before);
+			if (o.after) addNestedProperty(c.style, 'after.contentText', o.after);
+			if (o.ruler) c.style.overviewRulerLane =	vscode.OverviewRulerLane.Right;
+			if (o.colorIndication && c.color) o.colorIndication.forEach(prop => {
+				switch (prop) {
+					case 'text':
+						setColor(c.color, c.style, 'color'); break;
+					case 'ruler':
+						setColor(c.color, c.style, 'overviewRulerColor'); break;
+					case 'after':
+					case 'before':
+						setColor(c.color, c.style, `${prop}.color`); break;
+
+				}
+			})
 
 			result[category] = {
-				type: vscode.window.createTextEditorDecorationType(
-					Object.assign(
-						this.cfg.anchor.design.decorations['common'].style,
-						this.cfg.anchor.design.decorations[category].style
-					)
-				),
+				type: vscode.window.createTextEditorDecorationType(c.style),
 				options: []
 			};
 		}
 		return result;
 
-		function setIndication(category, prop) {
-			switch (prop) {
-				case 'background':
-					d.decorations[category].style.backgroundColor = d.decorations[category].indicationColor; break;
-				case 'border':
-					d.decorations[category].style.borderColor = d.decorations[category].indicationColor; break;
-				case 'ruler':
-					d.decorations[category].style.overviewRulerColor = d.decorations[category].indicationColor; break;
-				case 'after':
-					d.decorations[category].style.after = {
-						// width: '2em',
-						contentText: d.after ?  d.after : '  💬  ',
-						// margin: '0 0 0 -1.6em',
-						color: d.decorations[category].indicationColor
-					}; break;
-			}
+		function setColor(color: string | {	dark: string,	light: string	}, style, prop: string) {
+			// 🕮 2be2105d-c01b-4bf7-89ab-03665aaa2ce1
+			addNestedProperty(style,prop, typeof color === 'string' ? color : color.dark);
+			addNestedProperty(style,`light.${prop}`, typeof color === 'string' ? color : color.light);
+		}
+
+		// 🕮 c5745bee-a5b1-4b45-966e-839fec3db57a
+		function addNestedProperty(base, propsString, value) {
+			const props = propsString.split('.');
+			const lastProp = arguments.length === 3 ? props.pop() : false;
+
+			let lastBase = props.reduce((base, prop) => {
+				let value = base[prop] ? base[prop] : {};
+				base[prop] = value;
+				base = value;
+				return base;
+			}, base)
+
+			if (lastProp) lastBase = lastBase[lastProp] = value;
+			return lastBase;
+		};
+
+		function getIconPath(fileName: string): string {
+			return path.join(__dirname, '..', '..', 'images', fileName);
 		}
 	};
 
 	updateDecorations({ reset = false }: { reset?: boolean } = {}): Set<vscode.TextEditor> {
-
 		const editorsToUpdate: Set<vscode.TextEditor> = new Set();
 
 		this.pool.each(getStylableDecorationOptions.bind(this));
@@ -149,10 +155,9 @@ export default class Styler<T> {
 		};
 
 		// if we have deleted last note
-		if (editorsToUpdate.size == 0) editorsToUpdate.add(vscode.window.activeTextEditor!);
+		if (editorsToUpdate.size === 0) editorsToUpdate.add(vscode.window.activeTextEditor!);
 
 		for (let category in this.decorations) {
-			// if(this.decorations[category].options.length) { // надо обновлят все категории, инчае если мы удалили один пустой коммент например, то стили для него не сбросятся, тк этот тип не будет вызыван с пустыми опциями;
 			const applyDecorations = editor => {
 				editor.setDecorations(
 					this.decorations[category].type,
@@ -170,7 +175,13 @@ export default class Styler<T> {
 		return editorsToUpdate;
 	}
 
-	decReset(): Set<vscode.TextEditor> {
+	resetDecorations(): Set<vscode.TextEditor> {
 		return this.updateDecorations({ reset: true });
+	}
+
+	disposeDecorationTypes(): void {
+		for (const category in this.decorations) {
+			this.decorations[category].type.dispose();
+		}
 	}
 }

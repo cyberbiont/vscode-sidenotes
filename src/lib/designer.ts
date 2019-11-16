@@ -58,12 +58,15 @@ export default class Designer {
 		range: vscode.Range,
 		designable: IDesignable
 	) {
-		const hoverMessage = this.cfg.anchor.design.decorations[category].message
-			? this.cfg.anchor.design.decorations[category].message
+		const hoverMessage = this.cfg.anchor.styles.categories[category].message
+			? this.cfg.anchor.styles.categories[category].message
 			: designable.content;
 
 		const decoration = {
-			options: { range, hoverMessage },
+			options: {
+				range,
+				hoverMessage
+			},
 			category
 		};
 

@@ -17,8 +17,7 @@ export default class Commands {
 		private pruner: Pruner,
 		private sidenoteProcessor: SidenoteProcessor,
 		private scanner: Scanner,
-		// private pool: IDictionary<ISidenote>,
-		private pool: Pool,
+		private pool: Pool<ISidenote>,
 		private inspector: Inspector,
 		private activeEditorUtils: ActiveEditorUtils
 	) {}
@@ -28,7 +27,6 @@ export default class Commands {
 	*/
 	async scanDocumentAnchors(): Promise<void> {
 		// TODO: import activeEditorUtils?
-
 		// надо просто знать, если уже уже пул для этого документа или нет, если есть, то не пересканируем, просто апдейтим декорации
 		if (!this.pool.getIsInitialized()) {
 			try {
@@ -40,29 +38,6 @@ export default class Commands {
 
 				await Promise.all(scanResults.map(this.sidenoteProcessor.create, this.sidenoteProcessor));
 
-				// scanResults[Symbol.asyncIterator] = async function* recreate() {
-				// 	for (const result of this) { yield this.sidenoteProcessor.create(result); }
-				// }.bind(this);
-				// for await(let result of scanResults) {}
-
-				/* 'for await' при обходе цикла анализировать результаты предыдущих итераций
-					(нужно для поддержки множественных заметок, чтобы отcлеживать,
-					повторяется ли id и позиция)
-					но это замедляет цикл */
-
-				/* т.к. у нас в цикле выполняется асинхронная функция, forEach происходит
-				асинхронно, соответственно, мы не имеем возможности в одном из циклов проверить
-				результат предыдущего (т.е. достать что-либо из pool) можно тут применить
-				асинхронный итератор, но пострадает производительность (лучше все-таки в цикле
-				все делать) т.о. проверка должна происходить в момент добавления элемента в пул,
-				но мы, строго говоря, не знаем, в каком порядке будут добавляться элементы
-				set использовать нельзя, т.к. у нас коллекция объектов, которые по сути разные, но
-				нам надо проверить на св-во id
-				с другой стороны, нам не ваен порядок, главное чтобы одинаковые объекты не добавлялись
-				*/
-
-
-				// await scanResults.forEach(recreate, this);
 				this.pool.setIsInitialized(true);
 
 			} catch(e) {
@@ -122,7 +97,7 @@ export default class Commands {
 	}
 
 	reset() {
-		this.styler.decReset();
+		this.styler.resetDecorations();
 		this.pool.clear();
 	}
 
@@ -163,6 +138,10 @@ export default class Commands {
 			${successfulResults.join(',\n')}`;
 		vscode.window.showInformationMessage(message);
 
+
+	}
+
+	toggleAnchorsFolding() {// TODO
 
 	}
 

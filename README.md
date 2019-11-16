@@ -1,8 +1,10 @@
 # Sidenotes
 
-## Why
+## Why / Motivation
 
 As they say it, good code documents itself. But sometimes you need to make some extended notes regarding to particular part of your code, describing *why* your wrote it in such a way.  There also could be some ideas, detailed 'todos', issue analysis, conclusions, alternative code variants that you what to recall later or something alike. That big notes doesn't do well as simple comments, because they clutter your code. Also, such notes are often private in nature and are not intended to be seen for other people, who might happen to read / edit your code. With usual comments there's no usual way to help it, if your code is commited under VCS other than delete them altogether. So, the only solution is to 'externalize' your notes but keep them anchored to certain lines of your code so that you can easily peek/edit them at any time.
+
+Also, comments often tend to distract you. Vscode has no mechanism to hide/fold all comments .
 
 ## How it works
 
@@ -46,15 +48,81 @@ If you want to display an image or some other type of html-supportedcontent, you
 
 ## Configuration options
 
+### Global options
+
+#### behaviour.autostart
+
+By default, extension automatically starts and activates markers in current document. If you turn this off, you'll have to run 'display' or 'annotate' command for extension to initialize.
+
+### File system
+
+#### storage.defaultEditorService (TODO)
+
+By default, sidenotes open in vscode's second panel for editing. You can specify 'Typora' here to open files in Typora (you must have Typora installed in your system and  'typora' executable in the system PATH).
+
+More editors can be supported in future.
+
+#### storage.files.notesSubfolder
+
+if the File Storage is used (which is by default) defines a subfolder inside your workspace, where sidenotes content files will be stored.
+
+#### storage.files.contentFileExtension (TODO)
+
+defines file extension. By default it is '.md'. You can change it to '.markdown' or '.mdown'
+
+#### sources.fileFormatsAllowedForTransfer (TODO)
+
+File extensions which support initial content placement feature (see)
+
+#### sources.excludeFromAnnotation
+
+A glob expression(link to glob) to exclude files and directories from scanning during Migrate command.
+
+
+
 ### Anchor configuration
 
 The extension uses certain Regex, based on unique id, to identify sidenote anchors in your source document and operate on them. 
 
+#### anchor.comments.cleanWholeLine
 
+(for single-line comments only). when this is checked, when deleting the sidenote, extension will clean the whole line including all asoociated text that you might have add to it.
 
+#### anchor.comments.affectNewlineSymbols (TODO)
 
+when adding a sidenote, new line will be automatically created for this purpose and deleted when deleting sidenote. This has some performance penalty. When this is off, you can call 'annotate' command on existing line and created comment will keep all the text already presenton this line as prefix.
 
-Some configuration options, which define the structure of sidenote marker comment, may be respon 
+### Design
+
+#### anchor.marker.salt
+
+In addition to Uuid extension prepends it with Unicode symbol to disambiguate with other uuids that might happen in your code.
+
+By default it is  🕮 with whitespace before UUID. Therefore, you can you this symbol to target your sidenote comments with other styling extensions (see about [styling](#Prefixing and additional styling sidenotes : tips)). You can change this symbol, however, since it is included in regexp search, all comments that use the former symbol will stop to be identified by extension. To fix that, yo can manually run RegExp search and replace on your workspace to transform all your anchors to new format, however, it is not recommended . 
+
+#### anchor.marker.prefix
+
+Adds the string that you specify here at the beginning of the inserted marker and removes it on sidenote deletion. Note that in constrast to 'before' setting this is the actual text that will be added, i.e. it is a part of the document and it will be visible when extension is deactivated. Useful if you want to hook your sidenotes to some coment-styling extension (see [styling](#Prefixing and additional styling sidenotes : tips)).
+
+#### anchor.design.before
+
+adds the string that you specify as a pseudo-element at the start of all of your markers.  
+
+#### anchor.design.after
+
+Is shown at the end of the marker, and stays in place of it when the marker is compressed. By default it is 🕮, you can specify your own string or Unicode symbol here. Changes to visualize sidenote's state.
+
+#### anchor.design.gutterIcon
+
+Whether to show icon in gutter. If you don't like them or use other extension which shows gutter icons (see [styling](#Prefixing and additional styling sidenotes : tips)) you can turn this off.
+
+#### anchor.design.ruler
+
+Whether sidenotes will be shown in Overview ruler 
+
+#### anchor.design.compressMarker
+
+Effectively hides the uuid part of markers to reduce cluttering by applying a negative letter-spacing to marker decoration. This has a few downsides, such as precise selecting marker with mouse become a non-trivial task. Use Ctrl-C - Ctrl-X commands t copy/ cut the whole line.
 
 ### Multi-line (block) vs single-line comments
 
@@ -80,11 +148,55 @@ With single-line sidenotes, you can insert sidenotes inside block comments.
 
 One thing to remeber is that once you switch comments type in settings, extension will still properly display other comment type sidenotes, but won't be able to properly delete them (since another cmmand is used to toggle comment off). So you will have to do it manually.
 
+In some languages (html, css, php) there's only 'block' comments available, so sidenote comments will be having an ending tag.
+
 ## Commands
 
-> TIp:  one command is used to both create new note or open note in editor if called over existing sidenote anchor. 
->
-> So you can use just one key binding for both. 
+### Main (available from context menu)
+
+#### Annotate
+
+The main command that is used for both creating new and opening existing sidenotes (depending on whether you use it on the line that already contains sidenote), so you can use just one key binding for both. If called over existing sidenote anchor, it opens associated content file for editing. If resource is not found, it displays a dialog window, where you can choose from several options:
+
+- *delete sidenote* - deletes orphaned anchor comment
+- *re-create* - creates new file for this anchor comment keeping id;
+- *look-up* - opens file browser for you to select directory where file is contained. See [migrating notes](#Migrating notes to new project (if file storage is used))
+
+#### Delete sidenote 
+
+Deletes both anchor from your document and associated content resource. (TODO: ask for resource deletion)
+
+#### Reset
+
+Resets decorations for document , rescans and rebuilds them (in case If something has gone awry).
+
+#### Internalize
+
+Writes sidenote's content into document inside a commented lined and deletes sidenote. Useful for short unformatted notes and reminders. Can be considered a reverse to initialContent feature.
+
+#### Toggle full markers
+
+Compresses/ decompresses sidenote markers.
+
+### Cleaning
+
+#### Prune
+
+Command is used to delete all broken notes in current document.
+
+#### Prune empty
+
+Command is used to delete all broken notes in current document.
+
+#### Clean extraneous 
+
+Removes all extraneous (orphan) content records from storage (files from the notes subfoder in case of file storage)
+
+#### Migrate (File storage - specific)
+
+Scans your current workspace for anchors (TODO multiple workspaces) and performs global lookup for missing content files. See [migrating notes](#Migrating notes to new project (if file storage is used)) 
+
+
 
 ## Removing anchors during build
 
@@ -131,6 +243,37 @@ Then you can run **'cleanExtraneous'** command on your original project, to dele
 ### Other storage types (to be implemented)
 
 Potentially, note's contents can be stored in centralized database or cloud service (such as Evernote). This has some benefits, (no need to migrate your files between projects) but makes sidenotes independent of VCS control (see VCS considerations).
+
+## Prefixing and additional styling sidenotes : tips
+
+You can prefix your sidenote with some short description. It will look like this: 
+
+// short description: 🕮
+
+You can add TODO and any special
+
+You can also add it as suffix: 
+
+// 🕮 short description
+
+To make it stand out, your can prefix sidenote with !, ? etc. special characters. I recommend [Better comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments) or [Deco comments](https://marketplace.visualstudio.com/items?itemName=GuillaumeIsabelle.gixdeko-comments) for this purpose.
+
+You can use [Comment anchors](https://marketplace.visualstudio.com/items?itemName=ExodiusStudios.comment-anchors) to make your sidenotes show up in comment anchors navigation pane . You can prexif them with  desired anchors of target all your sidenotes, to do so, create custom anchor type in comment anchor settings like this:
+
+```json
+"commentAnchors.tags.list": [
+    {
+            "tag": "✎",
+            "iconColor": "blurple",
+            "highlightColor": "#896afc",
+            "scope": "file"
+	}
+]
+```
+
+After this your sidenotes will .
+
+
 
 ## VCS considerations
 

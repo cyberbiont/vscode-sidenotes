@@ -38,10 +38,7 @@ export class ActiveEditorUtils {
 
 	// returns textLine based on position, by default returns current tetLine
 	getTextLine(position = this.editor.selection.anchor): vscode.TextLine {
-		const line = this.editor.document.lineAt(position);
-		// if (line.isEmptyOrWhitespace) return null;
-		// else return line.text;
-		return line;
+		return this.editor.document.lineAt(position);
 	}
 
 	async extractSelectionContent(): Promise<string> {
@@ -67,118 +64,96 @@ export type OMarkerUtils = {
 	anchor: {
 		marker: {
 			salt: string,
-			// prefix: string
-			// template?: string
+			prefix: string | false,
+			template?: string,
 		}
 	}
 }
 
 import { IIdMaker } from './idMaker';
 export class MarkerUtils {
-
-	// bareMarkerRegexString: string
-	// bareMarkerRegex: RegExp
-	// bareMarkerRegexNonG: RegExp
-
 	constructor(
 		private idMaker: IIdMaker,
 		private cfg: OMarkerUtils
-	) {
-		// this.bareMarkerSymbolsCount = this.idMaker.symbolsCount;
-		// this.bareMarkerRegexString = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
-		// this.bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
-		// this.bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);
-	}
-	public BARE_MARKER_SYMBOLS_COUNT: number = this.cfg.anchor.marker.salt.length + this.idMaker.symbolsCount;
-	public bareMarkerRegexString: string = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
-	public bareMarkerRegex: RegExp = new RegExp(this.bareMarkerRegexString, 'g');
-	public bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString);
+	) {}
 
+	public BARE_MARKER_SYMBOLS_COUNT: number =
+		this.cfg.anchor.marker.salt.length + this.idMaker.symbolsCount;
+	public bareMarkerRegexString: string = `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}`;
+	public bareMarkerRegex: RegExp = new RegExp(
+		this.bareMarkerRegexString,
+		'g'
+	);
+	public bareMarkerRegexNonG: RegExp = new RegExp(
+		this.bareMarkerRegexString
+	);
 
 	getIdFromMarker(marker: string): string {
-		const match = marker.match(this.idMaker.ID_REGEX_STRING)!;
-		return match[0];
+		const [match] = marker.match(this.idMaker.ID_REGEX_STRING)!;
+		return match;
 	}
 
-	getMarker(id: string): string { //get full marker to be written in document
-		let marker: string;
-		// if (this.cfg.marker.template) {
-		// 	marker = this.cfg.marker.template
-		// 		.replace('%p', this.cfg.marker.prefix)
-		// 		.replace('%id', `${this.cfg.marker.salt}${id}`);
-		// } else {
-			// marker = `${this.cfg.marker.prefix}${this.cfg.marker.salt}${id}`;
-			marker = `${this.cfg.anchor.marker.salt}${id}`;
-		// }
-		return marker;
+	getMarker(id: string): string {
+		// get full marker to be written in document
+		// template 🕮 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c
+		return `${this.cfg.anchor.marker.prefix}${this.cfg.anchor.marker.salt}${id}`;
 	}
 
-	// getPrefixLength(): number {
-	// 	return this.cfg.marker.prefix;
-	// }
-
-	getPositionFromIndex(editor: vscode.TextEditor, index: number): vscode.Position {
+	getPositionFromIndex(
+		editor: vscode.TextEditor,
+		index: number
+	): vscode.Position {
 		return editor.document.positionAt(index);
 	}
 
-	getMarkerStartPosition(anchor: IAnchor) {
-		const index = anchor.editor.document.getText().indexOf(anchor.marker);
-		return this.getPositionFromIndex(anchor.editor, index);
-		// с помощью обычного match можно получить ИЛИ все маркеры, или маркер + индекс,
-		// поэтому в inventorize получаем все маркеры, а тут дополнительно ищем индекс через indexof
-		// мы не можем привязывать Range коммента включая символы комментария, потом что для разных языков они могут быть разными
+	// @outdated 🕮 a96faaf1-b199-43b1-a8f1-aa66cd669e27
+
+	// getMarkerRange(anchor: IAnchor,start: vscode.Position): vscode.Range;
+	// getMarkerRange(anchor: IAnchor): vscode.Range[];
+	getMarkerRange(anchor: IAnchor, start: vscode.Position): vscode.Range {
+		// if (start)
+			return this.getMarkerRangeFromStartPosition(
+				anchor.marker,
+				start
+			);
+		// else {
+		// 	const starts = this.getAllMarkerStartPositions(anchor);
+		// 	return starts.map(start =>
+		// 		this.getMarkerRangeFromStartPosition(
+		// 			anchor.marker,
+		// 			start
+		// 		)
+		// 	);
+		// }
 	}
 
-	// getMarkerStartPosFromLine(line: vscode.TextLine) {
-	// 	//функция должна пересканировать строчку и вернуть позицию маркера
-	// 	if (line.isEmptyOrWhitespace) return undefined;
-	// 	const match = line.text.match(this.bareMarkerRegexNonG);
-	// 	if (match) return line.range.start.translate({ characterDelta: match.index });
-	// }
-	// TODO duiambiguate commentedMarker, bareMarker
-
-	// getMarkerRange(anchor: IAnchor,start: vscode.Position): vscode.Range
-	// getMarkerRange(anchor: IAnchor): vscode.Range[] {
-	// 	start = start ? start : this.getMarkerStartPosition(anchor);
-	// 	const end = start.translate({ characterDelta: anchor.marker.length });
-	// 	return new vscode.Range(start, end);
-	// }
-
-	getMarkerRangeFromStartPosition(marker, start: vscode.Position): vscode.Range {
+	getMarkerRangeFromStartPosition(
+		marker: string,
+		start: vscode.Position
+	): vscode.Range {
 		return new vscode.Range(
 			start,
 			start.translate({ characterDelta: marker.length })
 		);
 	}
 
-	getMarkerRange(anchor: IAnchor, start: vscode.Position): vscode.Range
-	getMarkerRange(anchor: IAnchor): vscode.Range[]
-	getMarkerRange(anchor: IAnchor, start?: vscode.Position) {
-		if (start) return this.getMarkerRangeFromStartPosition(anchor.marker, start);
-		else {
-			const starts = this.getAllMarkerStartPositions(anchor);
-			return starts.map(start => this.getMarkerRangeFromStartPosition(anchor.marker, start));
-		}
-	}
-	getAllMarkerStartPositions(anchor: IAnchor): vscode.Position[] {
+	// getAllMarkerStartPositions(anchor: IAnchor): vscode.Position[] {
+	// 	const text = anchor.editor.document.getText();
+	// 	const indexes: number[] = [];
 
-		const text = anchor.editor.document.getText();
-		const indexes: number[] = [];
+	// 	function find(fromIndex = 0) {
+	// 		let index = text.indexOf(anchor.marker, fromIndex);
+	// 		if (~index) {
+	// 			indexes.push(index);
+	// 			find(++index);
+	// 		} else return;
+	// 	}
+	// 	find();
 
-		function find(fromIndex = 0) {
-			let index = text.indexOf(anchor.marker, fromIndex);
-			if (~index) {
-				indexes.push(index);
-				find(++index);
-			}
-			else return;
-		}
-		find();
+	// 	const positions = indexes.map(index =>
+	// 		this.getPositionFromIndex(anchor.editor, index)
+	// 	);
 
-		const positions = indexes.map(index => this.getPositionFromIndex(anchor.editor, index));
-
-		return positions;
-	}
-
-
+	// 	return positions;
+	// }
 }

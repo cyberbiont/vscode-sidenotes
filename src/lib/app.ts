@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import {
+	FileChangeTracker,
 	ICfg,
 	IChangeData,
 	IChangeTracker,
@@ -43,12 +44,17 @@ import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
 import Styler from './styler';
 import UuidMaker from './idMaker';
-import { EventEmitter } from 'events';//TODO: use vScode eventemitter?
+import { EventEmitter } from 'events';
 import { FileStorage } from './storageService';
 import { MapDictionary } from './dictionary';
 
-// TODO JSDoc
-// TODO unit tests
+export type OApp = {
+	app: {
+		autoStart: boolean,
+		defaultEditor: 'Typora'|'vscode'|'system default',
+	}
+}
+
 export default class App {
 	private activeEditorUtils: ActiveEditorUtils
 	private markerUtils: MarkerUtils
@@ -56,9 +62,9 @@ export default class App {
 	private commands: Commands
 	private editorService: IEditorService
 	private eventEmitter: EventEmitter
-	private pool: Pool
+	public pool: Pool<ISidenote>
 	private sidenoteProcessor: SidenoteProcessor
-	private styler: Styler<ISidenote>
+	public styler: Styler<ISidenote>
 	private scanner: Scanner
 	private designer: Designer;
 
@@ -79,19 +85,29 @@ export default class App {
 	async wire() {
 		const uuidMaker = new UuidMaker;
 		const eventEmitter = new EventEmitter;
-		// const pool = new MapDictionary<ISidenote>();
-		const pool = new Pool(MapDictionary);
+		const pool = new Pool<ISidenote>(MapDictionary);
 
 		const activeEditorUtils = new ActiveEditorUtils(this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
 		const scanner = new Scanner(markerUtils, activeEditorUtils);
 
-		const changeTracker = new VscodeChangeTracker(uuidMaker, eventEmitter, this.context);
-		// const changeTracker = new ChokidarChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
-		// const fsWatchChangeTracker: FsWatchChangeTracker = new FsWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
-		// const editorService = new TyporaEditor(fsWatchChangeTracker, activeEditorUtils);
-		const editorService = new VscodeEditor(changeTracker);
-		// const editorService = new TyporaEditor(chokidarChangeTracker, activeEditorUtils);
+		let editorService: IEditorService;
+		let changeTracker: IChangeTracker;
+		switch (this.cfg.app.defaultEditor) {
+			case 'Typora':
+				// changeTracker = new FsWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
+				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
+				changeTracker = fileChangeTracker;
+				editorService = new TyporaEditor(fileChangeTracker, activeEditorUtils);
+				break;
+
+			case 'vscode':
+			default:
+				const vscodeChangeTracker: VscodeChangeTracker = new VscodeChangeTracker(uuidMaker, eventEmitter, this.context);
+				changeTracker = vscodeChangeTracker;
+				editorService = new VscodeEditor(vscodeChangeTracker);
+				break;
+		}
 
 		const storageService = new FileStorage(editorService, activeEditorUtils, this.cfg);
 		const anchorer = new Anchorer(markerUtils, activeEditorUtils, scanner, this.cfg);

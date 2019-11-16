@@ -1,46 +1,39 @@
 import * as vscode from 'vscode';
-import {
-	IDictionary,
-	ISidenote
-} from './types';
-import { SidenoteBuilder } from './sidenote';
+import { IDictionary, ISidenote } from './types';
 
-// type ISidenottableDocument<T> = vscode.TextDocument & { sidenotes?: IDictionary<T> }
-
-// TODO rewrite as proxy?
-
-interface IDictionaryMulti<ISidenote>extends IDictionary<ISidenote> {
+interface IDictionaryMulti<T> extends IDictionary<T> {
 	isInitialized: boolean;
 }
 
-export default class Pool {
-	// private dictionaryPool: {
-	// 	[ documentPath: string ]: IDictionary<T>
-	// }
-	private dictionaryMap: Map<vscode.TextDocument, IDictionaryMulti<ISidenote>>;
-	activeDictionary: IDictionaryMulti<ISidenote>;
+export default class Pool<T extends { anchor: { editor: vscode.TextEditor }}> {
+	private dictionaryMap: Map<
+		vscode.TextDocument,
+		IDictionaryMulti<T>
+	> = new Map();
+
+	activeDictionary: IDictionaryMulti<T> = this.getDictionary(
+		vscode.window.activeTextEditor!.document
+	);
 
 	constructor(
 		// context,
 		private Dictionary
 	) {
-		this.dictionaryMap = new Map();
 		// TODO clean dictionaryMap in accordance with document disposal (onDocumentClose event delete keys)
-
-		this.activeDictionary = this.getDictionary(vscode.window.activeTextEditor!.document);
 		// vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
 	}
 
-	getDictionary(document): IDictionaryMulti<ISidenote> {
-		let dictionary: IDictionaryMulti<ISidenote>;
+	getDictionary(document): IDictionaryMulti<T> {
+		let dictionary: IDictionaryMulti<T>;
 
 		const queryResult = this.dictionaryMap.get(document);
 		if (queryResult) {
 			dictionary = queryResult;
-			// console.log('document found in map');
-			dictionary.each((sidenote: ISidenote) => {
-				if (sidenote.anchor.editor)	sidenote.anchor.editor = vscode.window.activeTextEditor! // TODO use activeEditorUtils
-			})
+			dictionary.each((sidenote: T) => {
+				if (sidenote.anchor.editor)
+					sidenote.anchor.editor = vscode.window.activeTextEditor!;
+				// TODO use activeEditorUtils
+			});
 			return dictionary;
 		}
 
@@ -62,40 +55,24 @@ export default class Pool {
 	}
 
 	onDidChangeActiveTextEditor(editor: vscode.TextEditor) {
-		// console.log(vscode.workspace.textDocuments);
-		this.activeDictionary = this.getDictionary(editor.document);
-		// console.log(this.activeDictionary.list);
+		return (this.activeDictionary = this.getDictionary(editor.document));
 	}
 
-	getIsInitialized() {
+	getIsInitialized(): boolean {
 		return this.activeDictionary.isInitialized;
 	}
-
-	setIsInitialized(state: boolean): boolean {
-		try {
-			this.activeDictionary.isInitialized = state;
-			return true;
-		} catch(e) {
-			return false;
-		}
+	setIsInitialized(state: boolean): void {
+		this.activeDictionary.isInitialized = state;
 	}
 
-	delete(id: string) { return this.activeDictionary.delete(id) }
-	get(id: string) { return this.activeDictionary.get(id) }
-	add(item: ISidenote) {
-		// const queryResult = this.activeDictionary.get(item.id);
-		// if (queryResult) {
-		// 	if (
-		// 		!queryResult.decorations.some(
-		// 			decoration =>
-		// 				decoration.options.range.start.character === item.decorations[0].options.range.start.character &&
-		// 				decoration.options.range.start.line ===	item.decorations[0].options.range.start.line
-		// 		)
-		// 	) {
-		// 		queryResult.decorations.push(item.decorations[0]);
-		// 	}
-		// }
 
+	delete(id: string) {
+		return this.activeDictionary.delete(id);
+	}
+	get(id: string) {
+		return this.activeDictionary.get(id);
+	}
+	add(item: T) {
 		return this.activeDictionary.add(item);
 	}
 	clear() {
@@ -103,5 +80,7 @@ export default class Pool {
 		this.setIsInitialized(false);
 		return this.activeDictionary;
 	}
-	each(cb) { return this.activeDictionary.each(cb) }
+	each(cb) {
+		return this.activeDictionary.each(cb);
+	}
 }

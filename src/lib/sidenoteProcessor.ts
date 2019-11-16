@@ -10,14 +10,12 @@ import {
 	SidenoteFactory,
  } from './types';
 
-import { FileStorage } from './storageService'; //TODO @? импортируем класс чтобы сравнить
-
 export default class SidenoteProcessor {
 	constructor(
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
 		public sidenoteFactory: SidenoteFactory,
-		public pool: Pool,
+		public pool: Pool<ISidenote>,
 		public designer: Designer
 	) {}
 
@@ -124,7 +122,7 @@ export default class SidenoteProcessor {
 			case 'lookup':
 				const lookup = async (sidenote): Promise<ISidenote|undefined> => {
 
-					// TODO вынести в класс userInteractions
+					// TODO move to UserInteractions class
 					const lookupUri = await vscode.window.showOpenDialog({
 						canSelectFolders: true,
 						canSelectMany: false

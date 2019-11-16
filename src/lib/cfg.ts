@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
+
 import {
 	OActiveEditorUtils,
 	OAnchorer,
+	OApp,
 	OChangeTracker,
 	ODesigner,
 	OFileChangeTracker,
@@ -12,19 +14,14 @@ import {
 	OVscodeChangeTracker,
  } from './types';
 
-// import * as path from 'path';
-
-// using type instead of interface allows to view Intellisense on all "of the extended" types
 export type ICfg =
 	OActiveEditorUtils & OMarkerUtils
 	& OAnchorer
+	& OApp
 	& OChangeTracker & (OFileChangeTracker | OVscodeChangeTracker)
 	& ODesigner & OStyler
 	& OStorageService & OFileStorage
 	& {
-		behaviour: { //TODO
-			autoStart: boolean
-		}
 		sources: {
 			excludeFromAnnotation: vscode.GlobPattern, // TODO
 		}
@@ -33,13 +30,12 @@ export type ICfg =
 const settings = vscode.workspace.getConfiguration('sidenotes');
 
 const cfg: ICfg = {
-
-	behaviour: {
-		autoStart: settings.get('autoStart') || false
+	app: {
+		autoStart: settings.get('autoStart') || false,
+		defaultEditor: settings.get('defaultEditor') || 'vscode',
 	},
 
 	storage: {
-		defaultEditorService: settings.get('defaultEditor') || 'vscode',
 		files: {
 			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
 			contentFileExtension: '.md'
@@ -51,74 +47,63 @@ const cfg: ICfg = {
 		excludeFromAnnotation: settings.get('excludeFromAnnotation') || '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*', // glob  TODO
 	},
 
+	// 🕮 7995614f-ef55-42c0-a9f6-e372ba94e93b
 	anchor: {
-		marker: {
-			useMultilineComments: settings.get('useMultilineComments') || false,
-			salt: '✎ ',  // must be steady and included in RegExp search to disambiguate with other uuid entries that can happen in your code
-			// template: '%p %id',
-			// prefix: settings.get('markerPrefix') || '',
+		comments: {
+			useBlockComments: false,
+			cleanWholeLine: true,
+			affectNewlineSymbols: false
 		},
+		marker: {
+			prefix: settings.get('prefix') || '',
+			salt: '🕮 ',
+		},
+		styles: {
+			settings: {
+				before: settings.get('before') || false,
+				after: settings.get('after') || '🕮',
+				ruler: settings.get('ruler') || true,
+				gutterIcon: settings.get('gutterIcon') || false,
+				hideMarkers: settings.get('hideMarkers') || true,
+				colorIndication: settings.get('colorIndication') || ['after', 'text', 'ruler'],
+			},
 
-		design: {
-			before: settings.get('before') ||
-				false,
-				// '📖',
-				// 'sidenote',
-			after: settings.get('after') ||
-				'🕮', // 🕮  🗅 🗆 🗇 🗈 🗉 🗊 🗒 ⯌ 🟉 🖉 ✎ ✏ ✐  🖆
-				// '💬⯌',
-			ruler: settings.get('ruler') || true,
-			hideMarker: settings.get('hideMarker') || true,
-			foldMarker: settings.get('foldMarker') || true,
-			gutterIcon: settings.get('gutterIcon') || false,
-			stateIndication: settings.get('stateIndication') || 'after',
-			onOffIndication: settings.get('onOffIndication') || false,
-
-			decorations: {
+			categories: {
 				common: {
-					indicationColor: settings.get('onOffColor') || 'rgba(51, 88, 153, 1)',
 					style: {
-						// isWholeLine: true,
-						// border: '1px solid white',
 						cursor: 'pointer',
-						// https://www.flaticon.com/free-icon/edit_1159633#term=note&page=1&position=1
+						rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
 						gutterIconSize: '80%',
-						// borderTop
-						rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
 					},
-
+					icon: 'sidenote.svg',
+					color: {
+						dark: 'rgb(255, 255, 255)',
+						light: 'rgb(0, 0, 0)'
+					},
+					// color: 'rgb(13, 242, 201)',
+					message: ''
 				},
 
+				// style categories to become separate decorationTypes
 				active: {
-					indicationColor: 'white',
-					style: {
-						// gutterIconPath: path.join(__dirname, '..', '..', 'images', 'sidenote_active.svg'),
-					}
+					// icon: 'open-book2.svg',
 				},
 
 				broken: {
-					indicationColor: 'rgba(255, 0, 0, 1)',
-					style: {
-						// gutterIconPath: path.join(__dirname, '..', '..', 'images', 'sidenote_broken.svg'),
-						// backgroundColor: 'rgba(255, 0, 0, 0.05)',
-						// borderStyle: 'dotted',
-					},
-					message: `< BROKEN:
-						content file, associated with this comment can not be found.
-						Run 'annotate' command to choose action >`
+					color: 'rgba(255, 0, 0, 1)',
+					icon: 'sidenote_broken.svg',
+					message: `< BROKEN: content file, associated with this comment can not be found.
+					Run 'annotate' command to choose action >`
 				},
 
 				empty: {
-					indicationColor: 'rgba(255, 255, 0, 1)',
-					style: {
-						// gutterIconPath: path.join(__dirname, '..', '..', 'images', 'sidenote_empty.svg'),
-						// borderStyle: 'dotted',
-					},
-					message: `< EMPTY: this sidenote is empty  >`
-				}
-			},
-		},
-	},
-}
+					color: 'rgb(248, 171, 27)',
+					icon: 'sidenote_empty.svg',
+					message: `< EMPTY: this sidenote is empty >`
+				},
+			}
+		}
+	}
+};
 
 export default cfg;

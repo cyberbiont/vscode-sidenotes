@@ -36,8 +36,10 @@ export interface IAnchorable {
 
 export type OAnchorer = {
 	anchor: {
-		marker: {
-			useMultilineComments ?: boolean
+		comments: {
+			useBlockComments ?: boolean
+			cleanWholeLine: boolean,
+			affectNewlineSymbols: boolean
 		}
 	}
 };
@@ -101,7 +103,7 @@ export default class Anchorer {
 		const deleteRange = async range => {
 			let rangeToDelete: vscode.Range;
 
-			if (!this.cfg.anchor.marker.useMultilineComments) {
+			if (!this.cfg.anchor.comments.useBlockComments) {
 				// just delete the whole line
 				// rangeToDelete = this.activeEditorUtils.getTextLine(range.start).rangeIncludingLineBreak;
 				rangeToDelete = this.activeEditorUtils.getTextLine(range.start).range;
@@ -126,7 +128,6 @@ export default class Anchorer {
 		}
 
 		const iterator = this.editsChainer(ranges, deleteRange);
-		// for await(let range of ranges) await deleteRange(range);
 		for await(let range of iterator);
 
 	}
@@ -138,7 +139,7 @@ export default class Anchorer {
 		try {
 			const selection = new vscode.Selection(range.start, range.end);
 			anchor.editor.selection = selection;
-			if (this.cfg.anchor.marker.useMultilineComments) {
+			if (this.cfg.anchor.comments.useBlockComments) {
 				await vscode.commands.executeCommand('editor.action.blockComment');
 			} else {
 				await vscode.commands.executeCommand('editor.action.commentLine');

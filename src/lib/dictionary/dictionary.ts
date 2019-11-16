@@ -7,7 +7,6 @@ export interface IDictionary<T> {
 	add(item: T): this;
 	get(id: string): T|undefined;
 	delete(id: string): this;
-	// prune(cb: (T) => boolean): this
 	each(cb: (T) => void): void;
 	clear(): this;
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>;
@@ -19,6 +18,8 @@ export interface IHasIdProperty {
 
 export default abstract class Dictionary<T> {
 	abstract list: Storage<T>;
+
+// ✎ ae3f4100-1e07-464d-9dd8-5312ae6ca3bf
 	// isInitialized: boolean
 
 	// constructor() {
@@ -34,18 +35,18 @@ export default abstract class Dictionary<T> {
 
 	// async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
 
-		// let sidenote;
-		// this.each(item => yield item); // yield is not allowed inside callback, so we cannot use individually predefined 'each' method for iteration
+	// 	let sidenote;
+	// 	this.each(item => yield item); // yield is not allowed inside callback, so we cannot use individually predefined 'each' method for iteration
 
-		// const list = this.list as Set<T>|T[];
-		// for (let item of list) {
-		// 	yield item
-		// }
+	// 	const list = this.list as Set<T>|T[];
+	// 	for (let item of list) {
+	// 		yield item
+	// 	}
 
-		/* for (let id of this.list.keys()) {
-			sidenote = this.get(id);
-			await cb(sidenote);
-			yield sidenote;
-		} */
+	// 	/* for (let id of this.list.keys()) {
+	// 		sidenote = this.get(id);
+	// 		await cb(sidenote);
+	// 		yield sidenote;
+	// 	} */
 	// }
 }

@@ -1,3 +1,5 @@
+export { OApp } from './app';
+
 export { IIdMaker } from './idMaker';
 
 export {
