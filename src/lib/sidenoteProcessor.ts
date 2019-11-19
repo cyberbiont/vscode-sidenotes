@@ -2,12 +2,13 @@ import * as vscode from 'vscode';
 import {
 	Anchorer,
 	Designer,
+	// IDictionary,
 	IScanData,
 	ISidenote,
 	IStorable,
 	IStorageService,
-	Pool,
 	SidenoteFactory,
+	SidenotesDictionary,
  } from './types';
 
 export default class SidenoteProcessor {
@@ -15,7 +16,7 @@ export default class SidenoteProcessor {
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
 		public sidenoteFactory: SidenoteFactory,
-		public pool: Pool<ISidenote>,
+		public pool: SidenotesDictionary,
 		public designer: Designer
 	) {}
 
@@ -61,6 +62,7 @@ export default class SidenoteProcessor {
 	async get(id: string): Promise<ISidenote|undefined> {
 		return this.pool.get(id);
 	}
+
 	async create(scanData?: IScanData): Promise<ISidenote> {
 		const sidenote = await this.sidenoteFactory.build(scanData);
 		this.pool.add(sidenote);
@@ -82,16 +84,13 @@ export default class SidenoteProcessor {
 	async handleBroken(sidenote): Promise<ISidenote|undefined> {
 
 		const promptUserForAction = async (): Promise<vscode.QuickPickItem|undefined> => {
-
-			const actions: vscode.QuickPickItem[] = [
-				{
+			const actions: vscode.QuickPickItem[] = [{
 					label: 'delete',
 					description: 'delete note comment'
 				}, {
 					label: 're-create',
 					description: 're-create storage entry for this note comment'
-				}
-			]
+			}];
 			if (this.storageService.lookup) actions.push({
 				label: 'lookup',
 				description: 'look for the missing sidenote file (select folder)'

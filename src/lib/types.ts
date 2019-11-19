@@ -1,10 +1,19 @@
+import * as vscode from 'vscode';
+import { IDictionary } from './dictionary';
+import { ISidenote } from './sidenote';
+import MapPool from './mapPool';
+import Styler from './styler';
+import DictionaryPoolDriver from './dictionaryPool';
+import { IScanData } from './scanner';
+
+
 export { OApp } from './app';
 
 export { IIdMaker } from './idMaker';
 
 export {
 	IDictionary,
-	IHasIdProperty
+	HasIdProperty
 } from './dictionary';
 
 export {
@@ -53,7 +62,24 @@ export {
 	// Prunable
 } from './pruner';
 
-export { default as Pool } from './pool';
+export {
+	default as MapPool,
+	// PoolDictionary,
+	// PoolWeakMap,
+} from './mapPool';
+
+export {
+	default as Actual
+} from './actualKeeper';
+
+export {
+	default as DocumentsController
+} from './documentsController';
+
+// export {
+// 	Stateful,
+// 	TrackingActive
+// } from './mixins'
 
 export { default as SidenoteProcessor } from './sidenoteProcessor';
 
@@ -77,3 +103,17 @@ export { IEditorService } from './editorService';
 export { ICfg } from './cfg'
 
 export { EventEmitter } from 'events';
+
+
+
+export type Constructor<T = {}> = new (...args: any[]) => T;
+
+export type SidenotesDictionary = IDictionary<ISidenote>;
+export type DocumentsPool = MapPool<
+	vscode.TextDocument,
+	IDictionary<ISidenote>
+>;
+// export type SidenotesPool = PoolDictionary<ISidenote>;
+export type SidenotesStyler = Styler<ISidenote>;
+export type SidenotesPool = DictionaryPoolDriver<IScanData, ISidenote>;
+// export type sidenotesDictsPool = PoolWeakMap<vscode.TextDocument, IDictionary<ISidenote>>

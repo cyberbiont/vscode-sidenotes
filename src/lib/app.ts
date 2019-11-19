@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import {
+	Constructor,
 	FileChangeTracker,
 	ICfg,
 	IChangeData,
@@ -11,6 +12,10 @@ import {
 	IScanData,
 	ISidenote,
 	IStorageService,
+
+	SidenotesDictionary,
+	DocumentsPool,
+	SidenotesPool,
 } from './types';
 
 import {
@@ -36,9 +41,8 @@ import {
 } from './utils';
 
 import Anchorer from './anchorer';
-import Commands from './commands';
+import Actions from './actions';
 import Designer from './designer';
-import Pool from './pool';
 import Pruner from './pruner';
 import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
@@ -46,7 +50,16 @@ import Styler from './styler';
 import UuidMaker from './idMaker';
 import { EventEmitter } from 'events';
 import { FileStorage } from './storageService';
-import { MapDictionary } from './dictionary';
+import {
+	MapDictionary,
+	SetDictionary,
+	ObjectDictionary,
+} from './dictionary';
+
+import ActualKeeper from './actualKeeper';
+import DocumentsController from './documentsController';
+import MapPool from './mapPool';
+import DictionaryPoolDriver from './dictionaryPool';
 
 export type OApp = {
 	app: {
@@ -59,14 +72,15 @@ export default class App {
 	private activeEditorUtils: ActiveEditorUtils
 	private markerUtils: MarkerUtils
 	private changeTracker: IChangeTracker
-	private commands: Commands
+	private actions: Actions
 	private editorService: IEditorService
 	private eventEmitter: EventEmitter
-	public pool: Pool<ISidenote>
+	public pool: SidenotesDictionary
 	private sidenoteProcessor: SidenoteProcessor
 	public styler: Styler<ISidenote>
 	private scanner: Scanner
 	private designer: Designer;
+	private documentsController: DocumentsController< SidenotesDictionary>
 
 	constructor(
 		private cfg: ICfg,
@@ -85,8 +99,6 @@ export default class App {
 	async wire() {
 		const uuidMaker = new UuidMaker;
 		const eventEmitter = new EventEmitter;
-		const pool = new Pool<ISidenote>(MapDictionary);
-
 		const activeEditorUtils = new ActiveEditorUtils(this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
 		const scanner = new Scanner(markerUtils, activeEditorUtils);
@@ -96,33 +108,95 @@ export default class App {
 		switch (this.cfg.app.defaultEditor) {
 			case 'Typora':
 				// changeTracker = new FsWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
-				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
+				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(
+					uuidMaker,
+					eventEmitter,
+					this.cfg,
+					this.context
+				);
 				changeTracker = fileChangeTracker;
 				editorService = new TyporaEditor(fileChangeTracker, activeEditorUtils);
 				break;
 
 			case 'vscode':
 			default:
-				const vscodeChangeTracker: VscodeChangeTracker = new VscodeChangeTracker(uuidMaker, eventEmitter, this.context);
+				const vscodeChangeTracker: VscodeChangeTracker = new VscodeChangeTracker(
+					uuidMaker,
+					eventEmitter,
+					this.context
+				);
 				changeTracker = vscodeChangeTracker;
 				editorService = new VscodeEditor(vscodeChangeTracker);
 				break;
 		}
 
-		const storageService = new FileStorage(editorService, activeEditorUtils, this.cfg);
-		const anchorer = new Anchorer(markerUtils, activeEditorUtils, scanner, this.cfg);
-		const inspector = new Inspector;
-		const designer = new Designer(inspector,this.cfg);
-		const sidenoteFactory = new SidenoteFactory(uuidMaker, anchorer, storageService, designer, activeEditorUtils, markerUtils, scanner, SidenoteBuilder);
-		const sidenoteProcessor = new SidenoteProcessor(storageService, anchorer, sidenoteFactory, pool, designer);
+		const storageService = new FileStorage(
+			editorService,
+			activeEditorUtils,
+			this.cfg
+		);
+		const anchorer = new Anchorer(
+			markerUtils,
+			activeEditorUtils,
+			scanner,
+			this.cfg
+		);
+		const inspector = new Inspector();
+		const designer = new Designer(inspector, this.cfg);
+		const sidenoteFactory = new SidenoteFactory(
+			uuidMaker,
+			anchorer,
+			storageService,
+			designer,
+			activeEditorUtils,
+			markerUtils,
+			scanner,
+			SidenoteBuilder,
+		);
+
+		const documentsPool: DocumentsPool = new MapPool({
+				...MapDictionary,
+				create(key) { return new MapDictionary; }
+		}, new WeakMap);
+
+		const actualSidenotesDictionaryKeeper = new ActualKeeper<SidenotesDictionary>();
+		const documentsController = new DocumentsController<SidenotesDictionary>(
+			documentsPool,
+			actualSidenotesDictionaryKeeper,
+			scanner,
+			activeEditorUtils,
+			// this.context
+		);
+		const actualSidenotesDictionary: SidenotesDictionary = documentsController.get();
+		const pool = actualSidenotesDictionary;
+
+		const sidenotesPool: SidenotesPool = new DictionaryPoolDriver(sidenoteFactory, actualSidenotesDictionary);
+		// TODOк sidenotesPool должны обращаться все команды на получение, создание, изменение пула (из actions)
+
+		const sidenoteProcessor = new SidenoteProcessor(
+			storageService,
+			anchorer,
+			sidenoteFactory,
+			pool,
+			designer
+		);
 		const styler = new Styler<ISidenote>(pool, this.cfg);
 		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
-		const commands = new Commands(styler, pruner, sidenoteProcessor, scanner, pool, inspector, activeEditorUtils);
+		const actions = new Actions(
+			styler,
+			pruner,
+			sidenoteProcessor,
+			scanner,
+			pool,
+			inspector,
+			activeEditorUtils
+		);
+		// TODO заменить на что-то пул
 
 		this.styler = styler;
 		this.sidenoteProcessor = sidenoteProcessor;
 		this.eventEmitter = eventEmitter;
-		this.commands = commands;
+		this.actions = actions;
 		this.pool = pool;
 		this.activeEditorUtils = activeEditorUtils;
 		this.changeTracker = changeTracker;
@@ -130,54 +204,39 @@ export default class App {
 		this.scanner = scanner;
 		this.designer = designer;
 		this.markerUtils = markerUtils;
+		this.documentsController = documentsController;
 	}
 
 	checkRequirements() {
-		if (this.sidenoteProcessor.storageService.checkRequirements) this.sidenoteProcessor.storageService.checkRequirements();
+		if (this.sidenoteProcessor.storageService.checkRequirements)
+			this.sidenoteProcessor.storageService.checkRequirements();
 
-		if (!vscode.window.activeTextEditor) {
+		if (!vscode.window.activeTextEditor)
 			throw new Error('active text editor is undefined');
-		}
 	}
 
 	setEventListeners() {
-		this.eventEmitter.on('sidenoteDocumentChange', async (changeData: IChangeData) => {
-			// event is generated by editorService after onDidSaveDocument
-			// const sidenote = await this.sidenoteProcessor.getOrCreate({ id: changeData.id, ranges: [] });
-			const sidenote = await this.sidenoteProcessor.get(changeData.id);
-			if (!sidenote) throw new Error('sidenote being edited is not present in pool');
-			// тут надо вызвать просто get на самом деле)
-			this.sidenoteProcessor.updateContent(sidenote);
-			this.styler.updateDecorations();
-			// действия update и update decorations должны выполяться последовательно, т.е. должны быть в одной функции
-			// требуется обращение к styler, поэтому не можем разместить ниже styler,
-			// или в самом styler, т.к. styler у нас generic, а тут одно действий происходит над конкретным типом
-			// надо либо весь styler переписать на ISidenote,
-			// либо присвоить sidenote конкретный тип ISidenote перед выполнением update (вряд ли получится)
-			// const sidenote = this.pool.get(id) as unknown as ISidenote;
-		});
-
-		const updateOnEditorChange = (editor: vscode.TextEditor) => {
+		const onEditorChange = async (editor: vscode.TextEditor) => {
 			// run updates in order
-			this.activeEditorUtils.onDidChangeActiveTextEditor(editor);
+			/* this.activeEditorUtils.onDidChangeActiveTextEditor(editor);
 			this.pool.onDidChangeActiveTextEditor(editor);
-			this.commands.scanDocumentAnchors();
-		}
+			this.actions.scanDocumentAnchors(); */
+			this.activeEditorUtils.onEditorChange(editor);
+			// const sidenotes = await this.documentsController.onEditorChange(editor.document);
+			// sidenotes.each((sidenote: ISidenote) => {
+			await this.documentsController.onEditorChange(editor.document);
+			this.pool.each((sidenote: ISidenote) => {
+				sidenote.anchor.editor = this.activeEditorUtils.editor;
+			});
+			this.actions.scanDocumentAnchors();
+			// this.styler.updateDecorations();
+		};
 
-		const onDidChangeActiveEditorHandler =
-			this.editorService instanceof VscodeEditor
-				? (editor: vscode.TextEditor) => {
-						// add additional check to prevent triggering scan on sidenote files
-						if (
-							this.changeTracker.getIdFromFileName(
-								editor.document.fileName
-							)
-						)
-							return;
-						updateOnEditorChange(editor);
-				  }
-				: (editor: vscode.TextEditor) => updateOnEditorChange(editor);
-		vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveEditorHandler, this, this.context.subscriptions);
+		const onVscodeEditorChange = (editor: vscode.TextEditor) => {
+			// add additional check to prevent triggering scan on sidenote files
+			if (this.changeTracker.getIdFromFileName(editor.document.fileName)) return;
+			onEditorChange(editor);
+		};
 
 		const onDidChangeTextDocument = async (event: vscode.TextDocumentChangeEvent) => {
 			// if (activeEditor && event.document === activeEditor.document)
@@ -203,7 +262,7 @@ export default class App {
 					const condition = (
 						(change.rangeLength &&
 							change.rangeLength >= this.markerUtils.BARE_MARKER_SYMBOLS_COUNT) ||
-						(this.markerUtils.BARE_MARKER_SYMBOLS_COUNT 	&&
+						(this.markerUtils.BARE_MARKER_SYMBOLS_COUNT &&
 							change.text.indexOf(this.cfg.anchor.marker.salt) !== -1) // includes marker
 					);
 					return condition;
@@ -217,22 +276,45 @@ export default class App {
 			await Promise.all(scanResults.map(updateDecorationRange));
 
 			this.styler.updateDecorations();
-		}
+		};
 
+		const onSidenoteDocumentChange = async (changeData: IChangeData) => {
+			// event is generated by editorService after onDidSaveDocument
+			// const sidenote = await this.sidenoteProcessor.getOrCreate({ id: changeData.id, ranges: [] });
+			const sidenote = await this.sidenoteProcessor.get(changeData.id);
+			if (!sidenote) throw new Error('sidenote being edited is not present in pool');
+			// тут надо вызвать просто get на самом деле)
+			this.sidenoteProcessor.updateContent(sidenote);
+			this.styler.updateDecorations();
+			// действия update и update decorations должны выполяться последовательно, т.е. должны быть в одной функции
+			// требуется обращение к styler, поэтому не можем разместить ниже styler,
+			// или в самом styler, т.к. styler у нас generic, а тут одно действий происходит над конкретным типом
+			// надо либо весь styler переписать на ISidenote,
+			// либо присвоить sidenote конкретный тип ISidenote перед выполнением update (вряд ли получится)
+			// const sidenote = this.pool.get(id) as unknown as ISidenote;
+		};
+
+		vscode.window.onDidChangeActiveTextEditor(
+			this.editorService instanceof VscodeEditor
+				? onVscodeEditorChange
+				: onEditorChange,
+			this, this.context.subscriptions
+		);
 		vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument, this, this.context.subscriptions)
+		this.eventEmitter.on('sidenoteDocumentChange', onSidenoteDocumentChange);
 	}
 
 	registerCommands() {
 		return this.context.subscriptions.push(
-			vscode.commands.registerCommand('sidenotes.annotate', this.commands.run, this.commands),
-			vscode.commands.registerCommand('sidenotes.display', this.commands.scanDocumentAnchors, this.commands),
-			vscode.commands.registerCommand('sidenotes.delete', this.commands.delete, this.commands),
-			vscode.commands.registerCommand('sidenotes.pruneBroken', this.commands.prune.bind(this.commands, 'broken')),
-			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.commands.prune.bind(this.commands, 'empty')),
-			vscode.commands.registerCommand('sidenotes.reset', this.commands.reset, this.commands),
-			vscode.commands.registerCommand('sidenotes.internalize', this.commands.internalize, this.commands),
-			vscode.commands.registerCommand('sidenotes.migrate', this.commands.migrate, this.commands),
-			vscode.commands.registerCommand('sidenotes.extraneous', this.commands.cleanExtraneous, this.commands)
-		)
+			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
+			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
+			vscode.commands.registerCommand('sidenotes.display', this.actions.scanDocumentAnchors, this.actions),
+			vscode.commands.registerCommand('sidenotes.extraneous', this.actions.cleanExtraneous, this.actions),
+			vscode.commands.registerCommand('sidenotes.internalize', this.actions.internalize, this.actions),
+			vscode.commands.registerCommand('sidenotes.migrate', this.actions.migrate, this.actions),
+			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
+			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
+			vscode.commands.registerCommand('sidenotes.reset', this.actions.reset, this.actions),
+		);
 	}
 }

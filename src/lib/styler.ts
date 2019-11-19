@@ -2,9 +2,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import {
-	ISidenote,
 	IAnchor,
-	Pool,
+	ISidenote,
+	SidenotesDictionary,
+	// Pool,
 } from './types';
 
 export interface IStylableDecorations extends Array<{
@@ -63,7 +64,7 @@ export type OStyler = {
 export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> {
 	private decorations: IDecorations  = this.initDecorationConfig();
 	constructor(
-		private pool: Pool<T>,
+		private pool: SidenotesDictionary,
 		private cfg: OStyler
 	) {}
 
@@ -102,7 +103,6 @@ export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> 
 					case 'after':
 					case 'before':
 						setColor(c.color, c.style, `${prop}.color`); break;
-
 				}
 			})
 

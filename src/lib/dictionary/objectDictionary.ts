@@ -1,20 +1,12 @@
-import Dictionary from './dictionary';
-import { IDictionary, IHasIdProperty } from '../types';
+// import Dictionary from './dictionary';
+import { IDictionary, HasIdProperty } from '../types';
 
 // TODO декоратор к add, который проверяет, содержит ли добавляемый элемент такое же id, и если что не добавляет его
-export default class ObjectDictionary<T extends IHasIdProperty>
-	extends Dictionary<T>
+export default class ObjectDictionary<T extends HasIdProperty>
+	// extends Dictionary<T>
 	implements IDictionary<T> {
 
-	list: {
-		[id: string]: any
-	};
-
-	constructor() {
-		super();
-		this.list = Object.create(null); // to get rid of uncesessary prototype properties that will show up in for/ in cycle
-		//@see diacionary pattern https://2ality.com/2013/10/dict-pattern.html
-	}
+	list: {	[id: string]: any	} = Object.create(null);
 
 	add(item) {
 		this.list[item.id] = item;
@@ -26,10 +18,8 @@ export default class ObjectDictionary<T extends IHasIdProperty>
 	}
 
 	delete(id) {
-		// let item = this.get(id);
 		delete this.list[id];
 		return this;
-		// return item;
 	}
 
 	each(cb) {

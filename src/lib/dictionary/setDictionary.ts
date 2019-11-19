@@ -1,16 +1,11 @@
-import Dictionary from './dictionary';
-import { IDictionary, IHasIdProperty } from '../types';
+// import Dictionary from './dictionary';
+import { IDictionary, HasIdProperty } from '../types';
 
-export default class SetDictionary<T extends IHasIdProperty>
-	extends Dictionary<T>
+export default class SetDictionary<T extends HasIdProperty>
+	// extends Dictionary<T>
 	implements IDictionary<T>{
 
-	list: Set<T>;
-
-	constructor() {
-		super();
-		this.list = new Set();
-	}
+	list: Set<T> = new Set();
 
 	add(item: T) {
 		this.list.add(item);
@@ -38,13 +33,10 @@ export default class SetDictionary<T extends IHasIdProperty>
 		this.list.forEach((prop, key) => {
 			if (cb(prop)) this.delete(key);
 		});
-		// for (let prop of this.list) {
-		// 	if (cb(prop[1])) this.delete(prop[0]);
-		// }
 		return this.list;
 	}
 
-	contains(id): boolean {
+	has(id): boolean {
 		return this.list.has(id);
 	}
 

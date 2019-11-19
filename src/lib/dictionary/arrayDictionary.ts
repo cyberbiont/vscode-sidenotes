@@ -1,16 +1,11 @@
-import Dictionary from './dictionary';
-import { IDictionary, IHasIdProperty } from '../types';
+// import Dictionary from './dictionary';
+import { IDictionary, HasIdProperty } from '../types';
 
-export default class ArrayDictionary<T extends IHasIdProperty>
-	extends Dictionary<T>
+export default class ArrayDictionary<T extends HasIdProperty>
+	// extends Dictionary<T>
 	implements IDictionary<T> {
 
-	list: T[];
-
-	constructor() {
-		super();
-		this.list = [];
-	}
+	list: Array<T> = [];
 
 	add(item) {
 		this.list.push(item);

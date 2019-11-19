@@ -1,13 +1,8 @@
 import * as vscode from 'vscode';
 import {
-	ActiveEditorUtils,
-	IAnchor,
-	ISidenote,
 	IStylableDecorations,
 	Inspector,
-	MarkerUtils,
 	OStyler,
-	Scanner,
 } from './types';
 
 export interface IDesignable {

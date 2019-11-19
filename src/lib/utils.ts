@@ -17,7 +17,7 @@ export class ActiveEditorUtils {
 		// vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
 	}
 
-	onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+	onEditorChange(editor: vscode.TextEditor): void {
 		this.editor = editor;
 	}
 
@@ -107,25 +107,6 @@ export class MarkerUtils {
 	}
 
 	// @outdated 🕮 a96faaf1-b199-43b1-a8f1-aa66cd669e27
-
-	// getMarkerRange(anchor: IAnchor,start: vscode.Position): vscode.Range;
-	// getMarkerRange(anchor: IAnchor): vscode.Range[];
-	getMarkerRange(anchor: IAnchor, start: vscode.Position): vscode.Range {
-		// if (start)
-			return this.getMarkerRangeFromStartPosition(
-				anchor.marker,
-				start
-			);
-		// else {
-		// 	const starts = this.getAllMarkerStartPositions(anchor);
-		// 	return starts.map(start =>
-		// 		this.getMarkerRangeFromStartPosition(
-		// 			anchor.marker,
-		// 			start
-		// 		)
-		// 	);
-		// }
-	}
 
 	getMarkerRangeFromStartPosition(
 		marker: string,

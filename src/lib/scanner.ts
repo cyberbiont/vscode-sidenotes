@@ -48,10 +48,8 @@ export default class Scanner {
 				id: this.markerUtils.getIdFromMarker(marker),
 				// TODO добавить функцию вторым аргументом вместо map
 				ranges: Array.from(positions).map(index => {
-					const position = this.markerUtils.getPositionFromIndex(
-						this.activeEditorUtils.editor,
-						index
-					);
+					const position = this.activeEditorUtils.editor.document.positionAt(index);
+
 					const range = this.markerUtils.getMarkerRangeFromStartPosition(
 						marker,
 						position

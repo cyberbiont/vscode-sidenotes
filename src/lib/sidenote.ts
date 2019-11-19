@@ -30,7 +30,7 @@ export interface ISidenote
 
 export class Sidenote implements ISidenote {
 	id: string
-	content: string|undefined
+	content: string | undefined
 	anchor: IAnchor
 	decorations: IStylableDecorations
 	constructor(
@@ -52,7 +52,7 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 	// works even without making all properties optional
 	id?: string
 	anchor?: IAnchor
-	content?: string|undefined
+	content?: string | undefined
 	decorations?: IStylableDecorations
 
 	withId(id: string): this & Pick<Sidenote, 'id'> {
@@ -88,8 +88,7 @@ export class SidenoteFactory {
 		private SidenoteBuilder
 	) {}
 
-	async build(scanData?: IScanData): Promise <ISidenote> {
-
+	async build(scanData?: IScanData): Promise<ISidenote> {
 		let id: string;
 		let ranges: vscode.Range[];
 		let sidenote: ISidenote;
@@ -105,7 +104,7 @@ export class SidenoteFactory {
 			because comment toggling changes range and it may vary with language,
 			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
 			const position = undecorated.anchor.editor.selection.anchor;
-			let range = this.markerUtils.getMarkerRange(undecorated.anchor, position);
+			let range = this.markerUtils.getMarkerRangeFromStartPosition(undecorated.anchor.marker, position);
 			const promises =	await Promise.all([
 				this.storageService.write(undecorated as IStorable),
 				this.anchorer.write(undecorated, [range])
@@ -116,8 +115,9 @@ export class SidenoteFactory {
 				this.activeEditorUtils.getTextLine(range.start)
 			)!);
 
-			return sidenote = undecorated.withDecorations(this.designer.get(undecorated, ranges))
-				.build();
+			return sidenote = undecorated.withDecorations(
+				this.designer.get(undecorated, ranges)
+			).build();
 
 		} else {
 			({ id, ranges } = scanData);
@@ -130,8 +130,7 @@ export class SidenoteFactory {
 
 			return sidenote = undecorated.withDecorations(
 				this.designer.get(undecorated, ranges)
-				)
-				.build();
+			).build();
 		}
 	}
 }

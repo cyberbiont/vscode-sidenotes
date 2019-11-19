@@ -1,9 +1,7 @@
-// @see https://www.dustinhorne.com/post/2016/06/09/implementing-a-dictionary-in-typescript
+// StringKeyDictionary
 
-type Storage<T> = Map<string, T>|Set<T>|{ [key: string]: T }|T[];
-
-export interface IDictionary<T> {
-	list: Storage<T>;
+export interface IDictionary<T extends HasIdProperty> {
+	list: Map<string, T> | Set<T> | { [key: string]: T } | Array<T>;
 	add(item: T): this;
 	get(id: string): T|undefined;
 	delete(id: string): this;
@@ -11,42 +9,15 @@ export interface IDictionary<T> {
 	clear(): this;
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>;
 }
-
-export interface IHasIdProperty {
+export interface HasIdProperty {
 	id: string;
 }
 
-export default abstract class Dictionary<T> {
-	abstract list: Storage<T>;
+// 🕮 7387d8d0-b7ae-4b35-85ee-35e83d632586
+// export default abstract class Dictionary<T> {
 
-// ✎ ae3f4100-1e07-464d-9dd8-5312ae6ca3bf
-	// isInitialized: boolean
+// }
+// universal asyncGenerator 🕮 ae3f4100-1e07-464d-9dd8-5312ae6ca3bf
 
-	// constructor() {
-	// 	this.isInitialized = false;
-	// }
-
-	// abstract get(id: string)
-	// abstract each(cb: (T) => void): void
-
-	// clear() {
-	// 	this.isInitialized = false;
-	// }
-
-	// async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
-
-	// 	let sidenote;
-	// 	this.each(item => yield item); // yield is not allowed inside callback, so we cannot use individually predefined 'each' method for iteration
-
-	// 	const list = this.list as Set<T>|T[];
-	// 	for (let item of list) {
-	// 		yield item
-	// 	}
-
-	// 	/* for (let id of this.list.keys()) {
-	// 		sidenote = this.get(id);
-	// 		await cb(sidenote);
-	// 		yield sidenote;
-	// 	} */
-	// }
-}
+// если делать key property динамическим interface IDictionary<K, T extends K> то мы не можем жестко прописывать id в коде,
+// имя св-ва должно передаваться в конструктор - не лучший вариант
