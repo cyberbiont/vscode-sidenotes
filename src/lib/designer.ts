@@ -14,7 +14,6 @@ export interface IDesignable {
 export type ODesigner = OStyler
 
 export default class Designer {
-
 	constructor(
 		public inspector: Inspector,
 		public cfg: ODesigner

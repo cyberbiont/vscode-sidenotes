@@ -1,34 +1,15 @@
 import * as vscode from 'vscode';
 import {
-	ActiveEditorUtils,
 	IStylableDecorations,
+	Scanner,
 	MarkerUtils,
-	Scanner
 } from './types';
 
-/* 2 возможных подхода (действуем аналогично со storage и content):
-если прописывать anchor в объект только после того, как коммент был уже вписан
-наличие anchor т.о. дает возможность определить по объекту, что для него был прописан коммент
-таким же образом наличие св-ва контент могло бы означать, что существует соответствуюший файл
-Минусы: не можем отделить билдинг объекта от его персистенса.
-Т.е. придется либо сразу же персистировать при билдинге, что не позволит нам например
-использовать протокол undefined при открытии файла
-либо делать св-ва content и anchor опциональными (что не есть хорошо)
-// getInitialContent придется выполнять в модуле storage, т.к. если мы его получим при билдинге объекта, его негде будет хранить,
- пока не пропишем content в объекте...
-
- Подход 2. создавать все св-ва объекта до персистирования, но ставить флагиЖ внутри anchor - anchored: false
- и stored-false для контента. При персистировании, если нужно, переводим их в состояние true
- при сканировании если видим анкор можем сразу поставить true
- Тогда broken может определяться как anchored === true & stored === false
-
- причем добавлением этих св-в вероятно должен заниматься не anchorer и storage
-*/
+// 🕮 f58ba286-a09a-42d1-8bbf-a3bda39ccafa
 
 export interface IAnchor {
 	marker: string;
 	editor: vscode.TextEditor;
-	// positions: vscode.Position[]
 }
 export interface IAnchorable {
 	anchor: IAnchor;
@@ -46,35 +27,28 @@ export type OAnchorer = {
 
 export default class Anchorer {
 	constructor(
-		public markerUtils: MarkerUtils,
-		public activeEditorUtils: ActiveEditorUtils,
+		private editor: vscode.TextEditor,
+		private utils: MarkerUtils,
 		public scanner: Scanner,
 		public cfg: OAnchorer
 	) {}
 
 	getAnchor(id: string,
-		// positions: vscode.Position[]
 		): IAnchor {
 		return {
-			editor: this.activeEditorUtils.editor,
-			marker: this.markerUtils.getMarker(id),
-			// positions
+			editor: this.editor,
+			marker: this.utils.getMarker(id),
 		};
 	}
 
 	/**
 	* creates anchor comment to document at current cursor position
 	*/
-	// сделаем Anchorable аргументаом, а не anchor, по аналогии со Storage, который принимает writable
-	// но по сути storage сам определяет место хранения на основании id,
-	// соответственно write тоже должен рассчитывать range(по сути место хранения) на основании анкора
-	//  то он в принципе и делает (определяет position) по положению курсора;
-	// вернем position чтобы его могла использовать дизайнер для опрделения рэнджа
+	// 🕮 ea500e39-2499-4f4c-9f71-45a579bbe7af
 	async write(anchorable: IAnchorable, ranges: vscode.Range[]): Promise<void> {
 
 		const writeRange = async range => {
 			const selection = anchorable.anchor.editor.selection;
-			console.log(this);
 
 			await anchorable.anchor.editor.edit(
 				edit => edit.insert(range.start, anchorable.anchor.marker),
@@ -91,33 +65,24 @@ export default class Anchorer {
 	}
 
 	async delete(anchored: IAnchorable & { decorations: IStylableDecorations }): Promise<void> {
-
-		// const ranges = this.markerUtils.getMarkerRange(anchored.anchor);
 		const ranges = Array.from(new Set(
 			anchored.decorations.map(decoration => decoration.options.range)
 		));
-
-		// после каждого удаления range надо вычислять по-новой, т.к. происходит смещение линий.
-
 
 		const deleteRange = async range => {
 			let rangeToDelete: vscode.Range;
 
 			if (!this.cfg.anchor.comments.useBlockComments) {
 				// just delete the whole line
-				// rangeToDelete = this.activeEditorUtils.getTextLine(range.start).rangeIncludingLineBreak;
-				rangeToDelete = this.activeEditorUtils.getTextLine(range.start).range;
-				// если мы удаляем также линию, ( используем rangeIncludingLineBreak)
-				// то после каждого удаления range надо вычислять по-новой, т.к. происходит смещение линий.
-				//  или у номера каждой линии в ranges у которой значение больше, чему  удаленной, отнимать 1
-				// лучше соблюдать консистентность, т.е. если в write не добаляем новую строку, то и в delete не удаляем
-				// можно это сделать опцией
-
+				rangeToDelete = this.editor.document.lineAt(range.start).range;
+				// rangeToDelete = this.utils.getTextLine(range.start).range;
+				// 🕮 04489f5c-ef73-4c4d-a40b-d7d824ebc9db
 			} else {
 				await this.toggleComment(anchored.anchor, range);
 				// re-calculate range after comment toggle
 				const commentedRange = this.scanner.scanLine(
-					this.activeEditorUtils.getTextLine(range.start)
+					// this.utils.getTextLine(range.start)
+					this.editor.document.lineAt(range.start)
 				)!.ranges[0];
 				rangeToDelete = commentedRange;
 			}
@@ -129,7 +94,6 @@ export default class Anchorer {
 
 		const iterator = this.editsChainer(ranges, deleteRange);
 		for await(let range of iterator);
-
 	}
 
 	private async toggleComment(

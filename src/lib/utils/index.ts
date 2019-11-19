@@ -1,8 +1,7 @@
-export * from './marker';
-export * from './editor';
-// export * from './fileSystem';
+export * from './editorUtils';
+export * from './markerUtils';
+export * from './fileSystemUtils';
 
-
-export { default as marker } from './marker';
-// export { default as editor } from './editor';
-// export { default as fs } from './fileSystem';
+export { default as MarkerUtils } from './markerUtils';
+export { default as EditorUtils } from './editorUtils';
+export { default as FileSystemUtils } from './fileSystemUtils';

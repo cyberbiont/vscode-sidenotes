@@ -6,27 +6,19 @@ export type OEditorUtils = {
 	}
 }
 
-export class EditorUtils {
-	//active Editor manager
-	editor: vscode.TextEditor
+// 🕮 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0
+
+export default class EditorUtils {
 	constructor(
-		private cfg: OEditorUtils
-	) {
-		this.editor = vscode.window.activeTextEditor!;
-		// vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, context.subscriptions);
-	}
+		public editor: vscode.TextEditor,
+		public cfg: OEditorUtils
+	) {}
 
-	onEditorChange(editor: vscode.TextEditor): void {
-		this.editor = editor;
-	}
-
-	getWorkspaceFolderPath(): string {
+	getWorkspaceFolderPath = function(): string {
 		// because VSCode allows several equal root folders(workspaces), we need to check where current document resides every time
 		// @old 🕮 c6ba287f-9876-4818-964a-d6963bd13248
 
-		const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(
-			this.editor.document.uri!
-		)!
+		const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(this.editor.document.uri!)!
 		if (currentWorkspaceFolder) return currentWorkspaceFolder.uri.fsPath;
 		else throw new Error('Files outside of a workspace cannot be annotated');
 	}
@@ -38,7 +30,7 @@ export class EditorUtils {
 	 * @returns {vscode.TextLine}
 	 * @memberof ActiveEditorUtils
 	 */
-	getTextLine(position = this.editor.selection.anchor): vscode.TextLine {
+	getTextLine = function(position = this.editor.selection.anchor): vscode.TextLine {
 		return this.editor.document.lineAt(position);
 	}
 
@@ -46,7 +38,7 @@ export class EditorUtils {
 	 * @returns {Promise<string>} current selection content
 	 * @memberof EditorUtils
 	 */
-	async extractSelectionContent(): Promise<string> {
+	extractSelectionContent = async function(): Promise<string> {
 		// if (
 			// this.cfg.sources.fileFormatsAllowedForTransfer &&
 			// this.cfg.sources.fileFormatsAllowedForTransfer.includes(ext) && !this.editor.selection.isEmpty

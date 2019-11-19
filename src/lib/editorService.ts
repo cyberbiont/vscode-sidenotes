@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import {
-	ActiveEditorUtils,
 	FileChangeTracker,
 	IChangeTracker,
 	VscodeChangeTracker,
@@ -43,7 +42,6 @@ export class TyporaEditor implements IEditorService {
 
 	constructor(
 		public changeTracker: FileChangeTracker,
-		public activeEditorUtils: ActiveEditorUtils
 	) {
 		// this.terminal = vscode.window.createTerminal('Typora');
 		this.changeTracker.init();

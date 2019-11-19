@@ -2,12 +2,9 @@ import * as vscode from 'vscode';
 import {
 	Anchorer,
 	Designer,
-	// IDictionary,
-	IScanData,
 	ISidenote,
 	IStorable,
 	IStorageService,
-	SidenoteFactory,
 	SidenotesDictionary,
  } from './types';
 
@@ -15,7 +12,6 @@ export default class SidenoteProcessor {
 	constructor(
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
-		public sidenoteFactory: SidenoteFactory,
 		public pool: SidenotesDictionary,
 		public designer: Designer
 	) {}
@@ -59,27 +55,27 @@ export default class SidenoteProcessor {
 		return this.storageService.open(sidenote.id);
 	}
 
-	async get(id: string): Promise<ISidenote|undefined> {
-		return this.pool.get(id);
-	}
+	// async get(id: string): Promise<ISidenote|undefined> {
+	// 	return this.pool.get(id);
+	// }
 
-	async create(scanData?: IScanData): Promise<ISidenote> {
-		const sidenote = await this.sidenoteFactory.build(scanData);
-		this.pool.add(sidenote);
-		return sidenote;
-	}
+	// async create(scanData?: IScanData): Promise<ISidenote> {
+	// 	const sidenote = await this.sidenoteFactory.build(scanData);
+	// 	this.pool.add(sidenote);
+	// 	return sidenote;
+	// }
 
-	async getOrCreate(scanData?: IScanData): Promise<ISidenote>	{
-		let sidenote: ISidenote;
+	// async getOrCreate(scanData?: IScanData): Promise<ISidenote>	{
+	// 	let sidenote: ISidenote;
 
-		if (scanData) {
-			let queryResult:ISidenote | undefined = this.pool.get(scanData.id);
-			if (queryResult) sidenote = queryResult;
-			else sidenote = await this.create(scanData);
-		} else sidenote = await this.create(); // new sidenote
+	// 	if (scanData) {
+	// 		let queryResult:ISidenote | undefined = this.pool.get(scanData.id);
+	// 		if (queryResult) sidenote = queryResult;
+	// 		else sidenote = await this.create(scanData);
+	// 	} else sidenote = await this.create(); // new sidenote
 
-		return sidenote;
-	}
+	// 	return sidenote;
+	// }
 
 	async handleBroken(sidenote): Promise<ISidenote|undefined> {
 

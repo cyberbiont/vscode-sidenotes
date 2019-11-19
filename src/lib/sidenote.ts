@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import {
-	ActiveEditorUtils,
+	Constructor,
+	EditorUtils,
 	Anchorer,
 	Designer,
 	IAnchor,
@@ -82,10 +83,9 @@ export class SidenoteFactory {
 		private anchorer: Anchorer,
 		private storageService: IStorageService,
 		private designer: Designer,
-		private activeEditorUtils: ActiveEditorUtils,
-		private markerUtils: MarkerUtils,
+		private utils: EditorUtils & MarkerUtils,
 		private scanner: Scanner,
-		private SidenoteBuilder
+		private SidenoteBuilder: Constructor<Partial<Sidenote>>,
 	) {}
 
 	async build(scanData?: IScanData): Promise<ISidenote> {
@@ -98,13 +98,13 @@ export class SidenoteFactory {
 			id = this.idMaker.makeId();
 			const undecorated = new SidenoteBuilder()
 				.withId(id)
-				.withContent(await this.activeEditorUtils.extractSelectionContent())
+				.withContent(await this.utils.extractSelectionContent())
 				.withAnchor(this.anchorer.getAnchor(id));
 			/* cannot generate decoration with proper range before write method,
 			because comment toggling changes range and it may vary with language,
 			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
 			const position = undecorated.anchor.editor.selection.anchor;
-			let range = this.markerUtils.getMarkerRangeFromStartPosition(undecorated.anchor.marker, position);
+			let range = this.utils.getMarkerRange(undecorated.anchor.marker, position);
 			const promises =	await Promise.all([
 				this.storageService.write(undecorated as IStorable),
 				this.anchorer.write(undecorated, [range])
@@ -112,7 +112,7 @@ export class SidenoteFactory {
 			// await this.anchorer.write(undecorated, [range]);
 			// re-calculate range after comment toggle
 			({ ranges } = this.scanner.scanLine(
-				this.activeEditorUtils.getTextLine(range.start)
+				this.utils.getTextLine(range.start)
 			)!);
 
 			return sidenote = undecorated.withDecorations(

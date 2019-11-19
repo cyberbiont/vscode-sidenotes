@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import {
-	ActiveEditorUtils,
+	EditorUtils,
 	IAnchor,
 	MarkerUtils,
 } from './types';
@@ -15,13 +15,13 @@ export interface IScanData {
 
 export default class Scanner {
 	constructor(
-		public markerUtils: MarkerUtils,
-		public activeEditorUtils: ActiveEditorUtils
+		private editor: vscode.TextEditor, //TODO narrow class to actual editor
+		private utils: EditorUtils & MarkerUtils,
 	) {}
 	// we should convert indexes to position at once,
 	// otherwise it will differ depending on was line matched or whole document
 	getIdsFromText(
-		text: string = this.activeEditorUtils.editor.document.getText()
+		text: string = this.editor.document.getText()
 	): IScanData[]|undefined {
 
 		const result: {
@@ -29,7 +29,7 @@ export default class Scanner {
 		} = Object.create(null);
 
 		let match;
-		let regex = this.markerUtils.bareMarkerRegex;
+		let regex = this.utils.bareMarkerRegex;
 		//TODO use matchAll?
 		while ((match = regex.exec(text)) !== null) {
 			let [ marker ] = match; // = match[0]
@@ -45,12 +45,12 @@ export default class Scanner {
 			let [marker, positions] = entry;
 
 			return {
-				id: this.markerUtils.getIdFromMarker(marker),
+				id: this.utils.getIdFromMarker(marker),
 				// TODO добавить функцию вторым аргументом вместо map
 				ranges: Array.from(positions).map(index => {
-					const position = this.activeEditorUtils.editor.document.positionAt(index);
+					const position = this.editor.document.positionAt(index);
 
-					const range = this.markerUtils.getMarkerRangeFromStartPosition(
+					const range = this.utils.getMarkerRange(
 						marker,
 						position
 					);
@@ -65,21 +65,21 @@ export default class Scanner {
 	// 	return this.scanLine(line)!;
 	// }
 
-	scanLine(line: vscode.TextLine = this.activeEditorUtils.getTextLine()): IScanData|undefined {
+	scanLine(line: vscode.TextLine = this.utils.getTextLine()): IScanData|undefined {
 
 		if (line.isEmptyOrWhitespace) return undefined;
-		const match = line.text.match(this.markerUtils.bareMarkerRegexNonG);
+		const match = line.text.match(this.utils.bareMarkerRegexNonG);
 
 		if (match) {
 			const [ marker ] = match;
 			const { index } = match;
 
-			const id = this.markerUtils.getIdFromMarker(marker);
+			const id = this.utils.getIdFromMarker(marker);
 			const position = line.range.start.translate({
 				characterDelta:index
 				// this.markerUtils.getPrefixLength()
 			});
-			const range = this.markerUtils.getMarkerRangeFromStartPosition(marker, position);
+			const range = this.utils.getMarkerRange(marker, position);
 			// return range;
 			return {
 				id,
@@ -118,7 +118,7 @@ export default class Scanner {
 			// return files.flat();
 		};
 
-		const workspace = this.activeEditorUtils.getWorkspaceFolderPath();
+		const workspace = this.utils.getWorkspaceFolderPath();
 		const filePaths = await this.readDirectoryRecursive(workspace);
 		const contents = await readFiles(filePaths);
 		const ids = scanContents(contents);

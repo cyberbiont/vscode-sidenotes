@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 
 import {
-	OActiveEditorUtils,
 	OAnchorer,
 	OApp,
 	OChangeTracker,
 	ODesigner,
+	OEditorUtils,
 	OFileChangeTracker,
 	OFileStorage,
+	OFileSystemUtils,
 	OMarkerUtils,
 	OStorageService,
 	OStyler,
@@ -15,7 +16,7 @@ import {
  } from './types';
 
 export type ICfg =
-	OActiveEditorUtils & OMarkerUtils
+	OEditorUtils & OMarkerUtils & OFileSystemUtils
 	& OAnchorer
 	& OApp
 	& OChangeTracker & (OFileChangeTracker | OVscodeChangeTracker)

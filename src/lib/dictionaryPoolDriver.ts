@@ -1,15 +1,16 @@
-// import { SidenoteFactory,  } from "./sidenote";
-import { IDictionary } from "./types";
-import { HasIdProperty } from "./dictionary";
 
-// TODO: применить это к сайднотам
+import {
+	IDictionary,
+	HasIdProperty,
+} from "./types";
+
 // 🕮 7f52e358-d011-44ac-9073-83738f5abb44
 
 export interface HasBuildFactoryMethod<V> {
 	build: (key: any) => V | Promise<V>
 }
 
-export default class DictionaryPool<C extends HasIdProperty, V extends HasIdProperty> {
+export default class DictionaryPoolDriver<C extends HasIdProperty, V extends HasIdProperty> {
 	constructor(
 		private Factory: HasBuildFactoryMethod<V>,
 		private dictionary: IDictionary<V>

@@ -3,7 +3,6 @@ import * as chokidar from 'chokidar';
 import FileChangeTracker from './fileChangeTracker';
 
 import {
-	ActiveEditorUtils,
 	EventEmitter,
 	IIdMaker,
 	OFileChangeTracker,

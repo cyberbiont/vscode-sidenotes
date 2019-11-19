@@ -3,7 +3,7 @@ import * as nodeFs from 'fs';
 import * as path from 'path';
 
 import {
-	ActiveEditorUtils,
+	EditorUtils,
 	IEditorService,
 	ICfg
 } from './types';
@@ -72,7 +72,7 @@ export class FileStorage implements IFileStorage {
 
 	constructor(
 		public editorService: IEditorService,
-		public activeEditorUtils: ActiveEditorUtils,
+		public utils: EditorUtils,
 		cfg: OFileStorage,
 		public fs = nodeFs
 	) {
@@ -113,7 +113,7 @@ export class FileStorage implements IFileStorage {
 	}
 
 	private getCurrentWorkspacePath(): string {
-		return this.activeEditorUtils.getWorkspaceFolderPath();
+		return this.utils.getWorkspaceFolderPath();
 	}
 
 	// private getNotesSubfolderPath(folderPath: string): string {

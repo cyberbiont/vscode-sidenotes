@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { IDictionary } from './dictionary';
 import { ISidenote } from './sidenote';
-import MapPool from './mapPool';
+import MapPoolDriver from './mapPoolDriver';
 import Styler from './styler';
-import DictionaryPoolDriver from './dictionaryPool';
+import DictionaryPoolDriver from './dictionaryPoolDriver';
 import { IScanData } from './scanner';
 
 
@@ -30,10 +30,12 @@ export {
 } from './anchorer';
 
 export {
-	ActiveEditorUtils,
+	EditorUtils,
 	MarkerUtils,
-	OActiveEditorUtils,
+	FileSystemUtils,
+	OEditorUtils,
 	OMarkerUtils,
+	OFileSystemUtils,
 } from './utils';
 
 export {
@@ -66,7 +68,7 @@ export {
 	default as MapPool,
 	// PoolDictionary,
 	// PoolWeakMap,
-} from './mapPool';
+} from './mapPoolDriver';
 
 export {
 	default as Actual
@@ -109,11 +111,11 @@ export { EventEmitter } from 'events';
 export type Constructor<T = {}> = new (...args: any[]) => T;
 
 export type SidenotesDictionary = IDictionary<ISidenote>;
-export type DocumentsPool = MapPool<
+export type DocumentsPoolDriver = MapPoolDriver<
 	vscode.TextDocument,
 	IDictionary<ISidenote>
 >;
 // export type SidenotesPool = PoolDictionary<ISidenote>;
 export type SidenotesStyler = Styler<ISidenote>;
-export type SidenotesPool = DictionaryPoolDriver<IScanData, ISidenote>;
+export type SidenotesPoolDriver = DictionaryPoolDriver<IScanData, ISidenote>;
 // export type sidenotesDictsPool = PoolWeakMap<vscode.TextDocument, IDictionary<ISidenote>>
