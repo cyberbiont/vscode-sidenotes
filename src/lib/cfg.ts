@@ -8,7 +8,7 @@ import {
 	OEditorUtils,
 	OFileChangeTracker,
 	OFileStorage,
-	OFileSystemUtils,
+	OFileSystem,
 	OMarkerUtils,
 	OStorageService,
 	OStyler,
@@ -16,7 +16,8 @@ import {
  } from './types';
 
 export type ICfg =
-	OEditorUtils & OMarkerUtils & OFileSystemUtils
+	OEditorUtils & OMarkerUtils
+	& OFileSystem
 	& OAnchorer
 	& OApp
 	& OChangeTracker & (OFileChangeTracker | OVscodeChangeTracker)

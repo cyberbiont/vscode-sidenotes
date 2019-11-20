@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import {
-	IStylableDecorations,
+	IStylableDecoration,
 	Scanner,
 	MarkerUtils,
+	EditorUtils,
 } from './types';
 
 // 🕮 f58ba286-a09a-42d1-8bbf-a3bda39ccafa
@@ -28,7 +29,7 @@ export type OAnchorer = {
 export default class Anchorer {
 	constructor(
 		private editor: vscode.TextEditor,
-		private utils: MarkerUtils,
+		private utils: EditorUtils & MarkerUtils,
 		public scanner: Scanner,
 		public cfg: OAnchorer
 	) {}
@@ -64,7 +65,7 @@ export default class Anchorer {
 
 	}
 
-	async delete(anchored: IAnchorable & { decorations: IStylableDecorations }): Promise<void> {
+	async delete(anchored: IAnchorable & { decorations: IStylableDecoration[] }): Promise<void> {
 		const ranges = Array.from(new Set(
 			anchored.decorations.map(decoration => decoration.options.range)
 		));
@@ -74,15 +75,13 @@ export default class Anchorer {
 
 			if (!this.cfg.anchor.comments.useBlockComments) {
 				// just delete the whole line
-				rangeToDelete = this.editor.document.lineAt(range.start).range;
-				// rangeToDelete = this.utils.getTextLine(range.start).range;
+				rangeToDelete = this.utils.getTextLine(range.start).range;
 				// 🕮 04489f5c-ef73-4c4d-a40b-d7d824ebc9db
 			} else {
 				await this.toggleComment(anchored.anchor, range);
 				// re-calculate range after comment toggle
 				const commentedRange = this.scanner.scanLine(
-					// this.utils.getTextLine(range.start)
-					this.editor.document.lineAt(range.start)
+					this.utils.getTextLine(range.start)
 				)!.ranges[0];
 				rangeToDelete = commentedRange;
 			}

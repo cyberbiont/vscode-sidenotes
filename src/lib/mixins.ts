@@ -16,4 +16,10 @@ export function Stateful<T extends Constructor>(Base: T) {
 	};
 }
 
-// double-call mixins  🕮 53cf7583-bd25-4fe2-9d6d-c81ddbf9e321
+export function Initializable<T extends Constructor>(Base: T) {
+	return class extends Base {
+		public isInitialized: boolean = false;
+	};
+}
+
+// mixins 🕮 53cf7583-bd25-4fe2-9d6d-c81ddbf9e321

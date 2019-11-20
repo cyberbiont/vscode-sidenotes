@@ -32,11 +32,14 @@ export {
 export {
 	EditorUtils,
 	MarkerUtils,
-	FileSystemUtils,
 	OEditorUtils,
 	OMarkerUtils,
-	OFileSystemUtils,
 } from './utils';
+
+export {
+	default as FileSystem,
+	OFileSystem,
+} from './fileSystem';
 
 export {
 	// IFileStorageCfg
@@ -54,7 +57,7 @@ export {
 
 export {
 	IStylable,
-	IStylableDecorations,
+	IStylableDecoration,
 	OStyler,
 	default as Styler,
 } from './styler';
@@ -106,11 +109,11 @@ export { ICfg } from './cfg'
 
 export { EventEmitter } from 'events';
 
-
+import { Initializable } from './mixins';
 
 export type Constructor<T = {}> = new (...args: any[]) => T;
 
-export type SidenotesDictionary = IDictionary<ISidenote>;
+export type SidenotesDictionary = IDictionary<ISidenote> & { isInitialized: boolean };
 export type DocumentsPoolDriver = MapPoolDriver<
 	vscode.TextDocument,
 	IDictionary<ISidenote>

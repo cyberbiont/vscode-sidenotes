@@ -55,28 +55,7 @@ export default class SidenoteProcessor {
 		return this.storageService.open(sidenote.id);
 	}
 
-	// async get(id: string): Promise<ISidenote|undefined> {
-	// 	return this.pool.get(id);
-	// }
-
-	// async create(scanData?: IScanData): Promise<ISidenote> {
-	// 	const sidenote = await this.sidenoteFactory.build(scanData);
-	// 	this.pool.add(sidenote);
-	// 	return sidenote;
-	// }
-
-	// async getOrCreate(scanData?: IScanData): Promise<ISidenote>	{
-	// 	let sidenote: ISidenote;
-
-	// 	if (scanData) {
-	// 		let queryResult:ISidenote | undefined = this.pool.get(scanData.id);
-	// 		if (queryResult) sidenote = queryResult;
-	// 		else sidenote = await this.create(scanData);
-	// 	} else sidenote = await this.create(); // new sidenote
-
-	// 	return sidenote;
-	// }
-
+	// TODO move to UserInteraction module
 	async handleBroken(sidenote): Promise<ISidenote|undefined> {
 
 		const promptUserForAction = async (): Promise<vscode.QuickPickItem|undefined> => {
@@ -87,6 +66,7 @@ export default class SidenoteProcessor {
 					label: 're-create',
 					description: 're-create storage entry for this note comment'
 			}];
+
 			if (this.storageService.lookup) actions.push({
 				label: 'lookup',
 				description: 'look for the missing sidenote file (select folder)'

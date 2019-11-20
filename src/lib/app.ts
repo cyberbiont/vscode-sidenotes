@@ -49,11 +49,13 @@ import ActualKeeper from './actualKeeper';
 import DocumentsController from './documentsController';
 import MapPoolDriver from './mapPoolDriver';
 import DictionaryPoolDriver from './dictionaryPoolDriver';
+import FileSystem from './fileSystem';
+
+import { Initializable } from './mixins';
 
 import {
 	MarkerUtils,
 	EditorUtils,
-	FileSystemUtils
 } from './utils';
 
 export type OApp = {
@@ -84,14 +86,14 @@ export default class App {
 	}
 
 	async compose() {
-		// const sdc = new somefreakingclass;
-
 		const uuidMaker = new UuidMaker;
 		const eventEmitter = new EventEmitter;
 
+		const InitializableMapDictionary = Initializable(MapDictionary);
+
 		const documentsPoolDriver: DocumentsPoolDriver = new MapPoolDriver({
-			...MapDictionary,
-			create(key) { return new MapDictionary; }
+			...InitializableMapDictionary,
+			create(key) { return new InitializableMapDictionary; }
 		}, new WeakMap);
 
 		const documentsController = new DocumentsController<SidenotesDictionary>(
@@ -99,16 +101,17 @@ export default class App {
 			ActualKeeper,
 		);
 		const editor: vscode.TextEditor = documentsController.get('editor');
+
 		const pool: SidenotesDictionary = documentsController.get('metadata');
 
 		const utils = Object.assign(
 			Object.create(null),
 			new EditorUtils(editor, this.cfg),
 			new MarkerUtils(uuidMaker, this.cfg),
-			new FileSystemUtils
 		);
 
 		const scanner = new Scanner(editor, utils);
+		const fileSystem = new FileSystem(scanner, utils);
 
 		let editorService: IEditorService;
 		let changeTracker: IChangeTracker;
@@ -140,7 +143,9 @@ export default class App {
 		const storageService = new FileStorage(
 			editorService,
 			utils,
-			this.cfg
+			fileSystem,
+			this.cfg,
+			vscode.commands
 		);
 		const anchorer = new Anchorer(
 			editor,
@@ -175,6 +180,7 @@ export default class App {
 			pruner,
 			sidenoteProcessor,
 			scanner,
+			fileSystem,
 			pool,
 			inspector,
 			editor,
@@ -208,7 +214,7 @@ export default class App {
 				this.actions, this.context.subscriptions
 		);
 		vscode.workspace.onDidChangeTextDocument(this.actions.onDidChangeTextDocument, this.actions, this.context.subscriptions)
-		this.eventEmitter.on('sidenoteDocumentChange', this.actions.onSidenoteDocumentChange);
+		this.eventEmitter.on('sidenoteDocumentChange', this.actions.onSidenoteDocumentChange.bind(this.actions));
 	}
 
 	registerCommands() {
@@ -216,9 +222,7 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
 			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
 			vscode.commands.registerCommand('sidenotes.display', this.actions.scanDocumentAnchors, this.actions),
-			vscode.commands.registerCommand('sidenotes.extraneous', this.actions.cleanExtraneous, this.actions),
 			vscode.commands.registerCommand('sidenotes.internalize', this.actions.internalize, this.actions),
-			vscode.commands.registerCommand('sidenotes.migrate', this.actions.migrate, this.actions),
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
 			vscode.commands.registerCommand('sidenotes.reset', this.actions.reset, this.actions),

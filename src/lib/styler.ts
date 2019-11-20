@@ -8,13 +8,14 @@ import {
 	// Pool,
 } from './types';
 
-export interface IStylableDecorations extends Array<{
+
+export interface IStylableDecoration {
 	category: string
 	options: vscode.DecorationOptions
-}>{}
+}
 
 export interface IStylable {
-	decorations: IStylableDecorations
+	decorations: IStylableDecoration[]
 	anchor: IAnchor
 }
 

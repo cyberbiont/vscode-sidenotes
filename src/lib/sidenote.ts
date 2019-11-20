@@ -13,7 +13,7 @@ import {
 	IStorable,
 	IStorageService,
 	IStylable,
-	IStylableDecorations,
+	IStylableDecoration,
 	Scanner,
 	// IPrunable
 } from './types';
@@ -33,7 +33,8 @@ export class Sidenote implements ISidenote {
 	id: string
 	content: string | undefined
 	anchor: IAnchor
-	decorations: IStylableDecorations
+	decorations: IStylableDecoration[]
+	color?: string
 	constructor(
 		sidenote: ISidenote,
 	) {
@@ -54,7 +55,7 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 	id?: string
 	anchor?: IAnchor
 	content?: string | undefined
-	decorations?: IStylableDecorations
+	decorations?: IStylableDecoration[]
 
 	withId(id: string): this & Pick<Sidenote, 'id'> {
 		return Object.assign(this, { id });
@@ -68,7 +69,7 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 		return Object.assign(this, { content });
 	}
 
-	withDecorations(decorations: IStylableDecorations): this & Pick<Sidenote, 'decorations'> {
+	withDecorations(decorations: IStylableDecoration[]): this & Pick<Sidenote, 'decorations'> {
 		return Object.assign(this, { decorations });
 	}
 

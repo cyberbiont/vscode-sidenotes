@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {
-	IStylableDecorations,
+	IStylableDecoration,
 	Inspector,
 	OStyler,
 } from './types';
@@ -9,11 +9,13 @@ export interface IDesignable {
 	// isBroken(): boolean
 	// isEmpty(): boolean
 	content: string | undefined;
+	color ?: string
 }
 
 export type ODesigner = OStyler
 
 export default class Designer {
+
 	constructor(
 		public inspector: Inspector,
 		public cfg: ODesigner
@@ -22,17 +24,41 @@ export default class Designer {
 	get(
 		designable: IDesignable,
 		ranges: vscode.Range[]
-	): IStylableDecorations {
+	): IStylableDecoration[] {
 
-		return Array.prototype.concat(
+		const decorations: IStylableDecoration[] = Array.prototype.concat(
 			...ranges.map(range => this.getRangeDecorations(range, designable))
 		); // TODO change to flat()
+
+		if (ranges.length > 1) {
+			const color = designable.color ? designable.color : designable.color = this.getRandomColor()
+			decorations.map(decoration => this.markAsDuplicated(decoration, color));
+		}
+		return decorations;
+	}
+
+	private markAsDuplicated(decoration: IStylableDecoration, color: string) {
+		// TODO move to config
+		// const after = this.cfg.anchor.styles.categories.common.style.after!.contentText;
+		return decoration.options.renderOptions = {
+			// before: {
+			// 	contentText: `*` ,
+			// 	color
+			// },
+			after: {
+				border: `1px solid ${color}`
+			}
+		}
+	}
+
+	getRandomColor() {
+		return '#'+((1<<24)*Math.random()|0).toString(16);
 	}
 
 	getRangeDecorations(
 		range: vscode.Range,
 		designable: IDesignable
-	): IStylableDecorations {
+	): IStylableDecoration[] {
 		const categories = this.getDecorationCategories(designable);
 		return categories.map(category =>
 			this.getCategoryDecoration(category, range, designable)
@@ -51,12 +77,12 @@ export default class Designer {
 		category: string,
 		range: vscode.Range,
 		designable: IDesignable
-	) {
-		const hoverMessage = this.cfg.anchor.styles.categories[category].message
+	): IStylableDecoration {
+		const hoverMessage: string = this.cfg.anchor.styles.categories[category].message
 			? this.cfg.anchor.styles.categories[category].message
 			: designable.content;
 
-		const decoration = {
+		const decoration: IStylableDecoration = {
 			options: {
 				range,
 				hoverMessage

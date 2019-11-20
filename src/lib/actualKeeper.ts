@@ -9,6 +9,9 @@ export default class ActualKeeper<T extends object> {
 		const proxy = new Proxy(this, {
 			get(target, prop) {
 				return Reflect.get(target.item, prop);
+			},
+			set(target, prop, value) {
+				return Reflect.set(target.item, prop, value);
 			}
 		}) as unknown as T;
 		return proxy;
