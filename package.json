@@ -1,18 +1,20 @@
 {
-	"name": "sidenotes",
-	"displayName": "sidenotes",
-	"description": "",
-	"version": "0.0.2",
+	"name": "vscode-sidenotes",
+	"displayName": "Sidenotes",
+	"description": "annotate your code with external notes, stored separately and shown on hover",
+	"version": "1.0.0",
+	"publisher": "Yaroslav Larin",
 	"engines": {
 		"vscode": "^1.38.0"
 	},
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"notes", "comments", "Markdown", "annotations", "external"
+	],
 	"activationEvents": [
-		"onCommand:sidenotes.annotate",
-		"onCommand:sidenotes.display",
-		"onDebug"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -20,107 +22,109 @@
 			{
 				"title": "sidenotes configuration",
 				"properties": {
-					"sidenotes.noteFolder": {
+					"sidenotes.notesSubfolder": {
 						"type": "string",
 						"default": ".sidenotes",
 						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
 					},
+					"sidenotes.contentFileExtension": {
+						"type": "'.md'|'.markdown'|'.mdown'",
+						"default": ".md",
+						"description": "extension for content files"
+					},
 					"sidenotes.prefix": {
 						"type": "string",
 						"default": "",
-						"description": "Specifies the string to use as a prefix for margin note comment markers. You can add some funky Unicode symbols here"
+						"description": "Specifies the string to use as a prefix for comment markers. Can be used to hook up to other extension such as 'Anchor comments'"
 					},
-					"sidenotes.useExternalEditor": {
-						"type": "boolean",
-						"default": "false",
-						"description": "Specifies whether to open sidenote in external editor."
-					},
-					"sidenotes.externalEditor": {
+					"sidenotes.defaultEditor": {
 						"type": "string",
-						"default": "typora",
+						"default": "vscode",
 						"description": "Specifies the external editor executable name to open sidenotes with. Editor should support Markdown. Executable must be in system's PATH to work."
 					},
-
 					"sidenotes.gutterIcon": {
 						"type": "boolean",
-						"default": "true",
-						"description": "whether to show gutter icon for each sidenote"
+						"default": true,
+						"description": "Whether to show gutter icon for each sidenote"
 					},
 					"sidenotes.ruler": {
 						"type": "boolean",
-						"default": "true",
-						"description": "whether to show sidenotes in overviewRuler"
+						"default": true,
+						"description": "Whether to show sidenotes in overviewRuler"
+					},
+					"sidenotes.before": {
+						"type": "string",
+						"default": "",
+						"description": "A string to show before all your comment markers, decorative only"
+					},
+					"sidenotes.after": {
+						"type": "string",
+						"default": "🕮",
+						"description": "A string that is used as main sidenote representation marker when id is hidden."
+					},
+					"sidenotes.hideMarkers": {
+						"type": "boolean",
+						"default": true,
+						"description": "Whether to hide uuid string  "
+					},
+					"sidenotes.colorIndication": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": ["after", "text", "ruler"],
+						"description": "Defines what part of comment anchor will change color, indicating sidenote status."
 					}
 				}
 			}
 		],
 		"commands": [
 			{
-				"command": "sidenotes.display",
-				"title": "Display sidenotes",
-				"category": "Sidenotes"
-			},
-			{
 				"command": "sidenotes.annotate",
 				"title": "Add or edit sidenote",
-				"category": "Sidenotes",
+				"category": "sidenotes",
 				"icon": "images/icon.png"
 			},
 			{
 				"command": "sidenotes.delete",
 				"title": "Delete sidenote",
-				"category": "Sidenotes"
+				"category": "sidenotes"
 			},
 			{
 				"command": "sidenotes.pruneBroken",
 				"title": "Delete broken sidenotes",
-				"category": "Sidenotes"
+				"category": "sidenotes"
 			},
 			{
 				"command": "sidenotes.pruneEmpty",
 				"title": "Delete empty sidenotes",
-				"category": "Sidenotes"
+				"category": "sidenotes"
 			},
 			{
-				"command": "sidenotes.reset",
-				"title": "Reset extension cache",
-				"category": "Sidenotes"
-			},
-			{
-				"command": "sidenotes.internalize",
-				"title": "Put sidenote content into document and delete sidenote",
-				"category": "Sidenotes"
+				"command": "sidenotes.refresh",
+				"title": "Reset extension cache and rescan",
+				"category": "sidenotes"
 			},
 			{
 				"command": "sidenotes.migrate",
 				"title": "Migrate sidenotes from another worskspace",
-				"category": "Sidenotes"
+				"category": "sidenotes"
 			},
 			{
 				"command": "sidenotes.extraneous",
 				"title": "Clean extraneous (orphaned) files from current sidenotes folder",
-				"category": "Sidenotes"
+				"category": "sidenotes"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "sidenotes.annotate"
+					"command": "sidenotes.annotate",
+					"group": "sidenotes"
 				},
 				{
-					"command": "sidenotes.display"
-				},
-				{
-					"command": "sidenotes.delete"
-				},
-				{
-					"command": "sidenotes.reset"
-				},
-				{
-					"command": "sidenotes.migrate"
-				},
-				{
-					"command": "sidenotes.internalize"
+					"command": "sidenotes.delete",
+					"group": "sidenotes"
 				}
 			]
 		}

@@ -10,7 +10,7 @@ export interface HasBuildFactoryMethod<V> {
 	build: (key: any) => V | Promise<V>
 }
 
-export default class DictionaryPoolDriver<C extends HasIdProperty, V extends HasIdProperty> {
+export default class DictionaryRepository<C extends HasIdProperty, V extends HasIdProperty> {
 	constructor(
 		private Factory: HasBuildFactoryMethod<V>,
 		private dictionary: IDictionary<V>

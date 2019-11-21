@@ -50,20 +50,20 @@ export default class MarkerUtils {
 	}
 
 	/**
-	 * returns range of marker based on it' start position
+	 * returns range of string based on its start position
 	 *
-	 * @param {string} marker
+	 * @param {string} str
 	 * @param {vscode.Position} start
 	 * @returns {vscode.Range} range of marker
 	 * @memberof MarkerUtils
 	 */
 	getMarkerRange = function(
-		marker: string,
+		str: string,
 		start: vscode.Position
 	): vscode.Range {
 		return new vscode.Range(
 			start,
-			start.translate({ characterDelta: marker.length })
+			start.translate({ characterDelta: str.length })
 		);
 	}
 }

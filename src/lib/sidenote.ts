@@ -1,39 +1,43 @@
 import * as vscode from 'vscode';
 import {
-	Constructor,
-	EditorUtils,
 	Anchorer,
+	Constructor,
 	Designer,
+	EditorUtils,
 	IAnchor,
 	IAnchorable,
 	IDesignable,
 	IIdMaker,
-	MarkerUtils,
 	IScanData,
 	IStorable,
 	IStorageService,
 	IStylable,
-	IStylableDecorations,
+	IStylableDecoration,
+	MarkerUtils,
 	Scanner,
-	// IPrunable
 } from './types';
 
-export interface ISidenote
-	extends
-		IDesignable,
-		IStylable,
-		IAnchorable
-		// IPrunable,
-		// IStorable,
+// export interface ISidenote
+// 	extends
+// 		IDesignable,
+// 		IStylable,
+// 		IAnchorable
+// 	{
+// 		id: string
+// 	}
+export type ISidenote =
+		IDesignable &
+		IStylable &
+		IAnchorable &
 	{
 		id: string
 	}
-
 export class Sidenote implements ISidenote {
 	id: string
 	content: string | undefined
 	anchor: IAnchor
-	decorations: IStylableDecorations
+	decorations: IStylableDecoration[]
+	color?: string
 	constructor(
 		sidenote: ISidenote,
 	) {
@@ -47,14 +51,13 @@ export class Inspector {
 	isBroken(sidenote): boolean { return typeof sidenote.content === 'undefined'; }
 	isEmpty(sidenote): boolean { return sidenote.content === ''; }
 }
-// TODO оставить отдельным классом (можно переименовать в stats), но вложить в sidenote
 
 export class SidenoteBuilder implements Partial<Sidenote> {
 	// works even without making all properties optional
 	id?: string
 	anchor?: IAnchor
 	content?: string | undefined
-	decorations?: IStylableDecorations
+	decorations?: IStylableDecoration[]
 
 	withId(id: string): this & Pick<Sidenote, 'id'> {
 		return Object.assign(this, { id });
@@ -68,7 +71,7 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 		return Object.assign(this, { content });
 	}
 
-	withDecorations(decorations: IStylableDecorations): this & Pick<Sidenote, 'decorations'> {
+	withDecorations(decorations: IStylableDecoration[]): this & Pick<Sidenote, 'decorations'> {
 		return Object.assign(this, { decorations });
 	}
 

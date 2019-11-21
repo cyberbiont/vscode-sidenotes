@@ -2,20 +2,25 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import {
+	Constructor,
 	IAnchor,
 	ISidenote,
+	ReferenceContainer,
+	ReferenceController,
 	SidenotesDictionary,
-	// Pool,
+	MapRepository,
 } from './types';
 
-export interface IStylableDecorations extends Array<{
+export interface IStylableDecoration {
 	category: string
 	options: vscode.DecorationOptions
-}>{}
+}
 
 export interface IStylable {
-	decorations: IStylableDecorations
-	anchor: IAnchor
+	decorations: IStylableDecoration[]
+	anchor: {
+		editor: vscode.TextEditor
+	}
 }
 
 interface IDecorations {
@@ -61,7 +66,7 @@ export type OStyler = {
 	}
 }
 
-export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> {
+export default class Styler<T extends IStylable> {
 	private decorations: IDecorations  = this.initDecorationConfig();
 	constructor(
 		private pool: SidenotesDictionary,
@@ -90,19 +95,19 @@ export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> 
 				c.style.opacity = '0';
 				c.style.letterSpacing = '-1rem';
 			}
-			if (o.gutterIcon)	c.style.gutterIconPath = getIconPath(c.icon);
-			if (o.before) addNestedProperty(c.style, 'before.contentText', o.before);
-			if (o.after) addNestedProperty(c.style, 'after.contentText', o.after);
+			if (o.gutterIcon)	c.style.gutterIconPath = this.getIconPath(c.icon);
+			if (o.before) this.addNestedProperty(c.style, 'before.contentText', o.before);
+			if (o.after) this.addNestedProperty(c.style, 'after.contentText', o.after);
 			if (o.ruler) c.style.overviewRulerLane =	vscode.OverviewRulerLane.Right;
 			if (o.colorIndication && c.color) o.colorIndication.forEach(prop => {
 				switch (prop) {
 					case 'text':
-						setColor(c.color, c.style, 'color'); break;
+						this.setColor(c.color, c.style, 'color'); break;
 					case 'ruler':
-						setColor(c.color, c.style, 'overviewRulerColor'); break;
+						this.setColor(c.color, c.style, 'overviewRulerColor'); break;
 					case 'after':
 					case 'before':
-						setColor(c.color, c.style, `${prop}.color`); break;
+						this.setColor(c.color, c.style, `${prop}.color`); break;
 				}
 			})
 
@@ -112,32 +117,32 @@ export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> 
 			};
 		}
 		return result;
+	};
 
-		function setColor(color: string | {	dark: string,	light: string	}, style, prop: string) {
-			// 🕮 2be2105d-c01b-4bf7-89ab-03665aaa2ce1
-			addNestedProperty(style,prop, typeof color === 'string' ? color : color.dark);
-			addNestedProperty(style,`light.${prop}`, typeof color === 'string' ? color : color.light);
-		}
+	private getIconPath(fileName: string): string {
+		return path.join(__dirname, '..', '..', 'images', fileName);
+	}
 
+	private setColor(color: string | {	dark: string,	light: string	}, style, prop: string) {
+		// 🕮 2be2105d-c01b-4bf7-89ab-03665aaa2ce1
+		this.addNestedProperty(style,prop, typeof color === 'string' ? color : color.dark);
+		this.addNestedProperty(style,`light.${prop}`, typeof color === 'string' ? color : color.light);
+	}
+
+	private addNestedProperty(base, propsString, value) {
 		// 🕮 c5745bee-a5b1-4b45-966e-839fec3db57a
-		function addNestedProperty(base, propsString, value) {
-			const props = propsString.split('.');
-			const lastProp = arguments.length === 3 ? props.pop() : false;
+		const props = propsString.split('.');
+		const lastProp = arguments.length === 3 ? props.pop() : false;
 
-			let lastBase = props.reduce((base, prop) => {
-				let value = base[prop] ? base[prop] : {};
-				base[prop] = value;
-				base = value;
-				return base;
-			}, base)
+		let lastBase = props.reduce((base, prop) => {
+			let value = base[prop] ? base[prop] : {};
+			base[prop] = value;
+			base = value;
+			return base;
+		}, base)
 
-			if (lastProp) lastBase = lastBase[lastProp] = value;
-			return lastBase;
-		};
-
-		function getIconPath(fileName: string): string {
-			return path.join(__dirname, '..', '..', 'images', fileName);
-		}
+		if (lastProp) lastBase = lastBase[lastProp] = value;
+		return lastBase;
 	};
 
 	updateDecorations({ reset = false }: { reset?: boolean } = {}): Set<vscode.TextEditor> {
@@ -185,3 +190,38 @@ export default class Styler<T extends { anchor: { editor: vscode.TextEditor }}> 
 		}
 	}
 }
+
+
+
+/* export class StylerController<T extends IStylable>
+implements ReferenceController<OStyler, Styler>
+
+{
+	private container: ReferenceContainer<Styler<T>>
+	private reference: Styler<T>
+
+	constructor(
+		private repo: MapRepository<OStyler, Styler<T>>,
+		ReferenceContainer: Constructor<ReferenceContainer<any>>,
+		cfg: OStyler,
+		commands
+	) {
+		this.container = new ReferenceContainer();
+		this.reference = this.container.getProxy();
+		// this.o = cfg.anchor.styles;
+		commands.registerCommand('sidenotes.toggleIds', this.toggleIds, this);
+	}
+
+	getReference(): Styler<T> {
+		return this.reference;
+	}
+
+	async update(key) {
+		const instance = await this.repo.get(key);
+		this.container.load(instance);
+	}
+
+	private toggleIds() {
+		this.stylerReference;
+	}
+} */

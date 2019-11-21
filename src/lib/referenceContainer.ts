@@ -1,14 +1,18 @@
-export default class ActualKeeper<T extends object> {
+export default class ReferenceContainer<T extends object> {
+	// reference container
 	item: T;
 
-	set(item: T): T {
+	load(item: T): T {
 		return this.item = item;
 	}
 
-	get(): T {
+	getProxy(): T {
 		const proxy = new Proxy(this, {
 			get(target, prop) {
 				return Reflect.get(target.item, prop);
+			},
+			set(target, prop, value) {
+				return Reflect.set(target.item, prop, value);
 			}
 		}) as unknown as T;
 		return proxy;
