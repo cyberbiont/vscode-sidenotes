@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import {
 	Constructor,
+	DocumentInitializableSidenotesRepository,
 	FileChangeTracker,
 	ICfg,
 	IChangeData,
@@ -13,8 +14,8 @@ import {
 	ISidenote,
 	IStorageService,
 	SidenotesDictionary,
-	DocumentsPoolDriver,
-	SidenotesPoolDriver,
+	SidenotesRepository,
+	SidenotesStyler,
 } from './types';
 
 import {
@@ -44,11 +45,11 @@ import Styler from './styler';
 import UuidMaker from './idMaker';
 import { EventEmitter } from 'events';
 import { FileStorage } from './storageService';
-import {	MapDictionary } from './dictionary';
-import ActualKeeper from './actualKeeper';
+import { MapDictionary, HasIdProperty } from './dictionary';
+import ReferenceContainer from './referenceContainer';
 import DocumentsController from './documentsController';
-import MapPoolDriver from './mapPoolDriver';
-import DictionaryPoolDriver from './dictionaryPoolDriver';
+import MapRepository from './mapRepository';
+import DictionaryRepository from './dictionaryRepository';
 import FileSystem from './fileSystem';
 
 import { Initializable } from './mixins';
@@ -61,7 +62,7 @@ import {
 export type OApp = {
 	app: {
 		autoStart: boolean,
-		defaultEditor: 'Typora'|'vscode'|'system default',
+		defaultEditor: 'typora'|'vscode'|'system default',
 	}
 }
 
@@ -83,40 +84,48 @@ export default class App {
 		this.checkRequirements();
 		this.registerCommands();
 		this.setEventListeners();
+		this.actions.scanDocumentAnchors();
 	}
 
 	async compose() {
 		const uuidMaker = new UuidMaker;
+
 		const eventEmitter = new EventEmitter;
 
 		const InitializableMapDictionary = Initializable(MapDictionary);
+		// 🕮 bd961532-0e0f-4b5f-bb70-a286acdfab37
 
-		const documentsPoolDriver: DocumentsPoolDriver = new MapPoolDriver({
+		const documentsRepository: DocumentInitializableSidenotesRepository =
+			new MapRepository({
 			...InitializableMapDictionary,
-			create(key) { return new InitializableMapDictionary; }
+			create(key) {
+				return new InitializableMapDictionary;
+			}
 		}, new WeakMap);
 
-		const documentsController = new DocumentsController<SidenotesDictionary>(
-			documentsPoolDriver,
-			ActualKeeper,
-		);
-		const editor: vscode.TextEditor = documentsController.get('editor');
+		const documentsController =
+			await new DocumentsController(
+				documentsRepository,
+				ReferenceContainer,
+			);
+		const editorReference: vscode.TextEditor = documentsController.getProxy('editor');
 
-		const pool: SidenotesDictionary = documentsController.get('metadata');
+		const poolReference: SidenotesDictionary = documentsController.getProxy('metadata');
 
 		const utils = Object.assign(
 			Object.create(null),
-			new EditorUtils(editor, this.cfg),
+			new EditorUtils(editorReference, this.cfg),
 			new MarkerUtils(uuidMaker, this.cfg),
 		);
 
-		const scanner = new Scanner(editor, utils);
+		const scanner = new Scanner(editorReference, utils);
+
 		const fileSystem = new FileSystem(scanner, utils);
 
 		let editorService: IEditorService;
 		let changeTracker: IChangeTracker;
 		switch (this.cfg.app.defaultEditor) {
-			case 'Typora':
+			case 'typora':
 				// changeTracker = new FsWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
 				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(
 					uuidMaker,
@@ -139,7 +148,6 @@ export default class App {
 				editorService = new VscodeEditor(vscodeChangeTracker);
 				break;
 		}
-
 		const storageService = new FileStorage(
 			editorService,
 			utils,
@@ -147,14 +155,27 @@ export default class App {
 			this.cfg,
 			vscode.commands
 		);
+
 		const anchorer = new Anchorer(
-			editor,
+			editorReference,
 			utils,
 			scanner,
 			this.cfg
 		);
+
 		const inspector = new Inspector();
 		const designer = new Designer(inspector, this.cfg);
+		const styler: SidenotesStyler = new Styler(poolReference, this.cfg);
+
+		const sidenoteProcessor = new SidenoteProcessor(
+			storageService,
+			anchorer,
+			poolReference,
+			designer
+		);
+
+		const pruner = new Pruner(poolReference, sidenoteProcessor, inspector);
+
 		const sidenoteFactory = new SidenoteFactory(
 			uuidMaker,
 			anchorer,
@@ -165,27 +186,19 @@ export default class App {
 			SidenoteBuilder,
 		);
 
-		const sidenotesPoolDriver: SidenotesPoolDriver = new DictionaryPoolDriver(sidenoteFactory, pool);
+		const sidenotesRepository: SidenotesRepository = new DictionaryRepository(sidenoteFactory, poolReference);
 
-		const sidenoteProcessor = new SidenoteProcessor(
-			storageService,
-			anchorer,
-			pool,
-			designer
-		);
-		const styler = new Styler<ISidenote>(pool, this.cfg);
-		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
 		const actions = new Actions(
 			styler,
 			pruner,
 			sidenoteProcessor,
 			scanner,
 			fileSystem,
-			pool,
+			poolReference,
 			inspector,
-			editor,
+			editorReference,
 			utils,
-			sidenotesPoolDriver,
+			sidenotesRepository,
 			changeTracker,
 			designer,
 			documentsController,
@@ -222,7 +235,6 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
 			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
 			vscode.commands.registerCommand('sidenotes.display', this.actions.scanDocumentAnchors, this.actions),
-			vscode.commands.registerCommand('sidenotes.internalize', this.actions.internalize, this.actions),
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
 			vscode.commands.registerCommand('sidenotes.reset', this.actions.reset, this.actions),

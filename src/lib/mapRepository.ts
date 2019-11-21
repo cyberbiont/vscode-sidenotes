@@ -15,7 +15,7 @@ export interface HasFactoryMethod<V> {
 * stores one of them as active(actual) instance
 * and returns it for global use by other modules in application
 */
-export default class MapPoolDriver<K extends object, V> {
+export default class MapRepository<K extends object, V> {
 
 	constructor(
 		private Factory: HasFactoryMethod<V>,

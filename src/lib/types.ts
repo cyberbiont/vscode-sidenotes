@@ -1,15 +1,10 @@
 import * as vscode from 'vscode';
-import { IDictionary } from './dictionary';
-import { ISidenote } from './sidenote';
-import MapPoolDriver from './mapPoolDriver';
-import Styler from './styler';
-import DictionaryPoolDriver from './dictionaryPoolDriver';
-import { IScanData } from './scanner';
 
-
-export { OApp } from './app';
-
+export { EventEmitter } from 'events';
+export { ICfg } from './cfg';
+export { IEditorService } from './editorService';
 export { IIdMaker } from './idMaker';
+export { OApp } from './app';
 
 export {
 	IDictionary,
@@ -37,12 +32,11 @@ export {
 } from './utils';
 
 export {
-	default as FileSystem,
 	OFileSystem,
+	default as FileSystem,
 } from './fileSystem';
 
 export {
-	// IFileStorageCfg
 	IFileStorage,
 	IStorable,
 	IStorageService,
@@ -68,23 +62,16 @@ export {
 } from './pruner';
 
 export {
-	default as MapPool,
-	// PoolDictionary,
-	// PoolWeakMap,
-} from './mapPoolDriver';
+	default as MapRepository,
+} from './mapRepository';
 
 export {
-	default as Actual
-} from './actualKeeper';
+	default as ReferenceContainer
+} from './referenceContainer';
 
 export {
 	default as DocumentsController
 } from './documentsController';
-
-// export {
-// 	Stateful,
-// 	TrackingActive
-// } from './mixins'
 
 export { default as SidenoteProcessor } from './sidenoteProcessor';
 
@@ -104,21 +91,27 @@ export {
 	VscodeChangeTracker,
 } from './changeTracker';
 
-export { IEditorService } from './editorService';
-export { ICfg } from './cfg'
-
-export { EventEmitter } from 'events';
-
-import { Initializable } from './mixins';
-
 export type Constructor<T = {}> = new (...args: any[]) => T;
+export type AnyFunction<T = any> = (...input: any[]) => T
+export type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>
 
-export type SidenotesDictionary = IDictionary<ISidenote> & { isInitialized: boolean };
-export type DocumentsPoolDriver = MapPoolDriver<
-	vscode.TextDocument,
-	IDictionary<ISidenote>
->;
-// export type SidenotesPool = PoolDictionary<ISidenote>;
+import {	Initializable } from './mixins';
+import { IDictionary, MapDictionary, HasIdProperty } from './dictionary';
+import DictionaryRepository from './dictionaryRepository';
+import MapRepository from './mapRepository';
+import Styler from './styler';
+import { IScanData } from './scanner';
+import { ISidenote } from './sidenote';
+
+export type SidenotesDictionary
+	= MapDictionary<ISidenote> & Initializable
+
+export type DocumentInitializableSidenotesRepository
+	=	MapRepository<
+		vscode.TextDocument,
+		SidenotesDictionary
+	>;
+
 export type SidenotesStyler = Styler<ISidenote>;
-export type SidenotesPoolDriver = DictionaryPoolDriver<IScanData, ISidenote>;
-// export type sidenotesDictsPool = PoolWeakMap<vscode.TextDocument, IDictionary<ISidenote>>
+export type SidenotesRepository
+	= DictionaryRepository<IScanData, ISidenote>;

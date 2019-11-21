@@ -6,8 +6,6 @@ import {
 } from './types';
 
 export interface IDesignable {
-	// isBroken(): boolean
-	// isEmpty(): boolean
 	content: string | undefined;
 	color ?: string
 }
@@ -31,7 +29,8 @@ export default class Designer {
 		); // TODO change to flat()
 
 		if (ranges.length > 1) {
-			const color = designable.color ? designable.color : designable.color = this.getRandomColor()
+			const color = designable.color ? designable.color : designable.color = this.getRandomHSLColor();
+			// TODO decrease color lightness for dark themes
 			decorations.map(decoration => this.markAsDuplicated(decoration, color));
 		}
 		return decorations;
@@ -46,13 +45,15 @@ export default class Designer {
 			// 	color
 			// },
 			after: {
-				border: `1px solid ${color}`
+				border: `1px dotted ${color}`
 			}
 		}
 	}
 
-	getRandomColor() {
-		return '#'+((1<<24)*Math.random()|0).toString(16);
+	getRandomHSLColor(lightness: string = '75%') {
+		// 🕮 16762ea0-4553-4aee-8dd2-508e37ca0adb
+		const color = 'hsl(' + Math.random() * 360 + `, 100%, ${lightness})`;
+		return color;
 	}
 
 	getRangeDecorations(

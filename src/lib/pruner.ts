@@ -1,8 +1,8 @@
 import {
 	ISidenote,
-	SidenotesDictionary,
 	Inspector,
 	SidenoteProcessor,
+	SidenotesDictionary,
 } from './types';
 
 // export interface IPrunable {

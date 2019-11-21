@@ -1,23 +1,23 @@
 import * as vscode from 'vscode';
 import {
+	Designer,
+	DocumentsController,
+	EventEmitter,
+	FileSystem,
+	ICfg,
+	IChangeData,
+	IChangeTracker,
+	IEditorService,
 	IScanData,
 	ISidenote,
 	Inspector,
+	MarkerUtils,
 	Pruner,
 	Scanner,
 	SidenoteProcessor,
 	SidenotesDictionary,
+	SidenotesRepository,
 	SidenotesStyler,
-	IChangeTracker,
-	IEditorService,
-	Designer,
-	DocumentsController,
-	EventEmitter,
-	IChangeData,
-	SidenotesPoolDriver,
-	ICfg,
-	MarkerUtils,
-	FileSystem,
 } from './types';
 
 export default class Actions {
@@ -31,7 +31,7 @@ export default class Actions {
 		private inspector: Inspector,
 		private editor: vscode.TextEditor,
 		private utils: MarkerUtils,
-		private sidenotesPoolDriver: SidenotesPoolDriver,
+		private sidenotesRepository: SidenotesRepository,
 		private changeTracker: IChangeTracker,
 		private designer: Designer,
 		private documentsController: DocumentsController< SidenotesDictionary>,
@@ -52,7 +52,7 @@ export default class Actions {
 	};
 
 	async onSidenoteDocumentChange(changeData: IChangeData) { // update sidenote content and source document decorations
-		const sidenote = await this.sidenotesPoolDriver.get(changeData.id);
+		const sidenote = await this.sidenotesRepository.get(changeData.id);
 		if (!sidenote) throw new Error('Error: sidenote being edited is not present in pool');
 
 		this.sidenoteProcessor.updateContent(sidenote);
@@ -89,18 +89,19 @@ export default class Actions {
 
 		if (!this.pool.isInitialized) await this.initializeDocumentSidenotesPool(scanResults);
 		else await this.updateDocumentSidenotesPool(scanResults);
+		// 🕮 70b9807e-7739-4e0f-bfb5-7f1603cb4377
 
 		this.styler.updateDecorations();
 	}
 
 	async initializeDocumentSidenotesPool(scanResults: IScanData[]): Promise<void> {
-		await Promise.all(scanResults.map(this.sidenotesPoolDriver.create, this.sidenotesPoolDriver));
+		await Promise.all(scanResults.map(this.sidenotesRepository.create, this.sidenotesRepository));
 		this.pool.isInitialized = true;
 	}
 
 	async updateDocumentSidenotesPool(scanResults: IScanData[]) {
 		const updateDecorationRange = async (scanData: IScanData): Promise<ISidenote> => {
-			const sidenote = await this.sidenotesPoolDriver.obtain(scanData);
+			const sidenote = await this.sidenotesRepository.obtain(scanData);
 			sidenote.decorations = this.designer.get(sidenote, scanData.ranges);
 			return sidenote;
 		}
@@ -111,7 +112,7 @@ export default class Actions {
 		try {
 			const scanData = this.scanner.scanLine();
 
-			let obtainedSidenote = await this.sidenotesPoolDriver.obtain(scanData);
+			let obtainedSidenote = await this.sidenotesRepository.obtain(scanData);
 
 			let sidenote: ISidenote | undefined;
 			if (this.inspector.isBroken(obtainedSidenote)) {
@@ -134,7 +135,7 @@ export default class Actions {
 			return;
 		}
 
-		let sidenote = await this.sidenotesPoolDriver.obtain(scanData);
+		let sidenote = await this.sidenotesRepository.obtain(scanData);
 		await this.sidenoteProcessor.delete(sidenote);
 
 		this.styler.updateDecorations();
@@ -160,34 +161,5 @@ export default class Actions {
 
 	toggleAnchorsFolding() {// TODO
 		// надо обернуть стайлер в actual  и переключаться между двумя его инстансами, в одном из которых будут развернутые комменты
-	}
-
-	async internalize() {
-		// TODO comment regexp match document for content, select and toggle comment)
-		// объединить с delete. удалять заметку по дефолту. Интернализировать все на странице (как и delete)
-		// для мелких однотипных заметок это оптимальное поведение, а большие заметки не будут дублироваться
-		if (!this.editor) return;
-
-		const scanData = this.scanner.scanLine();
-		if (!scanData) {
-			vscode.window.showInformationMessage(
-				'There is no sidenotes attached at current cursor position'
-			);
-			return;
-		}
-		const sidenote = await this.sidenotesPoolDriver.obtain(scanData);
-		const { content } = sidenote;
-
-		if (content) {
-			await this.sidenoteProcessor.delete(sidenote);
-			// let insert: vscode.TextEdit = new vscode.TextEdit();
-			await this.editor.edit(
-				edit => { edit.insert(this.editor.selection.anchor, content); },
-				{ undoStopAfter: false, undoStopBefore: false }
-			);
-		}
-		// TODO get range for comment toggle comment
-
-		this.styler.updateDecorations();
 	}
 }

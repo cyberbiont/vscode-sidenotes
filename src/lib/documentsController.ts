@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 
 import {
-	Actual,
 	Constructor,
-	MapPool,
-	SidenotesDictionary,
+	MapRepository,
+	ReferenceContainer,
 	Scanner,
+	SidenotesDictionary,
 } from './types';
 
 /**
@@ -16,47 +16,50 @@ import {
  * @template D
  */
 export default class DocumentsController<D extends object> {
-	private DActualKeeper: Actual<D>
-	private editorActualKeeper: Actual<vscode.TextEditor>
+	private DRefContainer: ReferenceContainer<D>
+	private editorRefContainer: ReferenceContainer<vscode.TextEditor>
 
-	private actualD: D;
-	private actualEditor: vscode.TextEditor;
+	private DReference: D;
+	private editorReference: vscode.TextEditor;
 
 	constructor(
-		private pool: MapPool<vscode.TextDocument, D>,
-		private ActualKeeper: Constructor<Actual<any>>,
-		// private scanner: Scanner
+		private repo: MapRepository<vscode.TextDocument, D>,
+		private ReferenceContainer: Constructor<ReferenceContainer<any>>,
 	) {
-		this.DActualKeeper = new ActualKeeper();
-		this.editorActualKeeper = new ActualKeeper();
-
-		this.actualEditor = this.editorActualKeeper.get();
-		this.actualD = this.DActualKeeper.get();
-
-		this.updateEditor();
-		this.updateD();
+		this.init();
 	}
 
-	private async updateD(key: vscode.TextDocument = this.actualEditor.document): Promise<D> {
-		const item = await this.pool.get(key);
-		this.DActualKeeper.set(item);
+	async init() {
+		this.DRefContainer = new ReferenceContainer();
+		this.editorRefContainer = new ReferenceContainer();
+
+		this.editorReference = this.editorRefContainer.getProxy();
+		this.DReference = this.DRefContainer.getProxy();
+
+		this.updateEditor();
+		return	await this.updateD();
+	}
+	return
+	private async updateD(key: vscode.TextDocument = this.editorReference.document): Promise<D> {
+		const item = await this.repo.get(key);
+		this.DRefContainer.load(item);
 		return item;
 	};
 
 	private updateEditor() {
-		this.editorActualKeeper.set(vscode.window.activeTextEditor!);
+		this.editorRefContainer.load(vscode.window.activeTextEditor!);
 	}
 
 	onEditorChange(document: vscode.TextDocument) {
 		this.updateEditor();
 		this.updateD(document);
 	}
-	get(actual: 'editor'): vscode.TextEditor
-	get(actual: 'metadata'): D
-	get(actual: 'editor'|'metadata'): D|vscode.TextEditor|undefined {
-		switch(actual) {
-			case 'metadata': return this.actualD;
-			case 'editor': return this.actualEditor;
+	getProxy(proxyFor: 'editor'): vscode.TextEditor
+	getProxy(proxyFor: 'metadata'): D
+	getProxy(proxyFor: 'editor'|'metadata'): D|vscode.TextEditor|undefined {
+		switch(proxyFor) {
+			case 'metadata': return this.DReference;
+			case 'editor': return this.editorReference;
 		}
 	}
 }

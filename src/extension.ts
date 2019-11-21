@@ -15,7 +15,13 @@ export function activate(context: vscode.ExtensionContext) {
 	app = new App(cfg, context);
 	// function initApp() {
 	// 	app = new App(cfg, context);
-	// }
+
+	// activationEvents:
+	// "onCommand:sidenotes.annotate",
+	// "onCommand:sidenotes.display",
+	// "onDebug"
+
+
 
 }
 export function deactivate() {

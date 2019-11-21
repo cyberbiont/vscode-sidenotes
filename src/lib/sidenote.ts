@@ -1,21 +1,20 @@
 import * as vscode from 'vscode';
 import {
-	Constructor,
-	EditorUtils,
 	Anchorer,
+	Constructor,
 	Designer,
+	EditorUtils,
 	IAnchor,
 	IAnchorable,
 	IDesignable,
 	IIdMaker,
-	MarkerUtils,
 	IScanData,
 	IStorable,
 	IStorageService,
 	IStylable,
 	IStylableDecoration,
+	MarkerUtils,
 	Scanner,
-	// IPrunable
 } from './types';
 
 export interface ISidenote
@@ -23,8 +22,6 @@ export interface ISidenote
 		IDesignable,
 		IStylable,
 		IAnchorable
-		// IPrunable,
-		// IStorable,
 	{
 		id: string
 	}

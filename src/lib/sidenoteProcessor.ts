@@ -42,8 +42,8 @@ export default class SidenoteProcessor {
 	updateContent(sidenote: ISidenote): ISidenote {
 		const data = this.storageService.get(sidenote.id);
 		if (data) sidenote.content = data.content;
-		// assuming the ranges hasn't change; update onTExteditorChange us responsible for handling this
-		// so we can extract ranges from decorations
+		/* assuming the ranges hasn't change (update onEditorChange event is responsible for handling this)
+		we can extract ranges from decorations */
 		const ranges = Array.from(new Set(
 			sidenote.decorations.map(decoration => decoration.options.range)
 		));
@@ -57,7 +57,6 @@ export default class SidenoteProcessor {
 
 	// TODO move to UserInteraction module
 	async handleBroken(sidenote): Promise<ISidenote|undefined> {
-
 		const promptUserForAction = async (): Promise<vscode.QuickPickItem|undefined> => {
 			const actions: vscode.QuickPickItem[] = [{
 					label: 'delete',
@@ -80,7 +79,6 @@ export default class SidenoteProcessor {
 		}
 
 		const action = await promptUserForAction();
-
 		if (!action) return undefined;
 
 		switch (action.label) {

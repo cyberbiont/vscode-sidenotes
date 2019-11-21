@@ -94,14 +94,15 @@ const cfg: ICfg = {
 				broken: {
 					color: 'rgba(255, 0, 0, 1)',
 					icon: 'sidenote_broken.svg',
-					message: `< BROKEN: content file, associated with this comment can not be found.
-					Run 'annotate' command to choose action >`
+					message: `⮜ BROKEN ⮞:
+					Can not find content file, associated with this comment.
+					Run 'annotate' command to choose your action.`
 				},
 
 				empty: {
 					color: 'rgb(248, 171, 27)',
 					icon: 'sidenote_empty.svg',
-					message: `< EMPTY: this sidenote is empty >`
+					message: `⮜ EMPTY ⮞: this sidenote is empty.`
 				},
 			}
 		}

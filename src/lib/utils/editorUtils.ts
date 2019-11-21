@@ -7,7 +7,6 @@ export type OEditorUtils = {
 }
 
 // 🕮 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0
-
 export default class EditorUtils {
 	constructor(
 		public editor: vscode.TextEditor,
@@ -53,5 +52,24 @@ export default class EditorUtils {
 			}
 		// }
 		return content;
+	}
+
+	toggleComment = async function(
+		range: vscode.Range,
+		editor: vscode.TextEditor = this.editor,
+		{ useBlockComments = false}: { useBlockComments?: boolean } = {}
+	): Promise<boolean> {
+		try {
+			const selection = new vscode.Selection(range.start, range.end);
+			editor.selection = selection;
+			if (useBlockComments) {
+				await vscode.commands.executeCommand('editor.action.blockComment');
+			} else {
+				await vscode.commands.executeCommand('editor.action.commentLine');
+			}
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }

@@ -4,9 +4,9 @@ import * as path from 'path';
 
 import {
 	EditorUtils,
-	IEditorService,
-	ICfg,
 	FileSystem,
+	ICfg,
+	IEditorService,
 	Scanner
 } from './types';
 import { throws } from 'assert';
