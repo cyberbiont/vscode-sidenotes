@@ -23,17 +23,12 @@ export type ICfg =
 	& OChangeTracker & (OFileChangeTracker | OVscodeChangeTracker)
 	& ODesigner & OStyler
 	& OStorageService & OFileStorage
-	& {
-		sources: {
-			excludeFromAnnotation: vscode.GlobPattern, // TODO
-		}
-	}
 ;
 const settings = vscode.workspace.getConfiguration('sidenotes');
 
 const cfg: ICfg = {
 	app: {
-		autoStart: settings.get('autoStart') || false,
+		// autoStart: settings.get('autoStart') || false,
 		defaultEditor: settings.get('defaultEditor') || 'vscode',
 	},
 
@@ -45,8 +40,11 @@ const cfg: ICfg = {
 	},
 
 	sources: {
-		fileFormatsAllowedForTransfer: ['.md', '.markdown', '.mdown', '.txt'], // TODO
-		excludeFromAnnotation: settings.get('excludeFromAnnotation') || '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*', // glob  TODO
+		fileFormatsAllowedForTransfer: ['.md', '.markdown', '.mdown', '.txt'],
+		matchFiles: settings.get('excludeFromAnnotation')
+			||  "**/*",
+		excludeFiles: settings.get('excludeFromAnnotation')
+			|| '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*', // glob  TODO
 	},
 
 	// 🕮 7995614f-ef55-42c0-a9f6-e372ba94e93b
@@ -63,7 +61,7 @@ const cfg: ICfg = {
 		styles: {
 			settings: {
 				before: settings.get('before') || false,
-				after: settings.get('after') || '🕮',
+				after: settings.get('after') || '🖉',
 				ruler: settings.get('ruler') || true,
 				gutterIcon: settings.get('gutterIcon') || false,
 				hideMarkers: settings.get('hideMarkers') || true,

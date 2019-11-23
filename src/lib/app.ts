@@ -7,13 +7,14 @@ import {
 	IChangeTracker,
 	IEditorService,
 	IStorageService,
-	// OStyler,
+	OStyler,
 	SidenotesDictionary,
 	SidenotesRepository,
 	SidenotesStyler,
 } from './types';
 
 import {
+	SystemDefaultEditor,
 	TyporaEditor,
 	VscodeEditor,
 } from './editorService';
@@ -33,21 +34,23 @@ import {
 import Anchorer from './anchorer';
 import Actions from './actions';
 import Designer from './designer';
+import FileSystem from './fileSystem';
 import Pruner from './pruner';
 import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
-import Styler, {
-	// StylerController
-} from './styler';
+import Styler from './styler';
 import UuidMaker from './idMaker';
 import { EventEmitter } from 'events';
 import { FileStorage } from './storageService';
 import { MapDictionary, HasIdProperty } from './dictionary';
-import ReferenceContainer from './referenceContainer';
-import DocumentsController from './documentsController';
-import MapRepository from './mapRepository';
-import DictionaryRepository from './dictionaryRepository';
-import FileSystem from './fileSystem';
+import {
+	ReferenceContainer,
+	ReferenceController
+} from './referenceContainer';
+import {
+	MapRepository,
+	DictionaryRepository
+} from './repository';
 
 import { Initializable } from './mixins';
 
@@ -59,7 +62,7 @@ import Events from './events';
 
 export type OApp = {
 	app: {
-		autoStart: boolean,
+		// autoStart: boolean,
 		defaultEditor: 'typora'|'vscode'|'system default',
 	}
 }
@@ -94,24 +97,46 @@ export default class App {
 		const InitializableMapDictionary = Initializable(MapDictionary);
 		// 🕮 bd961532-0e0f-4b5f-bb70-a286acdfab37
 
-		const documentsRepository: DocumentInitializableSidenotesRepository =	new MapRepository(
+		const poolRepository: DocumentInitializableSidenotesRepository =	new MapRepository(
 			{ // adding static create method
 				...InitializableMapDictionary,
-				create(key) {
-					return new InitializableMapDictionary;
-				}
+				create(key) { return new InitializableMapDictionary; }
 			},
 			new WeakMap
 		);
 
-		const documentsController =
-			await new DocumentsController(
-				documentsRepository,
-				ReferenceContainer,
-			);
-		const editor: vscode.TextEditor = documentsController.getReference('editor');
+		const editorController = await new ReferenceController(
+			ReferenceContainer,
+			() => vscode.window.activeTextEditor!,
+		).update();
+		const editor: vscode.TextEditor = editorController.getReference();
 
-		const pool: SidenotesDictionary = documentsController.getReference('metadata');
+		const poolController = await new ReferenceController(
+			ReferenceContainer,
+			async (key: vscode.TextDocument) => poolRepository.obtain(key)
+		).update(editor.document);
+		const pool: SidenotesDictionary = await poolController.getReference();
+
+		function getAlternativeStylesCfg() {
+			// const altCfg = Object.assign({}, this.cfg);
+			const altCfg = JSON.parse(JSON.stringify(this.cfg));
+			altCfg.anchor.styles.settings.hideMarkers = !this.cfg.anchor.styles.settings.hideMarkers;
+			altCfg.anchor.styles.settings.before = 'alternative config ';
+			return altCfg;
+		}
+
+		const stylersCollection = {
+			default: new Styler(pool, this.cfg),
+			alternative: new Styler(pool, getAlternativeStylesCfg.call(this))
+		};
+
+		const stylerController = await new ReferenceController(
+			ReferenceContainer,
+			(key: string): SidenotesStyler => stylersCollection[key],
+		).update('default');
+
+		const styler: SidenotesStyler = await stylerController.getReference();
+		// const styler: SidenotesStyler = new Styler(pool, this.cfg);
 
 		const utils = Object.assign(
 			Object.create(null),
@@ -121,13 +146,14 @@ export default class App {
 
 		const scanner = new Scanner(editor, utils);
 
-		const fileSystem = new FileSystem(scanner, utils);
+		const fileSystem = new FileSystem(scanner, utils,this.cfg);
 
 		let editorService: IEditorService;
-		let changeTracker: IChangeTracker;
+		let changeTracker;
+
 		switch (this.cfg.app.defaultEditor) {
 			case 'typora':
-				// changeTracker = new FsWatchChangeTracker(uuidMaker, eventEmitter, this.cfg, this.context);
+			case 'system default':
 				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(
 					uuidMaker,
 					eventEmitter,
@@ -135,8 +161,6 @@ export default class App {
 					this.context
 				);
 				changeTracker = fileChangeTracker;
-				editorService = new TyporaEditor(fileChangeTracker);
-				break;
 
 			case 'vscode':
 			default:
@@ -146,9 +170,17 @@ export default class App {
 					this.context
 				);
 				changeTracker = vscodeChangeTracker;
-				editorService = new VscodeEditor(vscodeChangeTracker);
-				break;
 		}
+
+		switch (this.cfg.app.defaultEditor) {
+			case 'typora': editorService = new TyporaEditor(changeTracker, editor);	break;
+
+			case 'system default': 	editorService = new SystemDefaultEditor(changeTracker);	break;
+
+			case 'vscode':
+			default: editorService = new VscodeEditor(changeTracker);
+		}
+
 		const storageService = new FileStorage(
 			editorService,
 			utils,
@@ -166,25 +198,6 @@ export default class App {
 
 		const inspector = new Inspector();
 		const designer = new Designer(inspector, this.cfg);
-
-
-
-		/* const stylersRepository: MapRepository<OStyler, Styler<ISidenote>> =
-			new MapRepository({
-			...Styler,
-			create(key: ICfg) {
-				return new Styler(pool, key);
-			}
-		}, new Map);
-
-		const stylersController = await new StylerController(
-			stylersRepository,
-			ReferenceContainer,
-			this.cfg,
-			vscode.commands
-		);
-		const styler = stylersController.getReference(); */
-		const styler: SidenotesStyler = new Styler(pool, this.cfg);
 
 		const sidenoteProcessor = new SidenoteProcessor(
 			storageService,
@@ -216,13 +229,13 @@ export default class App {
 			sidenoteProcessor,
 			sidenotesRepository,
 			styler,
+			stylerController
 		);
 
 		const events = new Events(
 			actions,
 			this.cfg,
 			changeTracker,
-			documentsController,
 			editor,
 			pool,
 			scanner,
@@ -230,6 +243,8 @@ export default class App {
 			sidenotesRepository,
 			styler,
 			utils,
+			editorController,
+			poolController,
 		);
 
 		this.actions = actions;
@@ -252,10 +267,10 @@ export default class App {
 			this.editorService instanceof VscodeEditor
 				? this.events.onVscodeEditorChange
 				: this.events.onEditorChange,
-				this.actions, this.context.subscriptions
+				this.events, this.context.subscriptions
 		);
-		vscode.workspace.onDidChangeTextDocument(this.events.onDidChangeTextDocument, this.actions, this.context.subscriptions)
-		this.eventEmitter.on('sidenoteDocumentChange', this.events.onSidenoteDocumentChange.bind(this.actions));
+		vscode.workspace.onDidChangeTextDocument(this.events.onDidChangeTextDocument, this.events, this.context.subscriptions)
+		this.eventEmitter.on('sidenoteDocumentChange', this.events.onSidenoteDocumentChange.bind(this.events));
 	}
 
 	registerCommands() {
@@ -265,6 +280,7 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
 			vscode.commands.registerCommand('sidenotes.refresh', this.actions.refresh, this.actions),
+			vscode.commands.registerCommand('sidenotes.showMarkers', this.actions.switchStylesCfg, this.actions),
 			// vscode.commands.registerCommand('sidenotes.reset', this.actions.reset, this.actions),
 			// vscode.commands.registerCommand('sidenotes.scan', this.actions.scan, this.actions),
 		);

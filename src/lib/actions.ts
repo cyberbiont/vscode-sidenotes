@@ -10,6 +10,7 @@ import {
 	SidenotesDictionary,
 	SidenotesRepository,
 	SidenotesStyler,
+	ReferenceController
 } from './types';
 
 export default class Actions {
@@ -22,6 +23,7 @@ export default class Actions {
 		public sidenoteProcessor: SidenoteProcessor,
 		public sidenotesRepository: SidenotesRepository,
 		public styler: SidenotesStyler,
+		public stylerController: ReferenceController<SidenotesStyler, string>
 	) {}
 
 	async scan(): Promise<void> {
@@ -106,7 +108,9 @@ export default class Actions {
 		this.scan();
 	}
 
-	toggleAnchorsFolding() {// TODO
-		// надо обернуть стайлер в actual  и переключаться между двумя его инстансами, в одном из которых будут развернутые комменты
+	switchStylesCfg() {// TODO
+		const key = this.stylerController.key === 'default' ? 'alternative' : 'default';
+		this.stylerController.update(key);
+		this.refresh();
 	}
 }

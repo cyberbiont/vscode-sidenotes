@@ -4,12 +4,18 @@ import * as fs from 'fs';
 
 import { IScanData, EditorUtils, Scanner } from './types';
 
-export type OFileSystem = {}
+export type OFileSystem = {
+	sources: {
+		matchFiles: vscode.GlobPattern,
+		excludeFiles: vscode.GlobPattern,
+	}
+}
 
 export default class FileSystem {
 	constructor(
 		private scanner: Scanner,
 		public utils: EditorUtils,
+		private cfg: OFileSystem
 	) {}
 
 	/**
@@ -28,12 +34,19 @@ export default class FileSystem {
 		return Array.prototype.concat(...files);	// return files.flat();
 	}
 
+	// async readDirectory(dir: string): Promise<string[]> {
+	// 	// return this.readDirectoryRecursive(dir);
+	// 	// Find files across all workspace folders in the workspace.
+	// 	return vscode.workspace.findFiles(this.cfg.sources.matchFiles, this.cfg.sources.excludeFiles);
+	// }
+
 	/**
 	 * @param {*} [dir=this.utils.getWorkspaceFolderPath()]
 	 * @returns {Promise<Set<string>>} Collection of ids found in directory's files
 	 * @memberof FileSystem
 	 */
 	async scanDirectoryFilesContentsForIds(dir = this.utils.getWorkspaceFolderPath()): Promise<Set<string>> {
+
 		const readFiles = async (filePaths: string[]) => {
 			return Promise.all(
 				filePaths.map(filePath => fs.promises.readFile(filePath, { encoding: 'utf-8' }) as Promise<string>)
@@ -50,8 +63,20 @@ export default class FileSystem {
 			return idsOnly;
 		};
 
-		const filePaths = await this.readDirectoryRecursive(dir);
-		const contents = await readFiles(filePaths);
+		// const filePaths = await this.readDirectory(dir);
+		// const contents = await readFiles(filePaths);
+
+		const fileUris = await vscode.workspace.findFiles(this.cfg.sources.matchFiles, this.cfg.sources.excludeFiles);
+		const contents = await Promise.all(
+			fileUris.map(async fileUri => {
+				const readData = await vscode.workspace.fs.readFile(fileUri);
+				return Buffer.from(readData).toString('utf8');
+			})
+		);
+		// findFiles ищем во всех открытых workspace, надо ли это нам? тогда в всех соответствующих папках надо искать контент-файлы
+		// https://github.com/microsoft/vscode-extension-samples/blob/master/fsconsumer-sample/src/extension.ts
+
+
 		const ids = scanContents(contents);
 		const uniqueIds = new Set(ids);
 		return uniqueIds;

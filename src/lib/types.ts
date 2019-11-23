@@ -63,16 +63,14 @@ export {
 } from './pruner';
 
 export {
-	default as MapRepository,
-} from './mapRepository';
+	MapRepository,
+	DictionaryRepository
+} from './repository';
 
 export {
-	default as ReferenceContainer
+	ReferenceContainer,
+	ReferenceController
 } from './referenceContainer';
-
-export {
-	default as DocumentsController
-} from './documentsController';
 
 export { default as SidenoteProcessor } from './sidenoteProcessor';
 
@@ -97,13 +95,19 @@ export type AnyFunction<T = any> = (...input: any[]) => T
 export type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>
 
 import {	Initializable } from './mixins';
-import { IDictionary, MapDictionary, HasIdProperty } from './dictionary';
-import DictionaryRepository from './dictionaryRepository';
-import MapRepository from './mapRepository';
+import {
+	HasIdProperty,
+	IDictionary,
+	MapDictionary,
+} from './dictionary';
+import {
+	DictionaryRepository,
+	MapRepository,
+} from './repository';
 import Styler from './styler';
 import { IScanData } from './scanner';
 import { ISidenote } from './sidenote';
-import ReferenceContainer from './referenceContainer';
+// import ReferenceContainer from './referenceContainer';
 
 export type SidenotesDictionary
 	= MapDictionary<ISidenote> & Initializable
@@ -117,28 +121,3 @@ export type DocumentInitializableSidenotesRepository
 export type SidenotesStyler = Styler<ISidenote>;
 export type SidenotesRepository
 	= DictionaryRepository<IScanData, ISidenote>;
-
-
-export abstract class ReferenceController<K extends object, T extends object> {
-	private container: ReferenceContainer<T>;
-	private reference: T;
-
-	constructor(
-		private repo: MapRepository<K, T>,
-		ReferenceContainer: Constructor<ReferenceContainer<any>>,
-		cfg: K,
-		commands
-	) {
-		this.container = new ReferenceContainer();
-		this.reference = this.container.getProxy();
-	}
-
-	getReference(): T {
-		return this.reference;
-	}
-
-	async update(key: K) {
-		const instance = await this.repo.get(key);
-		this.container.load(instance);
-	}
-}

@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as open from 'open';
+
 import {
 	FileChangeTracker,
 	IChangeTracker,
@@ -7,13 +9,13 @@ import {
 
 export interface IEditorService {
 	changeTracker: IChangeTracker;
-	open(path: string)
-	// onDidSaveTextDocument(document: vscode.TextDocument): boolean
+	open(path: string);
 }
 
 export class VscodeEditor implements IEditorService {
-	constructor(public changeTracker: VscodeChangeTracker) {
-		this.changeTracker = changeTracker;
+	constructor(
+		public changeTracker: VscodeChangeTracker,
+	) {
 		this.changeTracker.init();
 	}
 	/**
@@ -30,56 +32,44 @@ export class VscodeEditor implements IEditorService {
 			}),
 			error => {
 				vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`);
-				// return false;
 			}
 		);
 	}
 }
 
-export class TyporaEditor implements IEditorService {
+export class SystemDefaultEditor implements IEditorService {
+	constructor(
+		public changeTracker: FileChangeTracker,
+		private opn = open
+	) {
+		this.changeTracker.init();
+	}
+	async open(path: string) {
+		return await this.opn(path);
+	}
+}
 
-	private terminal: vscode.Terminal = vscode.window.createTerminal('Typora');
+export class TyporaEditor implements IEditorService {
+	private terminal: vscode.Terminal = vscode.window.createTerminal('Sidenotes');
 
 	constructor(
 		public changeTracker: FileChangeTracker,
+		private editor: vscode.TextEditor
 	) {
 		this.changeTracker.init();
-		// TODO // this.checkRequirements();
 	}
 
-	/* checkRequirements() {
-		const isWin = ~require('os').platform().indexOf('win');
-		const where = isWin ? 'where' : 'whereis';
-		const spawn = require('child_process').spawn;
-		spawn(`${where} typora`, {encoding: 'utf8'})
-			.on('close', code => {
-				console.log('exit code : ' + code);
-			});
-	} */
+	// 🕮 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4
 
 	open(path: string): vscode.Terminal|false {
-		// TODO check file extension
-		// if (this.activeEditorUtils.editor.document.languageId !== 'markdown') {
-		// 	vscode.window.showInformationMessage(
-		// 		`The file you are trying to open is not in Markdown format!`
-		// 	);
-		// 	return false;
-		// } else {
 		try {
 			this.terminal.sendText(`typora "${path}"`);
 		} catch (e) {
 			console.log(e);
-			vscode.window.showInformationMessage(
-				`Typora can't handle this file!`
+			vscode.window.showErrorMessage(
+				`Failed to open file ${path} in Typora`
 			);
 		}
-		// this.changeTracker.start(path);
-		// }
 		return this.terminal;
-		// if (!cfg.externalEditors.typora.includes(this.ext)) {
-		// 	throw new Error('this file extension is not supported');
-		// };
 	}
-
-
 }

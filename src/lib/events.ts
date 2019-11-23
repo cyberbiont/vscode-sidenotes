@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import {
 	Actions,
-	DocumentsController,
 	EventEmitter,
 	ICfg,
 	IChangeData,
 	IChangeTracker,
 	ISidenote,
 	MarkerUtils,
+	ReferenceController,
 	Scanner,
 	SidenoteProcessor,
 	SidenotesDictionary,
@@ -20,7 +20,6 @@ export default class Events {
 		private actions: Actions,
 		private cfg: ICfg,
 		private changeTracker: IChangeTracker,
-		private documentsController: DocumentsController< SidenotesDictionary>,
 		private editor: vscode.TextEditor,
 		private pool: SidenotesDictionary,
 		private scanner: Scanner,
@@ -28,13 +27,19 @@ export default class Events {
 		private sidenotesRepository: SidenotesRepository,
 		private styler: SidenotesStyler,
 		private utils: MarkerUtils,
+		private editorController: ReferenceController<vscode.TextEditor>,
+		private poolController: ReferenceController<Promise<SidenotesDictionary>, vscode.TextDocument>
 	) {}
 
-	// eventListeners
 	async onEditorChange(editor: vscode.TextEditor) {
-		await this.documentsController.onEditorChange(editor.document);
-		this.pool.each((sidenote: ISidenote) => sidenote.anchor.editor = this.editor);
-		this.actions.scan();
+		try {
+			await this.editorController.update();
+			await this.poolController.update(editor.document);
+			this.pool.each((sidenote: ISidenote) => sidenote.anchor.editor = this.editor);
+			this.actions.scan();
+		} catch (e) {
+			console.log(e);
+		}
 	};
 
 	onVscodeEditorChange(editor: vscode.TextEditor) {

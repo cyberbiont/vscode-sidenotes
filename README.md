@@ -104,13 +104,16 @@ By default, sidenote will open in vscode's rightmost panel for editing.
 
 ##### system default (TODO)
 
-The sidenote will open in whatever program is specidfied in your OS as default for the content file extension.
+The sidenote will open in whatever program is specified in your OS as default for the content file extension.
+Using this option together with contentFileExtension option, you can for example you .txt files and open them in notepad (whatever may be the reason to do so). (надо разрешить в customExtension другие опции, кроме markdown файлов
 
-This options relies on 'Open' extension, so make sure to install it for this to work.
+<!-- Is not guaranteed to work on all systems at the moment. -->
+
+Uses ['Open'](https://www.npmjs.com/package/opn) npm module for cross-platform compatibility.
 
 ##### typora
 
-To use this option, you must have Typora installed in your system and  'typora' executable in the system PATH).
+To use this option, you must have Typora installed in your system and 'typora' executable in the system PATH.
 
 Typora is a special case due to some problems that don't allow to open it from Vscode as system default editor (at least on Windows).  So I wrote special extension to let you do this.
 Generally, I recommend you use to leave vscode as default and resort to Typora when you need extensive editing, using open-in-typora extension.
@@ -122,6 +125,7 @@ if the File Storage is used (which is by default) defines a subfolder inside you
 #### storage.files.contentFileExtension
 
 defines file extension. By default it is '.md'. You can change it to '.markdown' or '.mdown'
+Be aware that is you change extension setting after you crated some files, the sidenotes made with another extension all be shown up as 'orphaned'.
 
 #### <!--sources.fileFormatsAllowedForTransfer (TODO)-->
 
@@ -337,6 +341,8 @@ But, if you collaborate on code with other people who aren't acquainted with sid
 When you manually move / copy / paste your anchor markers, the decorations need to be updated to account for the new marker position, until then they will be rendered at their old position. Sadly, VSCode currently has no way of detecting cut/copy/paste events, so the closest event you can get after moving your marker is the document change event, which happens after you paste your text.  On this event extension will scan changes and update decorations if any markers are involved. So, when you cut fragment of code that contains sidenote markers, the decorations will stay in their old place until you paste your code / switch editors.
 
 Obviously, if you want to move your sidenote to other file, that uses different comment syntax, you'll have to manually edit comment to match. (untoggle comment before moving/toggle back after);
+
+Since sidenotes scanning is done lazily, you have to make editor active to initialize it. This can be seen on application start if you have several editors visible simoultaneosly in different panes.
 
 ## Credits
 

@@ -2,8 +2,8 @@
 	"name": "vscode-sidenotes",
 	"displayName": "Sidenotes",
 	"description": "annotate your code with external notes, stored separately and shown on hover",
-	"version": "1.0.0",
 	"publisher": "Yaroslav Larin",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.38.0"
 	},
@@ -11,7 +11,11 @@
 		"Other"
 	],
 	"keywords": [
-		"notes", "comments", "Markdown", "annotations", "external"
+		"notes",
+		"comments",
+		"Markdown",
+		"annotations",
+		"external"
 	],
 	"activationEvents": [
 		"*"
@@ -20,7 +24,7 @@
 	"contributes": {
 		"configuration": [
 			{
-				"title": "sidenotes configuration",
+				"title": "%sidenotes.configuration.title%",
 				"properties": {
 					"sidenotes.notesSubfolder": {
 						"type": "string",
@@ -28,7 +32,13 @@
 						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
 					},
 					"sidenotes.contentFileExtension": {
-						"type": "'.md'|'.markdown'|'.mdown'",
+						"type": "string",
+						"enum": [
+							".md",
+							".markdown",
+							".mdown",
+							".txt"
+						],
 						"default": ".md",
 						"description": "extension for content files"
 					},
@@ -72,7 +82,11 @@
 						"items": {
 							"type": "string"
 						},
-						"default": ["after", "text", "ruler"],
+						"default": [
+							"after",
+							"text",
+							"ruler"
+						],
 						"description": "Defines what part of comment anchor will change color, indicating sidenote status."
 					}
 				}
@@ -114,6 +128,25 @@
 				"command": "sidenotes.extraneous",
 				"title": "Clean extraneous (orphaned) files from current sidenotes folder",
 				"category": "sidenotes"
+			},
+			{
+				"command": "sidenotes.showMarkers",
+				"title": "Toggle full markers display",
+				"category": "sidenotes"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "sidenotes.annotate",
+				"key": "shift+alt+A",
+				"mac": "shift+cmd+A",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "sidenotes.delete",
+				"key": "shift+alt+D",
+				"mac": "shift+cmd+D",
+				"when": "editorTextFocus"
 			}
 		],
 		"menus": {
@@ -150,6 +183,7 @@
 	},
 	"dependencies": {
 		"chokidar": "^3.2.2",
+		"open": "^7.0.0",
 		"uuid": "^3.3.3"
 	}
 }

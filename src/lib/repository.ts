@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import {
 	Constructor,
 	IDictionary,
+	HasIdProperty,
 } from './types';
 
 export interface HasFactoryMethod<V> {
@@ -15,14 +16,14 @@ export interface HasFactoryMethod<V> {
 * stores one of them as active(actual) instance
 * and returns it for global use by other modules in application
 */
-export default class MapRepository<K extends object, V> {
+export class MapRepository<K extends object, V> {
 
 	constructor(
 		private Factory: HasFactoryMethod<V>,
 		protected map: Map<K, V> | WeakMap<K, V>
 	) {}
 
-	async get(key: K, create: boolean = true): Promise<V> {
+	async obtain(key: K, create: boolean = true): Promise<V> {
 		let item: V;
 
 		const queryResult = this.map.get(key);
@@ -52,6 +53,45 @@ export default class MapRepository<K extends object, V> {
 		придется create и get делать асинхронными */
 	}
 }
+
+
+
+
+// 🕮 7f52e358-d011-44ac-9073-83738f5abb44
+
+export interface HasBuildFactoryMethod<V> {
+	build: (key: any) => V | Promise<V>
+}
+
+export class DictionaryRepository<C extends HasIdProperty, V extends HasIdProperty> {
+	constructor(
+		private Factory: HasBuildFactoryMethod<V>,
+		private dictionary: IDictionary<V>
+	) {}
+
+	public async get(id: string): Promise<V | undefined> {
+		return this.dictionary.get(id);
+	}
+
+	public async create(cfg?: C): Promise<V> {
+		const value = await this.Factory.build(cfg);
+		this.dictionary.add(value);
+		return value;
+	}
+
+	public async obtain(cfg?: C): Promise<V>	{
+		let value: V;
+
+		if (cfg) {
+			let queryResult: V | undefined = this.dictionary.get(cfg.id);
+			if (queryResult) value = queryResult;
+			else value = await this.create(cfg);
+		} else value = await this.create(); // new sidenote
+
+		return value;
+	}
+}
+
 
 // TODO refactor into separate classes MapPool WeakMapPool 🕮 fea781b6-9af8-435c-9a7e-9f42f1affc14
 // what to use as a key 🕮 9ec1095e-abfb-49f5-af6d-4a9fed205b6c

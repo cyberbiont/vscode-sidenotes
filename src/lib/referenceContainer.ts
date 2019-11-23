@@ -1,5 +1,6 @@
-export default class ReferenceContainer<T extends object> {
-	// reference container
+import { Constructor } from './types';
+
+export class ReferenceContainer<T extends object> {
 	item: T;
 
 	load(item: T): T {
@@ -16,6 +17,29 @@ export default class ReferenceContainer<T extends object> {
 			}
 		}) as unknown as T;
 		return proxy;
+	}
+}
+
+export class ReferenceController<T extends object, K = string> {
+	private container: ReferenceContainer<T>;
+	public key: K;
+
+	constructor(
+		ReferenceContainer: Constructor<ReferenceContainer<any>>,
+		public getInstance: (key?: K) => T
+	) {
+		this.container = new ReferenceContainer();
+	}
+
+	getReference(): T {
+		return this.container.getProxy();
+	}
+
+	async update(key?: K): Promise<this> {
+		const instance = await this.getInstance(key);
+		this.container.load(instance);
+		if (key) this.key = key;
+		return this;
 	}
 }
 

@@ -17,12 +17,7 @@ export interface IStorable {
 }
 
 export type OStorageService = {
-	// storage: {
-	// 	defaultEditorService: 'vscode'|'Typora'|'system default', //TODO
-	// }
 }
-
-// TODO https://code.visualstudio.com/api/references/vscode-api#FileSystemProvider
 
 export interface IStorageService {
 	delete(id: string): boolean | Promise<boolean>;
@@ -45,21 +40,23 @@ export interface IFileStorage extends IStorageService {
 		workspace?: string,
 		resolveAction?: string
 	): Promise<string | boolean>;
-	// getFilePath(id: string): string,
 }
+
+type ContentFileExtension = '.md'|'.markdown'|'.mdown'|'.txt';
 
 export type OFileStorage = {
 	storage: {
 		files: {
 			notesSubfolder: string;
-			contentFileExtension: '.md'|'.markdown'|'.mdown';
+			contentFileExtension: ContentFileExtension;
 		}
 	}
 }
 
-// TODO implement separate 'run' command for each editor type
-// TODO handle uri instead of file paths;
-// TODO use fs.promises
+// TODO 🕮 1744f795-4133-4688-97d3-e8f02b26c886
+//  использовать FIlesystem Provider https://code.visualstudio.com/api/references/vscode-api#FileSystem и FileSystemWatcher
+//  https://code.visualstudio.com/api/references/vscode-api#FileSystemProvider
+
 export class FileStorage implements IFileStorage {
 
 	private pathCache: {
@@ -68,7 +65,7 @@ export class FileStorage implements IFileStorage {
 
 	private o: {
 		notesSubfolder: string;
-		contentFileExtension: string;
+		contentFileExtension: ContentFileExtension;
 	}
 
 	constructor(

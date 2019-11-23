@@ -5,7 +5,11 @@ import App from './lib/app';
 let app: App;
 
 export function activate(context: vscode.ExtensionContext) {
-	app = new App(cfg, context);
+	try {
+		app = new App(cfg, context);
+	} catch(e) {
+		console.log(e);
+	}
 }
 
 export function deactivate() {

@@ -25,7 +25,7 @@ export type OFileChangeTracker = {
 export default abstract class FileChangeTracker extends ChangeTracker {
 	abstract watcherService;
 
-	private o:  {
+	private o: {
 		notesSubfolder: string
 	}
 
@@ -55,5 +55,40 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 	abstract init(targetPath?: string): void
 	abstract setWatch(path: string): void
 	abstract stopWatch(path: string): void
-
 }
+
+
+// export class VSCFileChangeTracker extends ChangeTracker {
+// 	private watcherService;
+
+// 	private o: {
+// 		notesSubfolder: string
+// 	}
+
+// 	constructor(
+// 		idMaker: IIdMaker,
+// 		eventEmitter: EventEmitter,
+// 		public cfg: OFileChangeTracker,
+// 		public context: vscode.ExtensionContext
+// 	) {
+// 		super(idMaker, eventEmitter);
+// 		this.o = cfg.storage.files;
+// 	}
+
+// 	getFullPath(workspace) {
+// 		return path.join(workspace.uri.fsPath, this.o.notesSubfolder);
+// 	}
+
+// 	onWorkspaceChange(event: vscode.WorkspaceFoldersChangeEvent) {
+// 		if (event.added) event.added.forEach(workspace => this.setWatch(this.getFullPath(workspace)))
+// 		if (event.removed) event.removed.forEach(workspace => this.stopWatch(this.getFullPath(workspace)))
+// 	}
+
+// 	initListeners() {
+// 		vscode.workspace.onDidChangeWorkspaceFolders(this.onWorkspaceChange.bind(this), this.context.subscriptions);
+// 	}
+
+// 	abstract init(targetPath?: string): void
+// 	abstract setWatch(path: string): void
+// 	abstract stopWatch(path: string): void
+// }

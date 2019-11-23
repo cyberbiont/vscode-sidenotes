@@ -6,7 +6,6 @@ import {
 	IAnchor,
 	ISidenote,
 	ReferenceContainer,
-	ReferenceController,
 	SidenotesDictionary,
 	MapRepository,
 } from './types';
@@ -74,10 +73,12 @@ export default class Styler<T extends IStylable> {
 	) {}
 
 	initDecorationConfig(): IDecorations  {
-		const { settings: o, categories } = this.cfg.anchor.styles;
+		const { settings: o, categories } = JSON.parse(JSON.stringify(this.cfg.anchor.styles));
 
-		if (!categories.common || !categories.common.style) throw new Error(`sidenotes: cannot build decoration types.
-			the "common" section is not found inside styles configuration. It should contain `);
+		if (!categories.common || !categories.common.style) throw new Error(
+			`sidenotes: cannot build decoration types.
+			the "common" section is not found inside styles configuration. It should contain `
+		);
 
 		let result = Object.create(null);
 
@@ -190,38 +191,3 @@ export default class Styler<T extends IStylable> {
 		}
 	}
 }
-
-
-
-/* export class StylerController<T extends IStylable>
-implements ReferenceController<OStyler, Styler>
-
-{
-	private container: ReferenceContainer<Styler<T>>
-	private reference: Styler<T>
-
-	constructor(
-		private repo: MapRepository<OStyler, Styler<T>>,
-		ReferenceContainer: Constructor<ReferenceContainer<any>>,
-		cfg: OStyler,
-		commands
-	) {
-		this.container = new ReferenceContainer();
-		this.reference = this.container.getProxy();
-		// this.o = cfg.anchor.styles;
-		commands.registerCommand('sidenotes.toggleIds', this.toggleIds, this);
-	}
-
-	getReference(): Styler<T> {
-		return this.reference;
-	}
-
-	async update(key) {
-		const instance = await this.repo.get(key);
-		this.container.load(instance);
-	}
-
-	private toggleIds() {
-		this.stylerReference;
-	}
-} */
