@@ -24,33 +24,27 @@
 	"contributes": {
 		"configuration": [
 			{
-				"title": "%sidenotes.configuration.title%",
+				"title": "Sidenotes",
 				"properties": {
 					"sidenotes.notesSubfolder": {
 						"type": "string",
 						"default": ".sidenotes",
 						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
 					},
-					"sidenotes.contentFileExtension": {
-						"type": "string",
-						"enum": [
-							".md",
-							".markdown",
-							".mdown",
-							".txt"
-						],
-						"default": ".md",
-						"description": "extension for content files"
-					},
 					"sidenotes.prefix": {
 						"type": "string",
 						"default": "",
 						"description": "Specifies the string to use as a prefix for comment markers. Can be used to hook up to other extension such as 'Anchor comments'"
 					},
-					"sidenotes.defaultEditor": {
+					"sidenotes.defaultMarkdownEditor": {
 						"type": "string",
+						"enum": [
+							"vscode",
+							"typora",
+							"system default"
+						],
 						"default": "vscode",
-						"description": "Specifies the external editor executable name to open sidenotes with. Editor should support Markdown. Executable must be in system's PATH to work."
+						"description": "Specifies the external editor executable name to open sidenotes."
 					},
 					"sidenotes.gutterIcon": {
 						"type": "boolean",

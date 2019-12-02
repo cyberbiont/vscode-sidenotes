@@ -328,7 +328,7 @@ For 'typora' setting to work, you need Typora installed on your system and typor
 
 ## Known Issues  /  Gotchas
 
-### Anchor comments will be present  in your code.
+### Anchor comments will be present in your code.
 
 The only way all this can work is comment anchors must be persisted in your code, there's no help for it.
 
@@ -336,13 +336,15 @@ It's not really big problem, since Sidenotes are intended to use in development 
 
 But, if you collaborate on code with other people who aren't acquainted with sidenite comments, in order to not scare them too much with uuids in tyou code, it can be a good idea to place some explanation/warning in your repository README so that your collaborators ignore these comments and won't delete them (but if they do, though, you can restore it via VCS).
 
-### Manually moving / cutting  / copying markers
+### Manually moving / cutting / copying markers
 
 When you manually move / copy / paste your anchor markers, the decorations need to be updated to account for the new marker position, until then they will be rendered at their old position. Sadly, VSCode currently has no way of detecting cut/copy/paste events, so the closest event you can get after moving your marker is the document change event, which happens after you paste your text.  On this event extension will scan changes and update decorations if any markers are involved. So, when you cut fragment of code that contains sidenote markers, the decorations will stay in their old place until you paste your code / switch editors.
 
 Obviously, if you want to move your sidenote to other file, that uses different comment syntax, you'll have to manually edit comment to match. (untoggle comment before moving/toggle back after);
 
 Since sidenotes scanning is done lazily, you have to make editor active to initialize it. This can be seen on application start if you have several editors visible simoultaneosly in different panes.
+
+Anyways, in case of unpredicted rendering artefacts you can use `reset` command to re-draw sidenotes decorations, and report about the issue on Github so I can fix it.
 
 ## Credits
 

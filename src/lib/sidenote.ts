@@ -17,18 +17,10 @@ import {
 	Scanner,
 } from './types';
 
-// export interface ISidenote
-// 	extends
-// 		IDesignable,
-// 		IStylable,
-// 		IAnchorable
-// 	{
-// 		id: string
-// 	}
 export type ISidenote =
-		IDesignable &
-		IStylable &
-		IAnchorable &
+	IDesignable &
+	IStylable &
+	IAnchorable &
 	{
 		id: string
 	}

@@ -54,9 +54,6 @@ export type OFileStorage = {
 }
 
 // TODO 🕮 1744f795-4133-4688-97d3-e8f02b26c886
-//  использовать FIlesystem Provider https://code.visualstudio.com/api/references/vscode-api#FileSystem и FileSystemWatcher
-//  https://code.visualstudio.com/api/references/vscode-api#FileSystemProvider
-
 export class FileStorage implements IFileStorage {
 
 	private pathCache: {
@@ -68,6 +65,8 @@ export class FileStorage implements IFileStorage {
 		contentFileExtension: ContentFileExtension;
 	}
 
+	private notesFolder: string
+
 	constructor(
 		public editorService: IEditorService,
 		public utils: EditorUtils,
@@ -75,8 +74,13 @@ export class FileStorage implements IFileStorage {
 		cfg: OFileStorage,
 		private commands,
 		public fs = nodeFs,
+		public fsv = vscode.workspace.fs,
 	) {
 		this.o = cfg.storage.files;
+		this.notesFolder = path.join(
+			this.utils.getWorkspaceFolderPath(),
+			this.o.notesSubfolder
+		);
 		this.commands.registerCommand('sidenotes.migrate', this.migrate, this);
 		this.commands.registerCommand('sidenotes.extraneous', this.cleanExtraneous, this);
 	}
@@ -85,21 +89,12 @@ export class FileStorage implements IFileStorage {
 		if (!vscode.workspace.workspaceFolders) {
 			throw new Error('Adding notes requires an open folder.');
 		}
-		const notesFolder = path.join(
-			this.getCurrentWorkspacePath(),
-			this.o.notesSubfolder
-		);
-
-		if (!this.fs.existsSync(notesFolder)) {
-			this.fs.mkdirSync(notesFolder);
-		}
 	}
 
 	get(id: string): IStorable | undefined {
+		// TODO make async
 		try {
-			const content = this.fs.readFileSync(this.getContentFilePath(id), {
-				encoding: 'utf8'
-			});
+			const content = this.fileSystem.read(this.getContentFilePath(id));
 			return {
 				id,
 				content
@@ -114,20 +109,16 @@ export class FileStorage implements IFileStorage {
 		return this.editorService.open(path);
 	}
 
-	private getCurrentWorkspacePath(): string {
-		return this.utils.getWorkspaceFolderPath();
-	}
-
 	private getContentFileName(id: string): string {
 		return `${id}${this.o.contentFileExtension}`;
 	}
 
-	getContentFilePath(id: string): string {
+	private getContentFilePath(id: string): string {
 		if (this.pathCache[id]) return this.pathCache[id];
 
 		// by default we look in the current document's workspace folder
 		const filePath = path.join(
-			this.getCurrentWorkspacePath(),
+			this.utils.getWorkspaceFolderPath(),
 			this.o.notesSubfolder,
 			this.getContentFileName(id)
 		);
@@ -137,9 +128,9 @@ export class FileStorage implements IFileStorage {
 		return filePath;
 	}
 
-	delete(id): boolean {
+	async delete(id): Promise<boolean> {
 		try {
-			this.fs.unlinkSync(this.getContentFilePath(id));
+			await this.fileSystem.delete(this.getContentFilePath(id));
 			return true;
 		} catch (e) {
 			return false;
@@ -147,11 +138,38 @@ export class FileStorage implements IFileStorage {
 		}
 	}
 
+	async ensureNotesFolderExists() {
+		// 🕮 5a7d9cf7-71ee-4a84-abbe-ea320afe220f
+		if (!this.fileSystem.exists(this.notesFolder)) {
+			try {
+				await this.fileSystem.createDirectory(this.notesFolder);
+				console.log(`Sidenotes: created missing subfolder ${this.o.notesSubfolder} for content files`)
+			}	catch (e) {
+				throw vscode.FileSystemError.FileNotFound(this.notesFolder);
+			}
+		}
+	}
+
 	async write(data: IStorable): Promise<boolean> {
 		const path = this.getContentFilePath(data.id);
-		if (!this.fs.existsSync(path)) {
-			this.fs.writeFileSync(path, data.content);
-			return true;
+
+		try {
+			// 🕮 40e7f83a-036c-4944-9af1-c63be09f369d
+			if (!this.fileSystem.exists(path)) {
+				this.fileSystem.write(path, data.content);
+				return true;
+			} else {
+				console.warn('content file already exists, aborting write file action');
+			}
+		} catch (err) {
+			if (err.code === 'ENOENT') {
+				// console.log(`content files directory seems to not exist at specified location. Creating directory and trying again`);
+				await this.ensureNotesFolderExists();
+				await this.write(data);
+				return true;
+			} else {
+				throw new vscode.FileSystemError(`Unknown error while trying to write content file`);
+			}
 		}
 		return false;
 	}
@@ -159,7 +177,7 @@ export class FileStorage implements IFileStorage {
 	async lookup(
 		id: string,
 		lookupFolderPath: string,
-		workspace: string = this.getCurrentWorkspacePath(),
+		workspace: string = this.utils.getWorkspaceFolderPath(),
 		resolveAction: string = 'copy'
 	): Promise<string | boolean> {
 		const fileName = this.getContentFileName(id);
@@ -176,15 +194,13 @@ export class FileStorage implements IFileStorage {
 		);
 
 		if (
-			this.fs.existsSync(lookupFilePath) &&
-			!this.fs.existsSync(currentFilePath)
+			this.fileSystem.exists(lookupFilePath) &&
+			!this.fileSystem.exists(currentFilePath)
 		) {
 			if (resolveAction === 'move')
-				this.fs.rename(lookupFilePath, currentFilePath, err => {
-					if (err) throw err;
-				});
+				this.fileSystem.rename(lookupFilePath, currentFilePath);
 			else if (resolveAction === 'copy')
-				this.fs.copyFileSync(lookupFilePath, currentFilePath);
+				await this.fileSystem.copy(lookupFilePath, currentFilePath);
 			return currentFilePath;
 		} else {
 			vscode.window.showErrorMessage(
@@ -194,84 +210,167 @@ export class FileStorage implements IFileStorage {
 		}
 	}
 
-	async migrate() {
-		// TODO вынести в класс userInteractions
-		const options: vscode.OpenDialogOptions = {
-			canSelectMany: false,
-			canSelectFolders: true,
-			// defaultUri: this.getCurrentWorkspacePath() //TODO default URI
-			openLabel: 'Select folder to look for missing sidenotes',
-			// filters: {
-			// 	'Text files': ['txt'],
-			// 	'All files': ['*']
-			// }
-		};
-		const lookupUri = await vscode.window.showOpenDialog(options);
-		if (!lookupUri) return;
+	async migrate(): Promise<void> {
 
-		const ids = Array.from(await this.fileSystem.scanDirectoryFilesContentsForIds());
-		// TODO try to read files for all sidenotes and report statictics if there are ny broken sidenotes
-		// build sidenote instances from ids to check if they are broken
-		const results = await Promise.all(
-			ids.map(async id => {
-				return this.lookup!(id, lookupUri[0].fsPath);
+		const folders = vscode.workspace.workspaceFolders;
+		if (folders && folders.length > 0) {
+			folders.forEach(async folder => {
+				const { detectedIds, files: { fileIds, strayEntries }} = await this.analyzeWorkspaceFolder(folder.uri);
+				const broken: string[] = [];
+
+				const ids = Array.from(detectedIds);
+				ids.forEach(id => {
+					if (!(
+						id in fileIds
+						&& typeof this.fileSystem.read(fileIds[id]) === 'string' // ensure that content note is readable
+					)) {
+						broken.push(id);
+					}
+				})
+
+				if (broken.length === 0) {
+					vscode.window.showInformationMessage(
+						`Sidenotes: no broken sidenote anchors was found\n
+						in ${folder.uri.fsPath} workspace folder`
+					);
+					return;
+				}
+
+				const action = await vscode.window.showQuickPick(
+					[{
+						label: 'yes',
+						description: `look for missing content files (select folder to look in)`
+					}, {
+						label: 'no',
+						description: 'cancel'
+					}], {
+						placeHolder: `Sidenotes: ${broken.length} broken anchors was found in ${folder.uri.fsPath} workspace folder. \&nbsp
+						Do you want to look for content files?`
+					}
+				);
+
+				if (action && action.label === 'yes') {
+					const options: vscode.OpenDialogOptions = {
+						canSelectMany: false,
+						canSelectFolders: true,
+						defaultUri: folder.uri,
+						openLabel: 'Confirm selection'
+					};
+
+					const lookupUri = await vscode.window.showOpenDialog(options);
+					if (!lookupUri) return;
+
+					const results = await Promise.all(
+						// ids.map
+						broken.map(async id => {
+							return this.lookup!(id, lookupUri[0].fsPath);
+						})
+					);
+					const successfulResults = results
+						.filter((result): result is string => !!result)
+						.map(filepath => path.basename(filepath));
+					const message = successfulResults.length === 0
+						?	`No missing files were found in specified directory`
+						: `The following files have been found and copied to the current workspace:\n
+							${successfulResults.join(',\n')}`;
+					vscode.window.showInformationMessage(message);
+					return true;
+				}
 			})
-		);
-		const successfulResults = results
-			.filter((result): result is string => !!result)
-			.map(filepath => path.basename(filepath));
-		const message = successfulResults.length === 0 ?
-			'No missing files were found in specified directory ' :
-			`The following files have been found and copied to the current workspace:
-			${successfulResults.join(',\n')}`;
-		vscode.window.showInformationMessage(message);
+		}
 	}
 
-	async cleanExtraneous(): Promise<boolean> {
-		const ids = await this.fileSystem.scanDirectoryFilesContentsForIds();
+	async cleanExtraneous(): Promise<void> {
 
-		const workspacePath = this.utils.getWorkspaceFolderPath();
+		const handleResults = async (type: string, paths: string[], folder: vscode.WorkspaceFolder): Promise<boolean> => {
+			if (paths.length === 0) {
+				vscode.window.showInformationMessage(
+					`Sidenotes: no ${type} files was found in ${folder.uri.fsPath} sidenote subfolder`
+				);
+				return false;
+			}
 
-		const sidenoteDirFiles = await this.fileSystem.readDirectoryRecursive(workspacePath);
-
-		const extraneous = sidenoteDirFiles
-			.filter(filepath => {
-				const id = this.editorService.changeTracker.getIdFromFileName(filepath);
-				if (id && !ids.has(id)) return true;
-				else return false;
-			});
-
-		if (extraneous.length === 0) {
-			vscode.window.showInformationMessage(
-				`Sidenotes: no extraneous files was found in current sidenote directory`
+			const action = await vscode.window.showQuickPick(
+				[{
+					label: 'yes',
+					description: `delete ${type} files`
+				}, {
+					label: 'no',
+					description: 'cancel'
+				}], {
+					placeHolder: `Sidenotes: found ${paths.length} ${type} files
+					in ${folder.uri.fsPath} sidenote directory.
+					Do you want to delete them now?`
+				}
 			);
+
+			if (action && action.label === 'yes') {
+				const deleted = await Promise.all(
+					paths.map(async (filepath: string) => {
+						await this.fileSystem.delete(filepath);
+						return path.basename(filepath);
+					})
+				);
+
+				vscode.window.showInformationMessage(
+					`The following files have been deleted from your sidenote folder:\n
+					${deleted.join(',\n')}`
+				);
+				return true;
+			}
+
 			return false;
 		}
 
-		const action = await vscode.window.showQuickPick(
-			[{
-				label: 'yes',
-				description: 'delete extraneous files'
-			}, {
-				label: 'no',
-				description: 'cancel'
-			}], {
-				placeHolder: `Sidenotes: found ${extraneous.length} extraneous files in current sidenote directory.
-				Do you want to delete them now?`
+		const folders = vscode.workspace.workspaceFolders;
+		if (folders && folders.length > 0) folders.forEach(async folder => {
+			const { detectedIds, files: { fileIds, strayEntries }} = await this.analyzeWorkspaceFolder(folder.uri);
+			const extraneous: string[] = [];
+
+			for (const id in fileIds) {
+				if (!detectedIds.has(id)) extraneous.push(fileIds[id])
 			}
-		);
-		if (action && action.label === 'yes') {
-			const deleted = extraneous.map(filepath => {
-				this.fs.unlinkSync(filepath);
-				return path.basename(filepath);
-			});
-			vscode.window.showInformationMessage(
-				`The following files have been deleted from your sidenote folder:
-				${deleted.join(',\n')}`
-			);
-			return true;
+
+			await handleResults('extraneous', extraneous, folder);
+			await handleResults('stray', strayEntries, folder);
+		});
+	}
+
+	async analyzeWorkspaceFolder(folder: vscode.Uri) {
+		const detectedIds = await this.fileSystem.scanDirectoryFilesContentsForIds(folder);
+		const files = await this.analyzeFolderContentFiles(folder);
+
+		return {
+			detectedIds, files
 		}
-		return false;
+	}
+
+	async analyzeFolderContentFiles(folder: vscode.Uri): Promise<{
+		fileIds: { [id: string]: string	},
+		strayEntries: string[]
+	}> {
+		// 🕮 d7ba6b50-007c-4c92-84e9-d0c10e0386ef
+		const notesSubfolderPath = path.join(
+			folder.fsPath,
+			this.o.notesSubfolder
+		);
+		const fileIds = Object.create(null);
+		const strayEntries: string[] = [];
+
+		for (const [name, type] of await this.fsv.readDirectory(folder.with({ path: notesSubfolderPath }))) {
+			const filePath = path.join(notesSubfolderPath, name);
+			if (type === vscode.FileType.File) {
+				const id = this.editorService.changeTracker.getIdFromFileName(filePath);
+				if (!id) strayEntries.push(filePath);
+ 				else fileIds[id] = filePath;
+			} else {
+				strayEntries.push(filePath);
+			}
+		}
+
+		return {
+			fileIds, strayEntries
+		};
 	}
 
 }

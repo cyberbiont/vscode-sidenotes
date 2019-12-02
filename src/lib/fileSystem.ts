@@ -1,58 +1,49 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as nodeFs from 'fs';
 
-import { IScanData, EditorUtils, Scanner } from './types';
+import {
+	IScanData,
+	EditorUtils,
+	Scanner
+} from './types';
 
 export type OFileSystem = {
 	sources: {
-		matchFiles: vscode.GlobPattern,
-		excludeFiles: vscode.GlobPattern,
+		// 🕮 e4f5fe76-3db2-4c20-a796-1300f779ff6f
+		matchFiles: string, // GlobPattern
+		excludeFiles: string, // GlobPattern
 	}
 }
 
-export default class FileSystem {
+export default class FileSystem
+// implements vscode.FileSystem
+{
 	constructor(
 		private scanner: Scanner,
 		public utils: EditorUtils,
-		private cfg: OFileSystem
+		private cfg: OFileSystem,
+		private vfs: vscode.FileSystem = vscode.workspace.fs,
+		private fs = nodeFs
 	) {}
 
-	/**
-	 * @param {string} dir
-	 * @returns {Promise<string[]>} flat array of files(paths) in directory (including nested)
-	 * @memberof FileSystem
-	 */
-	async readDirectoryRecursive(dir: string): Promise<string[]> {
-		const dirents: fs.Dirent[] = await fs.promises.readdir(dir, { withFileTypes: true });
-		const files = await Promise.all(
-			dirents.map(async dirent => {
-				const fullPath = path.resolve(dir, dirent.name);
-				return dirent.isDirectory() ? this.readDirectoryRecursive(fullPath) : fullPath;
-			})
-		);
-		return Array.prototype.concat(...files);	// return files.flat();
-	}
-
-	// async readDirectory(dir: string): Promise<string[]> {
-	// 	// return this.readDirectoryRecursive(dir);
-	// 	// Find files across all workspace folders in the workspace.
-	// 	return vscode.workspace.findFiles(this.cfg.sources.matchFiles, this.cfg.sources.excludeFiles);
-	// }
-
-	/**
-	 * @param {*} [dir=this.utils.getWorkspaceFolderPath()]
-	 * @returns {Promise<Set<string>>} Collection of ids found in directory's files
-	 * @memberof FileSystem
-	 */
-	async scanDirectoryFilesContentsForIds(dir = this.utils.getWorkspaceFolderPath()): Promise<Set<string>> {
-
-		const readFiles = async (filePaths: string[]) => {
-			return Promise.all(
-				filePaths.map(filePath => fs.promises.readFile(filePath, { encoding: 'utf-8' }) as Promise<string>)
-				// returns string when encoding is specified, see fs docs
+	async scanDirectoryFilesContentsForIds(folder: vscode.Uri): Promise<Set<string>> {
+		// 🕮 9a3ca084-350c-49c3-8fa8-631dbc63a254
+		const getFiles = async (folder: vscode.Uri): Promise<vscode.Uri[]> => {
+			return vscode.workspace.findFiles(
+				new vscode.RelativePattern(folder.fsPath, this.cfg.sources.matchFiles),
+				new vscode.RelativePattern(folder.fsPath, this.cfg.sources.excludeFiles),
 			);
 		}
+
+		const readFiles = (fileUris: vscode.Uri[]) => {
+			return Promise.all(
+				fileUris.map(async fileUri => {
+					const readData = await this.vfs.readFile(fileUri);
+					return Buffer.from(readData).toString('utf8');
+				})
+			);
+		};
 
 		const scanContents = (contents: string[]) => {
 			const fileMatches = contents
@@ -63,23 +54,43 @@ export default class FileSystem {
 			return idsOnly;
 		};
 
-		// const filePaths = await this.readDirectory(dir);
-		// const contents = await readFiles(filePaths);
-
-		const fileUris = await vscode.workspace.findFiles(this.cfg.sources.matchFiles, this.cfg.sources.excludeFiles);
-		const contents = await Promise.all(
-			fileUris.map(async fileUri => {
-				const readData = await vscode.workspace.fs.readFile(fileUri);
-				return Buffer.from(readData).toString('utf8');
-			})
-		);
-		// findFiles ищем во всех открытых workspace, надо ли это нам? тогда в всех соответствующих папках надо искать контент-файлы
-		// https://github.com/microsoft/vscode-extension-samples/blob/master/fsconsumer-sample/src/extension.ts
-
-
+		const fileUris = await getFiles(folder);
+		const contents = await readFiles(fileUris);
 		const ids = scanContents(contents);
 		const uniqueIds = new Set(ids);
 		return uniqueIds;
+	}
+	// TODO switch to fs.promises
+	createDirectory(path: string) {
+		return this.fs.mkdirSync(path);
+	}
+
+	delete(path: string) {
+		return this.fs.unlinkSync(path);
+	}
+
+	exists(path: string) {
+		return this.fs.existsSync(path);
+	}
+
+	read(path: string) {
+		return this.fs.readFileSync(path, {
+			encoding: 'utf8'
+		});
+	}
+
+	write(path: string, data: string) {
+		return this.fs.writeFileSync(path, data);
+	}
+
+	copy(src: string, dest: string) {
+		return this.fs.copyFileSync(src, dest);
+	}
+
+	rename(oldPath: string, newPath: string) {
+		return this.fs.rename(oldPath, newPath, err => {
+			if (err) throw err;
+		})
 	}
 
 }

@@ -64,7 +64,8 @@ export default class Events {
 					(change.rangeLength &&
 						change.rangeLength >= this.utils.BARE_MARKER_SYMBOLS_COUNT) ||
 					(this.utils.BARE_MARKER_SYMBOLS_COUNT &&
-						change.text.indexOf(this.cfg.anchor.marker.salt) !== -1) // ensures that change includes marker
+						change.text.includes(this.cfg.anchor.marker.salt))
+						// change.text.indexOf(this.cfg.anchor.marker.salt) !== -1) // ensures that change includes marker
 				);
 				return condition;
 			}
@@ -78,4 +79,5 @@ export default class Events {
 
 		this.styler.updateDecorations();
 	};
+
 }

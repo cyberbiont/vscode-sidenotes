@@ -76,7 +76,6 @@ export default class Anchorer {
 		const iterator = this.editsChainer(
 			ranges,
 			range => this.deleteRange.call(this, anchored, range, internalize)
-			// this.deleteRange.bind(this, anchored)
 		);
 
 		for await(let range of iterator);
@@ -97,7 +96,7 @@ export default class Anchorer {
 				editor,
 				{ useBlockComments: this.cfg.anchor.comments.useBlockComments }
 			);
-			// re-calculate range after comment toggle
+			// we have to re-calculate range after comment toggle
 			const commentedRange = this.scanner.scanLine(
 				this.utils.getTextLine(range.start)
 			)!.ranges[0];

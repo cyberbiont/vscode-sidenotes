@@ -1,12 +1,10 @@
 import {
 	EventEmitter,
 	IIdMaker,
-	// IVscodeChangeTrackerCfg
 } from '../types';
 
 import * as path from 'path';
 
-// TODO update styles on file delete (delete corresponding anchor?)
 export type OChangeTracker = {
 
 }

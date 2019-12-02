@@ -1,25 +1,46 @@
 import * as vscode from 'vscode';
+import { Minimatch } from 'minimatch';
 
 export type OEditorUtils = {
 	sources: {
-		fileFormatsAllowedForTransfer: string[] //TODO
+		matchFiles: string, // GlobPattern
+		excludeFiles: string, // GlobPattern
 	}
 }
 
 // 🕮 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0
 export default class EditorUtils {
+	private matchPattern;
+	private excludePattern;
+
 	constructor(
 		public editor: vscode.TextEditor,
 		public cfg: OEditorUtils
-	) {}
+	) {
+		this.matchPattern = new Minimatch(this.cfg.sources.matchFiles);
+		this.excludePattern = new Minimatch(this.cfg.sources.excludeFiles, { flipNegate: true });
+	}
 
 	getWorkspaceFolderPath = function(): string {
-		// because VSCode allows several equal root folders(workspaces), we need to check where current document resides every time
-		// @old 🕮 c6ba287f-9876-4818-964a-d6963bd13248
-
-		const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(this.editor.document.uri!)!
+		// 🕮 c6ba287f-9876-4818-964a-d6963bd13248
+		const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(this.editor.document.uri!);
 		if (currentWorkspaceFolder) return currentWorkspaceFolder.uri.fsPath;
-		else throw new Error('Files outside of a workspace cannot be annotated');
+		else throw new Error('Sidenotes: Files outside of a workspace cannot be annotated');
+	}
+
+	checkFileIsLegible = function({ showMessage = false }: { showMessage?: boolean } = {}): boolean {
+		if (!vscode.workspace.getWorkspaceFolder(this.editor.document.uri)) {
+			if (showMessage) vscode.window.showErrorMessage(`Sidenotes: Files outside of a workspace cannot be annotated!`);
+			return false;
+		}
+		if (
+			!this.matchPattern.match(this.editor.document.uri.fsPath)
+			|| this.excludePattern.match(this.editor.document.uri.fsPath)
+		) {
+			vscode.window.showErrorMessage(`Sidenotes: Files excluded by pattern in configuration settings cannot be annotated!`);
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -38,19 +59,15 @@ export default class EditorUtils {
 	 * @memberof EditorUtils
 	 */
 	extractSelectionContent = async function(): Promise<string> {
-		// if (
-			// this.cfg.sources.fileFormatsAllowedForTransfer &&
-			// this.cfg.sources.fileFormatsAllowedForTransfer.includes(ext) && !this.editor.selection.isEmpty
-		// ) {
-			const content = this.editor.document.getText(this.editor.selection);
-			if (content) {
-				await this.editor.edit(
-					edit => { edit.delete(this.editor.selection); },
-					{ undoStopAfter: false, undoStopBefore: false }
-				);
-				// return content;
-			}
-		// }
+		if (this.editor.selection.isEmpty) return '';
+
+		const content = this.editor.document.getText(this.editor.selection);
+		if (content) {
+			await this.editor.edit(
+				edit => { edit.delete(this.editor.selection); },
+				{ undoStopAfter: false, undoStopBefore: false }
+			);
+		}
 		return content;
 	}
 

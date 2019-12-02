@@ -28,23 +28,21 @@ const settings = vscode.workspace.getConfiguration('sidenotes');
 
 const cfg: ICfg = {
 	app: {
-		// autoStart: settings.get('autoStart') || false,
-		defaultEditor: settings.get('defaultEditor') || 'vscode',
+		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
 	},
 
 	storage: {
 		files: {
 			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
-			contentFileExtension: settings.get('contentFileExtension') || '.md'
+			contentFileExtension: '.md' //json setting 🕮 b7f19c02-664e-4c1b-bfb1-9fbe581978f2
 		},
 	},
 
 	sources: {
-		fileFormatsAllowedForTransfer: ['.md', '.markdown', '.mdown', '.txt'],
 		matchFiles: settings.get('excludeFromAnnotation')
 			||  "**/*",
 		excludeFiles: settings.get('excludeFromAnnotation')
-			|| '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*', // glob  TODO
+			|| '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*',
 	},
 
 	// 🕮 7995614f-ef55-42c0-a9f6-e372ba94e93b
@@ -61,7 +59,7 @@ const cfg: ICfg = {
 		styles: {
 			settings: {
 				before: settings.get('before') || false,
-				after: settings.get('after') || '🖉',
+				after: settings.get('after') || '',
 				ruler: settings.get('ruler') || true,
 				gutterIcon: settings.get('gutterIcon') || false,
 				hideMarkers: settings.get('hideMarkers') || true,
@@ -84,7 +82,8 @@ const cfg: ICfg = {
 					message: ''
 				},
 
-				// style categories to become separate decorationTypes
+				// style categories to become separate decorationTypes:
+
 				active: {
 					// icon: 'open-book2.svg',
 				},

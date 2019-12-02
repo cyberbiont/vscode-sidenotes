@@ -86,15 +86,16 @@ export class DictionaryRepository<C extends HasIdProperty, V extends HasIdProper
 			let queryResult: V | undefined = this.dictionary.get(cfg.id);
 			if (queryResult) value = queryResult;
 			else value = await this.create(cfg);
-		} else value = await this.create(); // new sidenote
+		}
+		else value = await this.create(); // new sidenote
 
 		return value;
 	}
 }
 
 
-// TODO refactor into separate classes MapPool WeakMapPool 🕮 fea781b6-9af8-435c-9a7e-9f42f1affc14
+// TODO introduce separate classes MapPool & WeakMapPool 🕮 fea781b6-9af8-435c-9a7e-9f42f1affc14
 // what to use as a key 🕮 9ec1095e-abfb-49f5-af6d-4a9fed205b6c
 // 🕮 f82a72dc-baae-448e-8737-126f0dec5e2d
 // @old 🕮 7e2a51d6-a376-4fa0-b1b9-09cbfb35d967
-// 🕮 3d6ba811-d108-408c-9692-58671b29f68f Добавление стейта, Proxy
+// 🕮 3d6ba811-d108-408c-9692-58671b29f68f

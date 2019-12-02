@@ -62,8 +62,7 @@ import Events from './events';
 
 export type OApp = {
 	app: {
-		// autoStart: boolean,
-		defaultEditor: 'typora'|'vscode'|'system default',
+		defaultMarkdownEditor: 'typora'|'vscode'|'system default',
 	}
 }
 
@@ -117,11 +116,11 @@ export default class App {
 		).update(editor.document);
 		const pool: SidenotesDictionary = await poolController.getReference();
 
+		// TODO move to configuration
 		function getAlternativeStylesCfg() {
-			// const altCfg = Object.assign({}, this.cfg);
 			const altCfg = JSON.parse(JSON.stringify(this.cfg));
 			altCfg.anchor.styles.settings.hideMarkers = !this.cfg.anchor.styles.settings.hideMarkers;
-			altCfg.anchor.styles.settings.before = 'alternative config ';
+			// altCfg.anchor.styles.settings.before = 'alternative config ';
 			return altCfg;
 		}
 
@@ -148,10 +147,15 @@ export default class App {
 
 		const fileSystem = new FileSystem(scanner, utils,this.cfg);
 
+		/* const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(
+			vscode.workspace.workspaceFolders![0], `${this.cfg.storage.files.notesSubfolder}/*.${this.cfg.storage.files.contentFileExtension}`
+		true, false, true)
+		)); */
+
 		let editorService: IEditorService;
 		let changeTracker;
 
-		switch (this.cfg.app.defaultEditor) {
+		switch (this.cfg.app.defaultMarkdownEditor) {
 			case 'typora':
 			case 'system default':
 				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(
@@ -172,10 +176,10 @@ export default class App {
 				changeTracker = vscodeChangeTracker;
 		}
 
-		switch (this.cfg.app.defaultEditor) {
+		switch (this.cfg.app.defaultMarkdownEditor) {
 			case 'typora': editorService = new TyporaEditor(changeTracker, editor);	break;
 
-			case 'system default': 	editorService = new SystemDefaultEditor(changeTracker);	break;
+			case 'system default': editorService = new SystemDefaultEditor(changeTracker);	break;
 
 			case 'vscode':
 			default: editorService = new VscodeEditor(changeTracker);
@@ -229,7 +233,8 @@ export default class App {
 			sidenoteProcessor,
 			sidenotesRepository,
 			styler,
-			stylerController
+			stylerController,
+			utils
 		);
 
 		const events = new Events(

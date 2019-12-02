@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import {
 	Designer,
+	EditorUtils,
 	IScanData,
 	ISidenote,
 	Inspector,
@@ -23,7 +24,8 @@ export default class Actions {
 		public sidenoteProcessor: SidenoteProcessor,
 		public sidenotesRepository: SidenotesRepository,
 		public styler: SidenotesStyler,
-		public stylerController: ReferenceController<SidenotesStyler, string>
+		public stylerController: ReferenceController<SidenotesStyler, string>,
+		public utils: EditorUtils
 	) {}
 
 	async scan(): Promise<void> {
@@ -39,6 +41,7 @@ export default class Actions {
 	}
 
 	async initializeDocumentSidenotesPool(scanResults: IScanData[]): Promise<void> {
+		if (!this.utils.checkFileIsLegible()) return;
 		await Promise.all(scanResults.map(this.sidenotesRepository.create, this.sidenotesRepository));
 		this.pool.isInitialized = true;
 	}
@@ -54,6 +57,8 @@ export default class Actions {
 
 	async run(): Promise<void> {
 		try {
+			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
+
 			const scanData = this.scanner.scanLine();
 
 			let obtainedSidenote = await this.sidenotesRepository.obtain(scanData);
@@ -108,7 +113,7 @@ export default class Actions {
 		this.scan();
 	}
 
-	switchStylesCfg() {// TODO
+	switchStylesCfg() {
 		const key = this.stylerController.key === 'default' ? 'alternative' : 'default';
 		this.stylerController.update(key);
 		this.refresh();
