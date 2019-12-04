@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as nodeFs from 'fs';
+// import * as nodeFs from 'fs';
 import * as path from 'path';
 
 import {
@@ -70,11 +70,11 @@ export class FileStorage implements IFileStorage {
 	constructor(
 		public editorService: IEditorService,
 		public utils: EditorUtils,
-		public fileSystem: FileSystem,
+		public fs: FileSystem,
 		cfg: OFileStorage,
 		private commands,
-		public fs = nodeFs,
-		public fsv = vscode.workspace.fs,
+		// public fs = nodeFs,
+		// public fsv = vscode.workspace.fs,
 	) {
 		this.o = cfg.storage.files;
 		this.notesFolder = path.join(
@@ -94,7 +94,7 @@ export class FileStorage implements IFileStorage {
 	get(id: string): IStorable | undefined {
 		// TODO make async
 		try {
-			const content = this.fileSystem.read(this.getContentFilePath(id));
+			const content = this.fs.read(this.getContentFilePath(id));
 			return {
 				id,
 				content
@@ -130,7 +130,7 @@ export class FileStorage implements IFileStorage {
 
 	async delete(id): Promise<boolean> {
 		try {
-			await this.fileSystem.delete(this.getContentFilePath(id));
+			await this.fs.delete(this.getContentFilePath(id));
 			return true;
 		} catch (e) {
 			return false;
@@ -140,9 +140,9 @@ export class FileStorage implements IFileStorage {
 
 	async ensureNotesFolderExists() {
 		// 🕮 5a7d9cf7-71ee-4a84-abbe-ea320afe220f
-		if (!this.fileSystem.exists(this.notesFolder)) {
+		if (!this.fs.exists(this.notesFolder)) {
 			try {
-				await this.fileSystem.createDirectory(this.notesFolder);
+				await this.fs.createDirectory(this.notesFolder);
 				console.log(`Sidenotes: created missing subfolder ${this.o.notesSubfolder} for content files`)
 			}	catch (e) {
 				throw vscode.FileSystemError.FileNotFound(this.notesFolder);
@@ -155,8 +155,8 @@ export class FileStorage implements IFileStorage {
 
 		try {
 			// 🕮 40e7f83a-036c-4944-9af1-c63be09f369d
-			if (!this.fileSystem.exists(path)) {
-				this.fileSystem.write(path, data.content);
+			if (!this.fs.exists(path)) {
+				this.fs.write(path, data.content);
 				return true;
 			} else {
 				console.warn('content file already exists, aborting write file action');
@@ -194,13 +194,13 @@ export class FileStorage implements IFileStorage {
 		);
 
 		if (
-			this.fileSystem.exists(lookupFilePath) &&
-			!this.fileSystem.exists(currentFilePath)
+			this.fs.exists(lookupFilePath) &&
+			!this.fs.exists(currentFilePath)
 		) {
 			if (resolveAction === 'move')
-				this.fileSystem.rename(lookupFilePath, currentFilePath);
+				this.fs.rename(lookupFilePath, currentFilePath);
 			else if (resolveAction === 'copy')
-				await this.fileSystem.copy(lookupFilePath, currentFilePath);
+				await this.fs.copy(lookupFilePath, currentFilePath);
 			return currentFilePath;
 		} else {
 			vscode.window.showErrorMessage(
@@ -222,7 +222,7 @@ export class FileStorage implements IFileStorage {
 				ids.forEach(id => {
 					if (!(
 						id in fileIds
-						&& typeof this.fileSystem.read(fileIds[id]) === 'string' // ensure that content note is readable
+						&& typeof this.fs.read(fileIds[id]) === 'string' // ensure that content note is readable
 					)) {
 						broken.push(id);
 					}
@@ -307,7 +307,7 @@ export class FileStorage implements IFileStorage {
 			if (action && action.label === 'yes') {
 				const deleted = await Promise.all(
 					paths.map(async (filepath: string) => {
-						await this.fileSystem.delete(filepath);
+						await this.fs.delete(filepath);
 						return path.basename(filepath);
 					})
 				);
@@ -337,7 +337,7 @@ export class FileStorage implements IFileStorage {
 	}
 
 	async analyzeWorkspaceFolder(folder: vscode.Uri) {
-		const detectedIds = await this.fileSystem.scanDirectoryFilesContentsForIds(folder);
+		const detectedIds = await this.fs.scanDirectoryFilesContentsForIds(folder);
 		const files = await this.analyzeFolderContentFiles(folder);
 
 		return {
@@ -357,7 +357,7 @@ export class FileStorage implements IFileStorage {
 		const fileIds = Object.create(null);
 		const strayEntries: string[] = [];
 
-		for (const [name, type] of await this.fsv.readDirectory(folder.with({ path: notesSubfolderPath }))) {
+		for (const [name, type] of await vscode.workspace.fs.readDirectory(folder.with({ path: notesSubfolderPath }))) {
 			const filePath = path.join(notesSubfolderPath, name);
 			if (type === vscode.FileType.File) {
 				const id = this.editorService.changeTracker.getIdFromFileName(filePath);

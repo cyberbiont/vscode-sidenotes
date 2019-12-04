@@ -42,13 +42,18 @@ export default class Events {
 		}
 	};
 
+	/**
+	 * includes additional check to prevent triggering scan on sidenote files
+	 */
 	onVscodeEditorChange(editor: vscode.TextEditor) {
-		// add additional check to prevent triggering scan on sidenote files
 		if (this.changeTracker.getIdFromFileName(editor.document.fileName)) return;
 		this.onEditorChange(editor);
 	};
 
-	async onSidenoteDocumentChange(changeData: IChangeData) { // update sidenote content and source document decorations
+	/**
+	 update sidenote content and source document decorations
+	 */
+	async onSidenoteDocumentChange(changeData: IChangeData) {
 		const sidenote = await this.sidenotesRepository.get(changeData.id);
 		if (!sidenote) throw new Error('Error: sidenote being edited is not present in pool');
 

@@ -77,7 +77,7 @@ export default class Actions {
 		}
 	}
 
-	async delete(): Promise<void> {
+	async delete({ deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<void> {
 		const scanData = this.scanner.scanLine();
 		if (!scanData) {
 			vscode.window.showInformationMessage('There is no sidenotes attached at current cursor position');
@@ -85,7 +85,7 @@ export default class Actions {
 		}
 
 		let sidenote = await this.sidenotesRepository.obtain(scanData);
-		await this.sidenoteProcessor.delete(sidenote);
+		await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
 
 		this.styler.updateDecorations();
 	}

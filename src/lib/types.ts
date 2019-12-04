@@ -86,8 +86,8 @@ export {
 	IChangeTracker,
 	OChangeTracker,
 	OFileChangeTracker,
-	OVscodeChangeTracker,
-	VscodeChangeTracker,
+	// OVscodeChangeTracker,
+	// VscodeChangeTracker,
 } from './changeTracker';
 
 export type Constructor<T = {}> = new (...args: any[]) => T;

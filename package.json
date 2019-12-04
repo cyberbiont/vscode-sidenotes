@@ -82,6 +82,16 @@
 							"ruler"
 						],
 						"description": "Defines what part of comment anchor will change color, indicating sidenote status."
+					},
+					"sidenotes.includeFilter": {
+						"type": "string",
+						"default": "**/*",
+						"description": "Glob pattern for files that will be enabled for annotation."
+					},
+					"sidenotes.excludeFilter": {
+						"type": "string",
+						"default": "**/{node_modules,.git,.idea,target,out,build,vendor}/**/*",
+						"description": "Glob pattern for files that will be disabled for annotation."
 					}
 				}
 			}
@@ -90,43 +100,48 @@
 			{
 				"command": "sidenotes.annotate",
 				"title": "Add or edit sidenote",
-				"category": "sidenotes",
+				"category": "Sidenotes",
 				"icon": "images/icon.png"
 			},
 			{
 				"command": "sidenotes.delete",
-				"title": "Delete sidenote",
-				"category": "sidenotes"
+				"title": "Delete sidenote and content file",
+				"category": "Sidenotes"
+			},
+			{
+				"command": "sidenotes.wipeAnchor",
+				"title": "Delete sidenote anchor only",
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.pruneBroken",
 				"title": "Delete broken sidenotes",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.pruneEmpty",
 				"title": "Delete empty sidenotes",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.refresh",
 				"title": "Reset extension cache and rescan",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.migrate",
 				"title": "Migrate sidenotes from another worskspace",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.extraneous",
 				"title": "Clean extraneous (orphaned) files from current sidenotes folder",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.showMarkers",
 				"title": "Toggle full markers display",
-				"category": "sidenotes"
+				"category": "Sidenotes"
 			}
 		],
 		"keybindings": [

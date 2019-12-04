@@ -12,7 +12,7 @@ import {
 	OMarkerUtils,
 	OStorageService,
 	OStyler,
-	OVscodeChangeTracker,
+	// OVscodeChangeTracker,
  } from './types';
 
 export type ICfg =
@@ -20,15 +20,35 @@ export type ICfg =
 	& OFileSystem
 	& OAnchorer
 	& OApp
-	& OChangeTracker & (OFileChangeTracker | OVscodeChangeTracker)
+	& OChangeTracker & (
+		OFileChangeTracker
+		// | OVscodeChangeTracker
+		)
 	& ODesigner & OStyler
 	& OStorageService & OFileStorage
+	& {
+		app: {
+			formats: {
+				file: {
+					[extension: string]: string
+				}
+			}
+		}
+	}
 ;
 const settings = vscode.workspace.getConfiguration('sidenotes');
 
 const cfg: ICfg = {
 	app: {
 		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
+		formats: {
+			file: {
+				'md': settings.get('defaultMarkdownEditor') || 'vscode',
+				'markdown': settings.get('defaultMarkdownEditor') || 'vscode',
+				'mdown': settings.get('defaultMarkdownEditor') || 'vscode',
+				'mmap': 'systemDefault'
+			}
+		}
 	},
 
 	storage: {
@@ -39,9 +59,10 @@ const cfg: ICfg = {
 	},
 
 	sources: {
-		matchFiles: settings.get('excludeFromAnnotation')
+		// 🕮 7372242a-1c7a-4342-8de9-9a45539d2f39
+		matchFiles: settings.get('includeFilter')
 			||  "**/*",
-		excludeFiles: settings.get('excludeFromAnnotation')
+		excludeFiles: settings.get('excludeFilter')
 			|| '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*',
 	},
 

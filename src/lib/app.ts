@@ -21,8 +21,7 @@ import {
 
 import {
 	ChokidarChangeTracker,
-	FsWatchChangeTracker,
-	VscodeChangeTracker,
+	// VscodeChangeTracker,
 } from './changeTracker';
 
 import {
@@ -147,40 +146,19 @@ export default class App {
 
 		const fileSystem = new FileSystem(scanner, utils,this.cfg);
 
-		/* const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(
-			vscode.workspace.workspaceFolders![0], `${this.cfg.storage.files.notesSubfolder}/*.${this.cfg.storage.files.contentFileExtension}`
-		true, false, true)
-		)); */
-
 		let editorService: IEditorService;
-		let changeTracker;
 
-		switch (this.cfg.app.defaultMarkdownEditor) {
-			case 'typora':
-			case 'system default':
-				const fileChangeTracker: FileChangeTracker = new ChokidarChangeTracker(
-					uuidMaker,
-					eventEmitter,
-					this.cfg,
-					this.context
-				);
-				changeTracker = fileChangeTracker;
-
-			case 'vscode':
-			default:
-				const vscodeChangeTracker: VscodeChangeTracker = new VscodeChangeTracker(
-					uuidMaker,
-					eventEmitter,
-					this.context
-				);
-				changeTracker = vscodeChangeTracker;
-		}
+		let changeTracker = new ChokidarChangeTracker(
+			uuidMaker,
+			eventEmitter,
+			this.cfg,
+			this.context
+		);
+		// 🕮 a1f2b34f-bad3-45fb-8605-c5a233e65933
 
 		switch (this.cfg.app.defaultMarkdownEditor) {
 			case 'typora': editorService = new TyporaEditor(changeTracker, editor);	break;
-
 			case 'system default': editorService = new SystemDefaultEditor(changeTracker);	break;
-
 			case 'vscode':
 			default: editorService = new VscodeEditor(changeTracker);
 		}
@@ -272,7 +250,7 @@ export default class App {
 			this.editorService instanceof VscodeEditor
 				? this.events.onVscodeEditorChange
 				: this.events.onEditorChange,
-				this.events, this.context.subscriptions
+			this.events, this.context.subscriptions
 		);
 		vscode.workspace.onDidChangeTextDocument(this.events.onDidChangeTextDocument, this.events, this.context.subscriptions)
 		this.eventEmitter.on('sidenoteDocumentChange', this.events.onSidenoteDocumentChange.bind(this.events));
@@ -282,6 +260,7 @@ export default class App {
 		return this.context.subscriptions.push(
 			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
 			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
+			vscode.commands.registerCommand('sidenotes.wipeAnchor', this.actions.delete.bind(this.actions, { deleteContentFile: false }), this.actions),
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
 			vscode.commands.registerCommand('sidenotes.refresh', this.actions.refresh, this.actions),

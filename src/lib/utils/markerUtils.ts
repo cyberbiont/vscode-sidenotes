@@ -28,6 +28,15 @@ export default class MarkerUtils {
 
 	bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString)
 
+	/* getBareMarkerRegexString() {
+		const extensions:string[] = [];
+		for (const ext in this.cfg.app.formats.file) {
+			extensions.push(`\.${ext}`);
+		}
+		const regexTailString = `(${extensions.join('|')})?`;
+		return `${this.cfg.anchor.marker.salt}${this.idMaker.ID_REGEX_STRING}${regexTailString}`;
+	} */
+
 	/**
 	 * searches for id in marker
 	 * @param {string} marker

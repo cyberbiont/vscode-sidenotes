@@ -28,7 +28,7 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 			this.setWatch(targetPath);
 		}
 		else if (vscode.workspace.workspaceFolders) {
-			vscode.workspace.workspaceFolders.forEach(workspace => this.setWatch(this.getFullPath(workspace)));
+			vscode.workspace.workspaceFolders.forEach(workspace => this.setWatch(this.getFullPathToSubfolder(workspace)));
 			this.initListeners();
 		}
 		else {

@@ -17,29 +17,38 @@ export default class EditorUtils {
 		public editor: vscode.TextEditor,
 		public cfg: OEditorUtils
 	) {
-		this.matchPattern = new Minimatch(this.cfg.sources.matchFiles);
-		this.excludePattern = new Minimatch(this.cfg.sources.excludeFiles, { flipNegate: true });
+		this.matchPattern = new Minimatch(this.cfg.sources.matchFiles, { dot: true });
+		this.excludePattern = new Minimatch(this.cfg.sources.excludeFiles, { dot: true, flipNegate: true });
 	}
 
 	getWorkspaceFolderPath = function(): string {
-		// 🕮 c6ba287f-9876-4818-964a-d6963bd13248
-		const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(this.editor.document.uri!);
-		if (currentWorkspaceFolder) return currentWorkspaceFolder.uri.fsPath;
-		else throw new Error('Sidenotes: Files outside of a workspace cannot be annotated');
+		//@bug 🕮 1a6740cd-a7a6-49a9-897c-f8ed877dea0f
+		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find( // already handle undefined case in app requirements check
+			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
+		);
+		return currentWorkspaceFolder!.uri.fsPath;
+
 	}
 
 	checkFileIsLegible = function({ showMessage = false }: { showMessage?: boolean } = {}): boolean {
-		if (!vscode.workspace.getWorkspaceFolder(this.editor.document.uri)) {
-			if (showMessage) vscode.window.showErrorMessage(`Sidenotes: Files outside of a workspace cannot be annotated!`);
+		if (!this.getWorkspaceFolderPath()) {
+			if (showMessage) vscode.window.showErrorMessage(
+				`Sidenotes: ${this.editor.document.uri.fsPath}
+				Files outside of a workspace cannot be annotated!`);
 			return false;
 		}
+
 		if (
 			!this.matchPattern.match(this.editor.document.uri.fsPath)
 			|| this.excludePattern.match(this.editor.document.uri.fsPath)
 		) {
-			vscode.window.showErrorMessage(`Sidenotes: Files excluded by pattern in configuration settings cannot be annotated!`);
+			vscode.window.showErrorMessage(
+				`Sidenotes:
+				Files excluded by pattern in configuration settings cannot be annotated!`
+			);
 			return false;
 		}
+
 		return true;
 	}
 

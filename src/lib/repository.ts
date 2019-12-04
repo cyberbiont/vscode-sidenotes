@@ -48,17 +48,10 @@ export class MapRepository<K extends object, V> {
 
 	protected create(key: K): V | Promise<V> {
 		return this.Factory.create(key);
-		/* чтобы предусмотреть возможность того,
-		что фабрика будет работать асинхронно и возвращать промис,
-		придется create и get делать асинхронными */
 	}
 }
 
-
-
-
 // 🕮 7f52e358-d011-44ac-9073-83738f5abb44
-
 export interface HasBuildFactoryMethod<V> {
 	build: (key: any) => V | Promise<V>
 }
@@ -92,7 +85,6 @@ export class DictionaryRepository<C extends HasIdProperty, V extends HasIdProper
 		return value;
 	}
 }
-
 
 // TODO introduce separate classes MapPool & WeakMapPool 🕮 fea781b6-9af8-435c-9a7e-9f42f1affc14
 // what to use as a key 🕮 9ec1095e-abfb-49f5-af6d-4a9fed205b6c

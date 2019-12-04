@@ -16,12 +16,11 @@ export default class SidenoteProcessor {
 		public designer: Designer
 	) {}
 
-	async delete(sidenote: ISidenote): Promise<ISidenote> {
-		const promise = await Promise.all([
-			Promise.resolve(this.storageService.delete(sidenote.id)),
-			this.anchorer.delete(sidenote)
-		]);
-		this.pool.delete(sidenote.id);
+	async delete(sidenote: ISidenote, { deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<ISidenote> {
+		const promises: Promise<void|boolean>[] = [ this.anchorer.delete(sidenote) ];
+		if (deleteContentFile) promises.push(Promise.resolve(this.storageService.delete(sidenote.id)));
+		await Promise.all(promises);
+		if (deleteContentFile) this.pool.delete(sidenote.id);
 		return sidenote;
 	}
 

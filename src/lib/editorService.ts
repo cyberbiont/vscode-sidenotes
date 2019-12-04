@@ -4,7 +4,7 @@ import * as open from 'open';
 import {
 	FileChangeTracker,
 	IChangeTracker,
-	VscodeChangeTracker,
+	// VscodeChangeTracker,
 } from  './types';
 
 export interface IEditorService {
@@ -14,7 +14,8 @@ export interface IEditorService {
 
 export class VscodeEditor implements IEditorService {
 	constructor(
-		public changeTracker: VscodeChangeTracker,
+		public changeTracker: FileChangeTracker
+			// | VscodeChangeTracker,
 	) {
 		this.changeTracker.init();
 	}
@@ -27,8 +28,7 @@ export class VscodeEditor implements IEditorService {
 		return await vscode.workspace.openTextDocument(URI).then(
 			doc => vscode.window.showTextDocument(doc, {
 				viewColumn: vscode.ViewColumn.Beside,
-				// preserveFocus: true // otherwise decorationUpdate triggers on new editor and 'open' note doesn't get highlight
-				// preview: true,
+				// 🕮 f94a2a43-584b-49fb-bf3b-1ae27b53079b
 			}),
 			error => {
 				vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`);
@@ -60,7 +60,6 @@ export class TyporaEditor implements IEditorService {
 	}
 
 	// 🕮 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4
-
 	open(path: string): vscode.Terminal|false {
 		try {
 			this.terminal.sendText(`typora "${path}"`);

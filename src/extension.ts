@@ -16,5 +16,6 @@ export function deactivate() {
 	this._subscriptions.dispose();
 	app.actions.styler.disposeDecorationTypes();
 	app.actions.pool.clear();
+	// app.storageService.watcherService.dispose();
 }
 // 🕮 c4a3b3d6-2db2-4a35-8ed1-94450fef4997

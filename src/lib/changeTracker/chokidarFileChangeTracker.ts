@@ -21,9 +21,12 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 	}
 
 	init(targetPath?: string) {
-		let target = targetPath ? targetPath :
-			vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map(workspace => this.getFullPath(workspace)) :
-				undefined
+		let target =
+			(targetPath)
+				? targetPath
+				:	(vscode.workspace.workspaceFolders)
+					? vscode.workspace.workspaceFolders.map(workspace => this.getFullPathToSubfolder(workspace))
+					:	undefined
 		if (!target) return;
 
 		this.watcher = this.watcherService.watch(target, {

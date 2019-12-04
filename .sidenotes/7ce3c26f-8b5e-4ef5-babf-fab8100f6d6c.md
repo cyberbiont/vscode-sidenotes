@@ -9,3 +9,6 @@ marker = this.cfg.anchor.marker.template
 .replace('%p', this.cfg.anchor.marker.prefix)
 .replace('%id', `${this.cfg.anchor.marker.salt}${id}`);
 ```
+
+Вообще должно получиться что-то вроде
+((?:\d|[a-z]){8}-(?:\d|[a-z]){4}-(?:\d|[a-z]){4}-(?:\d|[a-z]){4}-(?:\d|[a-z]){12})(\.md|\.mdown|\.markdown|\.mmap)?
