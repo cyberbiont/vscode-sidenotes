@@ -81,17 +81,39 @@ export default class Actions {
 
 	}
 
+	// checkCurrentLine(): IScanData|undefined {
+	// 	const scanData = this.scanner.scanLine();
+
+	// 	return scanData;
+	// }
+
 	async delete({ deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<void> {
+
 		const scanData = this.scanner.scanLine();
-		if (!scanData) {
-			vscode.window.showInformationMessage('There is no sidenotes attached at current cursor position');
-			return;
-		}
+		if (!scanData) return;
 
 		let sidenote = await this.sidenotesRepository.obtain(scanData);
 		await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
-
+		// т.к. если мы не удаляем контент-файл, то не заметка и из пула не удаляется, соответственно апдейт ничего не даст
+		// можно в любом случае удалять из пула (просто сайднот будет пересоздаваться тогда)
+		// либо апдейтить позиции всех анкоров
+		// в текущем варианте еще и удаляются все остальные заметки... плохо
 		this.styler.updateDecorations();
+	}
+
+	async wipeAnchor(): Promise<void> {
+		const scanData = this.scanner.scanLine();
+		if (!scanData) return;
+
+		const [ range ] = scanData.ranges;
+
+		await vscode.window.activeTextEditor!.edit(
+			edit => { edit.delete(range); },
+			{ undoStopAfter: false, undoStopBefore: false }
+		);
+
+		this.refresh();
+
 	}
 
 	async prune(category) {

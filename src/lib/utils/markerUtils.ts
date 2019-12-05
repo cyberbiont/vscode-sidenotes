@@ -8,9 +8,10 @@ export type OMarkerUtils = {
 	anchor: {
 		marker: {
 			salt: string,
-			prefix: string | undefined,
-			signature: string | undefined,
-			readSignatures: string[]
+			prefix?: string,
+			signature: string,
+			readSignatures?: string[]
+			readUnsigned?: boolean
 			// template?: string,
 		}
 	},
@@ -38,12 +39,16 @@ export default class MarkerUtils {
 	bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString)
 
 	getBareMarkerRegexString() {
-		// const extensions: string[] =Object.keys(this.cfg.app.formats.file).map(ext => `\\.${ext}`);
-		// const regexTailString = `(${extensions.join('|')})?`;
 		const o = this.cfg.anchor.marker;
 		const extensionRegexString = '(.\\w+)?';
-		const readSignaturesRegexString = `({${o.readSignatures.join('|')}} )?`; // 🖉 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470
-		return `${readSignaturesRegexString}(?:${o.salt}|🖉) ${this.idMaker.ID_REGEX_STRING}${extensionRegexString}`;
+		const signatures: string[] = o.readSignatures ? o.readSignatures: ['.*'];
+		if (o.signature) signatures.push(o.signature);
+
+		const readSignaturesRegexString =
+		 `(?:<(${signatures.join('|')})> )${o.readUnsigned ? '?' : ''}`
+
+	 // 🖉 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470
+		return `(?:${o.salt}|🖉) ${readSignaturesRegexString}${this.idMaker.ID_REGEX_STRING}${extensionRegexString}`;
 	}
 
 	/**
@@ -54,7 +59,7 @@ export default class MarkerUtils {
 	getMarker = function(id: string, extension?: string): string {
 		// template 🕮 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c
 		const o = this.cfg.anchor.marker;
-		return `${o.prefix ? o.prefix+' ':''}{${o.signature}} ${o.salt} ${id}${extension}`;
+		return `${o.prefix ? o.prefix+' ':''}${o.salt} <${o.signature}> ${id}${extension}`;
 	}
 
 	getKey = function(id: string, extension?: string): string {

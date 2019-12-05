@@ -136,11 +136,11 @@ export class SidenoteFactory {
 
 			const position = undecorated.anchor.editor.selection.anchor;
 			let range = this.utils.getMarkerRange(undecorated.anchor.marker, position);
-			const promises =	await Promise.all([
+			await Promise.all([
 				this.storageService.write(undecorated, { content: undecorated.content! }),
 				this.anchorer.write(undecorated, [range])
 			]);
-// {YL} 🕮 5b32ed62-7ce8-4ca7-bd86-3dc10d4a4e2f.md
+
 			// re-calculate range after comment toggle
 			({ ranges } = this.scanner.scanLine(
 				this.utils.getTextLine(range.start)

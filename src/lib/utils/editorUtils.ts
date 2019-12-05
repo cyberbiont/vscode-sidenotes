@@ -53,7 +53,7 @@ export default class EditorUtils {
 	}
 
 	/**
-	 * returns textLine based on position, by default returns current tetLine
+	 * returns textLine based on position, by default returns current textLine
 	 *
 	 * @param {*} [position=this.editor.selection.anchor]
 	 * @returns {vscode.TextLine}

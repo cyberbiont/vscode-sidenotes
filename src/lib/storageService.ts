@@ -49,14 +49,13 @@ export interface IFileStorage extends IStorageService {
 	): Promise<string | boolean>;
 }
 
-// type DefaultContentFileExtension = '.md'|'.markdown'|'.mdown'|'.txt';
+type DefaultContentFileExtension = '.md'|'.markdown'|'.mdown'|'.txt';
 
 export type OFileStorage = {
 	storage: {
 		files: {
 			notesSubfolder: string;
-			defaultContentFileExtension: string;
-			// contentFileExtension: ContentFileExtension;
+			defaultContentFileExtension: DefaultContentFileExtension;
 		}
 	}
 }
@@ -64,12 +63,11 @@ export type OFileStorage = {
 // TODO 🕮 1744f795-4133-4688-97d3-e8f02b26c886
 export class FileStorage implements IFileStorage {
 	private pathCache: WeakMap<FileStorageKey, string> = new WeakMap;
-	// {YL} 🕮 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
+	// 🕮 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
 		notesSubfolder: string;
-		defaultContentFileExtension: string;
-		// defaultContentFileExtension: DefaultContentFileExtension;
+		defaultContentFileExtension: DefaultContentFileExtension;
 	}
 
 	private notesFolder: string
@@ -300,7 +298,7 @@ export class FileStorage implements IFileStorage {
 				return false;
 			}
 
-			console.log(`Sidenotes: ${paths.length} ${type} files in folder ${folder.uri.fsPath}:\n${paths.join('\n')}`);
+			console.log(`Sidenotes: ${paths.length} ${type} files in folder ${folder.uri.fsPath}:\n(${paths.join(')\n(')})`);
 			// paths.forEach(path => console.log(path));
 
 			const action = await vscode.window.showQuickPick(

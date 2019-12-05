@@ -158,9 +158,17 @@ If you want to change signature, you can manully edit signature of marker in doc
 
 This is an array of signatures that you want to be processed when looking for sidenote markers in document.
 
+If this setting is not set, all signatures are processed.
+
+#### anchor.marker.readUnsigned
+
+Whehter to process markers that have no signature.
+
 #### anchor.marker.signature
 
-By default: false (highly recommended that you set it). This will be your signature that will be written down with every comment. Specifired string is added to the beginning of the marker, that will be included in search RegExp. Keep this short, you may set this to your initials, for example. SIgnature helps in understanding to whom the sidenote belongs to, even when extension is inactive.
+By default: false (highly recommended that you set it). This will be your signature that will be written down with every comment. Specifired string is added to the beginning of the marker, that will be included in search RegExp. Keep this short, you may set this to your initials, for example. Sшgnature helps in understanding to whom the sidenote belongs to, even when extension is inactive.
+By default it will be your username (defined in OS)ю
+Your signature, if specofied, is automatically added to readSignatures list.
 
 #### anchor.marker.prefix
 

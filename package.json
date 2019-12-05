@@ -92,6 +92,22 @@
 						"type": "string",
 						"default": "**/{node_modules,.git,.idea,target,out,build,vendor}/**/*",
 						"description": "Glob pattern for files that will be disabled for annotation."
+					},
+					"sidenotes.signature": {
+						"type": "string",
+						"description": "Signature to be added to your markers"
+					},
+					"sidenotes.readSignatures": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "Signatures to be processed by extension"
+					},
+					"sidenotes.readUnsigned": {
+						"type": "boolean",
+						"default": true,
+						"description": "Whether to process unsigned sidenotes"
 					}
 				}
 			}

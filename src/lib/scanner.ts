@@ -86,7 +86,7 @@ export default class Scanner {
 	}
 
 	scanLine(line: vscode.TextLine = this.utils.getTextLine()): IScanData|undefined {
-		if (line.isEmptyOrWhitespace) return undefined;
+		if (line.isEmptyOrWhitespace) return;
 
 		const match = line.text.match(this.utils.bareMarkerRegexNonG);
 
@@ -108,6 +108,11 @@ export default class Scanner {
 				},
 				ranges: [range]
 			}
+		} else {
+			vscode.window.showInformationMessage(
+				'There is no sidenotes attached at current cursor position'
+			);
+			return;
 		}
 	}
 }

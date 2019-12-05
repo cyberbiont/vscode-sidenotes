@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
 
 import {
 	OAnchorer,
@@ -71,12 +72,12 @@ const cfg: ICfg = {
 			// affectNewlineSymbols: false
 		},
 		marker: {
-			// 🖉 f7cc1c04-8751-4431-af02-a912c375750c
+			// 🕮 f7cc1c04-8751-4431-af02-a912c375750c
 			prefix: settings.get('prefix') || '',
 			salt: '🕮',
-			signature: 'YL',
-			readSignatures: ['YL']
-			//TODO glob support for signatures
+			signature: settings.get('signature') || os.userInfo().username,
+			readSignatures: settings.get('readSignatures'),
+			readUnsigned: settings.get('readUnsigned')
 		},
 		styles: {
 			settings: {

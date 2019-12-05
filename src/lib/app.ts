@@ -261,7 +261,8 @@ export default class App {
 		return this.context.subscriptions.push(
 			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
 			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
-			vscode.commands.registerCommand('sidenotes.wipeAnchor', this.actions.delete.bind(this.actions, { deleteContentFile: false }), this.actions),
+			// vscode.commands.registerCommand('sidenotes.wipeAnchor', this.actions.delete.bind(this.actions, { deleteContentFile: false }), this.actions),
+			vscode.commands.registerCommand('sidenotes.wipeAnchor', this.actions.wipeAnchor, this.actions),
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
 			vscode.commands.registerCommand('sidenotes.refresh', this.actions.refresh, this.actions),
