@@ -6,7 +6,7 @@ import {
 } from './types';
 
 export interface IDesignable {
-	content: string | undefined;
+	content?: string;
 	color ?: string
 }
 

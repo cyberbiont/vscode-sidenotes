@@ -1,23 +1,23 @@
 // import Dictionary from './dictionary';
-import { IDictionary, HasIdProperty } from '../types';
+import { IDictionary, HasKeyProperty } from '../types';
 
-export default class MapDictionary<T extends HasIdProperty>
+export default class MapDictionary<T extends HasKeyProperty>
 	// extends Dictionary<T>
 	implements IDictionary<T> {
 
 	list: Map<string, T> = new Map();
 
 	add(item: T) {
-		this.list.set(item.id, item);
+		this.list.set(item.key, item);
 		return this
 	}
 
-	get(id: string) {
-		return this.list.get(id);
+	get(key: string) {
+		return this.list.get(key);
 	}
 
-	delete(id: string) {
-		this.list.delete(id);
+	delete(key: string) {
+		this.list.delete(key);
 		return this;
 	}
 
@@ -27,8 +27,8 @@ export default class MapDictionary<T extends HasIdProperty>
 		});
 	}
 
-	has(id: string): boolean {
-		return this.list.has(id);
+	has(key: string): boolean {
+		return this.list.has(key);
 	}
 
 	clear() {

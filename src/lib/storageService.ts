@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-// import * as nodeFs from 'fs';
 import * as path from 'path';
 
 import {
@@ -12,57 +11,65 @@ import {
 import { throws } from 'assert';
 
 export interface IStorable {
-	id: string;
+	// id: string;
 	content: string;
+	// extension?: string;
 }
 
 export type OStorageService = {
 }
 
+type StorageKey = FileStorageKey // & ...
+
 export interface IStorageService {
-	delete(id: string): boolean | Promise<boolean>;
-	write(data: IStorable): boolean | Promise<boolean>;
-	get(id: string): IStorable | undefined;
-	open(id: string);
+	delete(key: StorageKey): boolean | Promise<boolean>;
+	write(key: StorageKey, data: IStorable): boolean | Promise<boolean>;
+	get(key: StorageKey): IStorable | undefined;
+	open(key: StorageKey);
 	checkRequirements?(): void;
 	lookup?(
-		id: string,
+		key: StorageKey,
 		lookupFolderPath?: string,
 		workspace?: string,
 		resolveAction?: string
 	): Promise<string | boolean>;
+}
+
+interface FileStorageKey {
+	id: string,
+	extension?: string
 }
 
 export interface IFileStorage extends IStorageService {
 	lookup(
-		id: string,
+		key: FileStorageKey,
 		lookupFolderPath?: string,
 		workspace?: string,
 		resolveAction?: string
 	): Promise<string | boolean>;
 }
 
-type ContentFileExtension = '.md'|'.markdown'|'.mdown'|'.txt';
+// type DefaultContentFileExtension = '.md'|'.markdown'|'.mdown'|'.txt';
 
 export type OFileStorage = {
 	storage: {
 		files: {
 			notesSubfolder: string;
-			contentFileExtension: ContentFileExtension;
+			defaultContentFileExtension: string;
+			// contentFileExtension: ContentFileExtension;
 		}
 	}
 }
 
 // TODO 🕮 1744f795-4133-4688-97d3-e8f02b26c886
 export class FileStorage implements IFileStorage {
-
-	private pathCache: {
-		[id: string]: string;
-	} = Object.create(null);
+	private pathCache: WeakMap<FileStorageKey, string> = new WeakMap;
+	// {YL} 🕮 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
 		notesSubfolder: string;
-		contentFileExtension: ContentFileExtension;
+		defaultContentFileExtension: string;
+		// defaultContentFileExtension: DefaultContentFileExtension;
 	}
 
 	private notesFolder: string
@@ -73,8 +80,6 @@ export class FileStorage implements IFileStorage {
 		public fs: FileSystem,
 		cfg: OFileStorage,
 		private commands,
-		// public fs = nodeFs,
-		// public fsv = vscode.workspace.fs,
 	) {
 		this.o = cfg.storage.files;
 		this.notesFolder = path.join(
@@ -91,12 +96,12 @@ export class FileStorage implements IFileStorage {
 		}
 	}
 
-	get(id: string): IStorable | undefined {
+	get(key: FileStorageKey): IStorable | undefined {
 		// TODO make async
 		try {
-			const content = this.fs.read(this.getContentFilePath(id));
+			const path = this.getContentFilePath(key);
+			const content = this.fs.read(path);
 			return {
-				id,
 				content
 			};
 		} catch (e) {
@@ -104,33 +109,35 @@ export class FileStorage implements IFileStorage {
 		}
 	}
 
-	open(id: string) {
-		const path = this.getContentFilePath(id);
+	open(key: FileStorageKey) {
+		const path = this.getContentFilePath(key);
 		return this.editorService.open(path);
 	}
 
-	private getContentFileName(id: string): string {
-		return `${id}${this.o.contentFileExtension}`;
+	private getContentFileName(key: FileStorageKey): string {
+		// 🖉 2190628a-b268-44c2-a81a-939ce26dd7a4
+		const { id, extension = this.o.defaultContentFileExtension } = key;
+		return `${id}${extension}`;
 	}
 
-	private getContentFilePath(id: string): string {
-		if (this.pathCache[id]) return this.pathCache[id];
+	private getContentFilePath(key: FileStorageKey): string {
+		if (this.pathCache.has(key)) return this.pathCache.get(key)!;
 
 		// by default we look in the current document's workspace folder
 		const filePath = path.join(
 			this.utils.getWorkspaceFolderPath(),
 			this.o.notesSubfolder,
-			this.getContentFileName(id)
+			this.getContentFileName(key)
 		);
 
-		this.pathCache[id] = filePath;
+		this.pathCache.set(key, filePath);
 
 		return filePath;
 	}
 
-	async delete(id): Promise<boolean> {
+	async delete(key: FileStorageKey): Promise<boolean> {
 		try {
-			await this.fs.delete(this.getContentFilePath(id));
+			await this.fs.delete(this.getContentFilePath(key));
 			return true;
 		} catch (e) {
 			return false;
@@ -150,8 +157,8 @@ export class FileStorage implements IFileStorage {
 		}
 	}
 
-	async write(data: IStorable): Promise<boolean> {
-		const path = this.getContentFilePath(data.id);
+	async write(key: FileStorageKey, data: IStorable): Promise<boolean> {
+		const path = this.getContentFilePath(key);
 
 		try {
 			// 🕮 40e7f83a-036c-4944-9af1-c63be09f369d
@@ -165,7 +172,7 @@ export class FileStorage implements IFileStorage {
 			if (err.code === 'ENOENT') {
 				// console.log(`content files directory seems to not exist at specified location. Creating directory and trying again`);
 				await this.ensureNotesFolderExists();
-				await this.write(data);
+				await this.write(key, data);
 				return true;
 			} else {
 				throw new vscode.FileSystemError(`Unknown error while trying to write content file`);
@@ -175,12 +182,12 @@ export class FileStorage implements IFileStorage {
 	}
 
 	async lookup(
-		id: string,
+		key: FileStorageKey,
 		lookupFolderPath: string,
 		workspace: string = this.utils.getWorkspaceFolderPath(),
 		resolveAction: string = 'copy'
 	): Promise<string | boolean> {
-		const fileName = this.getContentFileName(id);
+		const fileName = this.getContentFileName(key);
 
 		const lookupFilePath = path.join(
 			lookupFolderPath,
@@ -215,16 +222,16 @@ export class FileStorage implements IFileStorage {
 		const folders = vscode.workspace.workspaceFolders;
 		if (folders && folders.length > 0) {
 			folders.forEach(async folder => {
-				const { detectedIds, files: { fileIds, strayEntries }} = await this.analyzeWorkspaceFolder(folder.uri);
+				const { detectedKeys, files: { fileIds: fileKeys, strayEntries }} = await this.analyzeWorkspaceFolder(folder.uri);
 				const broken: string[] = [];
 
-				const ids = Array.from(detectedIds);
-				ids.forEach(id => {
+				// const keys = Array.from(detectedKeys);
+				detectedKeys.forEach(key => {
 					if (!(
-						id in fileIds
-						&& typeof this.fs.read(fileIds[id]) === 'string' // ensure that content note is readable
+						key in fileKeys
+						&& typeof this.fs.read(fileKeys[key]) === 'string' // ensure that content note is readable
 					)) {
-						broken.push(id);
+						broken.push(key);
 					}
 				})
 
@@ -262,8 +269,11 @@ export class FileStorage implements IFileStorage {
 
 					const results = await Promise.all(
 						// ids.map
-						broken.map(async id => {
-							return this.lookup!(id, lookupUri[0].fsPath);
+						broken.map(async key => {
+							const [ id, extension ] = key.split('.');
+							// {YL} 🕮 8fc4b127-f19f-498b-afea-70c6d27839bf.md
+							return this.lookup({ id, extension }, lookupUri[0].fsPath);
+
 						})
 					);
 					const successfulResults = results
@@ -289,6 +299,9 @@ export class FileStorage implements IFileStorage {
 				);
 				return false;
 			}
+
+			console.log(`Sidenotes: ${paths.length} ${type} files in folder ${folder.uri.fsPath}:\n${paths.join('\n')}`);
+			// paths.forEach(path => console.log(path));
 
 			const action = await vscode.window.showQuickPick(
 				[{
@@ -324,11 +337,11 @@ export class FileStorage implements IFileStorage {
 
 		const folders = vscode.workspace.workspaceFolders;
 		if (folders && folders.length > 0) folders.forEach(async folder => {
-			const { detectedIds, files: { fileIds, strayEntries }} = await this.analyzeWorkspaceFolder(folder.uri);
+			const { detectedKeys, files: { fileIds, strayEntries }} = await this.analyzeWorkspaceFolder(folder.uri);
 			const extraneous: string[] = [];
 
 			for (const id in fileIds) {
-				if (!detectedIds.has(id)) extraneous.push(fileIds[id])
+				if (!detectedKeys.includes(id)) extraneous.push(fileIds[id])
 			}
 
 			await handleResults('extraneous', extraneous, folder);
@@ -337,11 +350,18 @@ export class FileStorage implements IFileStorage {
 	}
 
 	async analyzeWorkspaceFolder(folder: vscode.Uri) {
-		const detectedIds = await this.fs.scanDirectoryFilesContentsForIds(folder);
+		const attachDefaultExtension = (key: string): string => {
+			if (!path.extname(key)) key = `${key}${this.o.defaultContentFileExtension}`
+			return key;
+		}
+
+		const detectedKeysSet = await this.fs.scanDirectoryFilesContentsForKeys(folder);
+		const detectedKeys = Array.from(detectedKeysSet).map(attachDefaultExtension);
+
 		const files = await this.analyzeFolderContentFiles(folder);
 
 		return {
-			detectedIds, files
+			detectedKeys, files
 		}
 	}
 
@@ -362,7 +382,13 @@ export class FileStorage implements IFileStorage {
 			if (type === vscode.FileType.File) {
 				const id = this.editorService.changeTracker.getIdFromFileName(filePath);
 				if (!id) strayEntries.push(filePath);
- 				else fileIds[id] = filePath;
+ 				else {
+					const key = this.getContentFileName({
+						id,
+						extension: path.extname(filePath)
+					});
+					fileIds[key] = filePath;
+				}
 			} else {
 				strayEntries.push(filePath);
 			}

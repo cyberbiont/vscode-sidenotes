@@ -9,7 +9,7 @@ export { default as Actions } from './actions';
 
 export {
 	IDictionary,
-	HasIdProperty
+	HasKeyProperty
 } from './dictionary';
 
 export {
@@ -47,6 +47,7 @@ export {
 
 export {
 	IScanData,
+	OScanner,
 	default as Scanner,
 } from './scanner';
 
@@ -77,6 +78,7 @@ export { default as SidenoteProcessor } from './sidenoteProcessor';
 export {
 	ISidenote,
 	Inspector,
+	OSidenoteFactory,
 	SidenoteFactory
 } from './sidenote';
 
@@ -96,7 +98,7 @@ export type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>
 
 import {	Initializable } from './mixins';
 import {
-	HasIdProperty,
+	HasKeyProperty,
 	IDictionary,
 	MapDictionary,
 } from './dictionary';

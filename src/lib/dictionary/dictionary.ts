@@ -1,13 +1,13 @@
 // StringKeyDictionary
-export interface HasIdProperty {
-	id: string;
+export interface HasKeyProperty {
+	key: string;
 }
 
 export interface IDictionary<T> {
 	list: Map<string, T> | Set<T> | { [key: string]: T } | Array<T>;
 	add(item: T): this;
-	get(id: string): T|undefined;
-	delete(id: string): this;
+	get(key: string): T|undefined;
+	delete(key: string): this;
 	each(cb: (T) => void): void;
 	clear(): this;
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>;

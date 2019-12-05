@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import {
 	Actions,
 	EventEmitter,
@@ -54,7 +55,9 @@ export default class Events {
 	 update sidenote content and source document decorations
 	 */
 	async onSidenoteDocumentChange(changeData: IChangeData) {
-		const sidenote = await this.sidenotesRepository.get(changeData.id);
+		const key = this.utils.getKey(changeData.id, path.extname(changeData.path));
+		const sidenote = await this.sidenotesRepository.get(key);
+		// const sidenote = await this.sidenotesRepository.get(changeData.path);
 		if (!sidenote) throw new Error('Error: sidenote being edited is not present in pool');
 
 		this.sidenoteProcessor.updateContent(sidenote);
@@ -77,7 +80,7 @@ export default class Events {
 		)) return;
 
 		// rescan positions for decorations in current document
-		const scanResults = this.scanner.getIdsFromText();
+		const scanResults = this.scanner.scanText();
 		if (!scanResults) return;
 
 		await this.actions.updateDocumentSidenotesPool(scanResults);

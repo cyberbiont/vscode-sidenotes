@@ -1,24 +1,24 @@
 // import Dictionary from './dictionary';
-import { IDictionary, HasIdProperty } from '../types';
+import { IDictionary, HasKeyProperty } from '../types';
 
 // TODO декоратор к add, который проверяет, содержит ли добавляемый элемент такое же id, и если что не добавляет его
-export default class ObjectDictionary<T extends HasIdProperty>
+export default class ObjectDictionary<T extends HasKeyProperty>
 	// extends Dictionary<T>
 	implements IDictionary<T> {
 
-	list: {	[id: string]: any	} = Object.create(null);
+	list: {	[key: string]: any	} = Object.create(null);
 
 	add(item) {
-		this.list[item.id] = item;
+		this.list[item.key] = item;
 		return this;
 	}
 
-	get(id) {
-		return this.list[id];
+	get(key) {
+		return this.list[key];
 	}
 
-	delete(id) {
-		delete this.list[id];
+	delete(key) {
+		delete this.list[key];
 		return this;
 	}
 

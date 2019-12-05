@@ -6,6 +6,7 @@ import {
 	EditorUtils,
 	IAnchor,
 	IAnchorable,
+	ICfg,
 	IDesignable,
 	IIdMaker,
 	IScanData,
@@ -16,20 +17,27 @@ import {
 	MarkerUtils,
 	Scanner,
 } from './types';
+import { Tracing } from 'trace_events';
 
 export type ISidenote =
 	IDesignable &
 	IStylable &
 	IAnchorable &
 	{
-		id: string
+		id: string,
+		key: string
 	}
+
 export class Sidenote implements ISidenote {
-	id: string
-	content: string | undefined
-	anchor: IAnchor
-	decorations: IStylableDecoration[]
-	color?: string
+	// 🖉 11d423eb-b5c9-4ce9-9750-6d2a5bfdae93
+	key: string;
+	id: string;
+	content?: string;
+	signature?: string;
+	extension?: string;
+	anchor: IAnchor;
+	decorations: IStylableDecoration[];
+	color?: string;
 	constructor(
 		sidenote: ISidenote,
 	) {
@@ -46,20 +54,23 @@ export class Inspector {
 
 export class SidenoteBuilder implements Partial<Sidenote> {
 	// works even without making all properties optional
-	id?: string
-	anchor?: IAnchor
-	content?: string | undefined
-	decorations?: IStylableDecoration[]
+	key?: string;
+	id?: string;
+	extension?: string;
+	signature?: string;
+	anchor?: IAnchor;
+	content?: string;
+	decorations?: IStylableDecoration[];
 
-	withId(id: string): this & Pick<Sidenote, 'id'> {
-		return Object.assign(this, { id });
+	withId(key: string, id: string, extension?: string, signature?: string): this & Pick<Sidenote, 'key'|'id'|'extension'|'signature'> {
+		return Object.assign(this, { key, id, extension, signature });
 	}
 
 	withAnchor(anchor: IAnchor): this & Pick<Sidenote, 'anchor'> {
 		return Object.assign(this, { anchor });
 	}
 
-	withContent(content: string|undefined): this & Pick<Sidenote, 'content'> {
+	withContent(content?: string): this & Pick<Sidenote, 'content'> {
 		return Object.assign(this, { content });
 	}
 
@@ -72,6 +83,19 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 	}
 }
 
+export type OSidenoteFactory = {
+	storage: {
+		files: {
+			defaultContentFileExtension: string
+		}
+	},
+	anchor: {
+		marker: {
+			signature: string
+		}
+	}
+}
+
 export class SidenoteFactory {
 	constructor(
 		private idMaker: IIdMaker,
@@ -81,30 +105,42 @@ export class SidenoteFactory {
 		private utils: EditorUtils & MarkerUtils,
 		private scanner: Scanner,
 		private SidenoteBuilder: Constructor<Partial<Sidenote>>,
+		private cfg: ICfg
 	) {}
 
-	async build(scanData?: IScanData): Promise<ISidenote> {
+	async build(scanData?: IScanData, customExtension?: string): Promise<ISidenote> {
+		let key: string;
 		let id: string;
+		let extension: string | undefined;
+		let signature: string | undefined;
 		let ranges: vscode.Range[];
 		let sidenote: ISidenote;
 		// let position: vscode.Position;
 
 		if (!scanData) { // buildNewSidenote
-			id = this.idMaker.makeId();
+			const id = this.idMaker.makeId();
+			extension = customExtension
+				? customExtension
+				: this.cfg.storage.files.defaultContentFileExtension;
+			signature = this.cfg.anchor.marker.signature;
+
+			key = this.utils.getKey(id, extension);
 			const undecorated = new SidenoteBuilder()
-				.withId(id)
+				.withId(key, id, extension, signature)
 				.withContent(await this.utils.extractSelectionContent())
-				.withAnchor(this.anchorer.getAnchor(id));
+				.withAnchor(this.anchorer.getAnchor(id, extension));
+
 			/* cannot generate decoration with proper range before write method,
 			because comment toggling changes range and it may vary with language,
 			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
+
 			const position = undecorated.anchor.editor.selection.anchor;
 			let range = this.utils.getMarkerRange(undecorated.anchor.marker, position);
 			const promises =	await Promise.all([
-				this.storageService.write(undecorated as IStorable),
+				this.storageService.write(undecorated, { content: undecorated.content! }),
 				this.anchorer.write(undecorated, [range])
 			]);
-			// await this.anchorer.write(undecorated, [range]);
+// {YL} 🕮 5b32ed62-7ce8-4ca7-bd86-3dc10d4a4e2f.md
 			// re-calculate range after comment toggle
 			({ ranges } = this.scanner.scanLine(
 				this.utils.getTextLine(range.start)
@@ -115,13 +151,13 @@ export class SidenoteFactory {
 			).build();
 
 		} else {
-			({ id, ranges } = scanData);
-			const storageEntry = this.storageService.get(id);
+			({ key, ranges, marker: { id, signature, extension }} = scanData);
+			const storageEntry = this.storageService.get({ id, extension });
 			const content = storageEntry ? storageEntry.content : undefined;
 			const undecorated = new SidenoteBuilder()
-				.withId(id)
+				.withId(key, id, extension, signature)
 				.withContent(content)
-				.withAnchor(this.anchorer.getAnchor(id));
+				.withAnchor(this.anchorer.getAnchor(id, extension));
 
 			return sidenote = undecorated.withDecorations(
 				this.designer.get(undecorated, ranges)

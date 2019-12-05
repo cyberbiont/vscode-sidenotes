@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import {
 	Constructor,
 	IDictionary,
-	HasIdProperty,
+	HasKeyProperty,
 } from './types';
 
 export interface HasFactoryMethod<V> {
@@ -56,14 +56,14 @@ export interface HasBuildFactoryMethod<V> {
 	build: (key: any) => V | Promise<V>
 }
 
-export class DictionaryRepository<C extends HasIdProperty, V extends HasIdProperty> {
+export class DictionaryRepository<C extends HasKeyProperty, V extends HasKeyProperty> {
 	constructor(
 		private Factory: HasBuildFactoryMethod<V>,
 		private dictionary: IDictionary<V>
 	) {}
 
-	public async get(id: string): Promise<V | undefined> {
-		return this.dictionary.get(id);
+	public async get(key: string): Promise<V | undefined> {
+		return this.dictionary.get(key);
 	}
 
 	public async create(cfg?: C): Promise<V> {
@@ -76,7 +76,7 @@ export class DictionaryRepository<C extends HasIdProperty, V extends HasIdProper
 		let value: V;
 
 		if (cfg) {
-			let queryResult: V | undefined = this.dictionary.get(cfg.id);
+			let queryResult: V | undefined = this.dictionary.get(cfg.key);
 			if (queryResult) value = queryResult;
 			else value = await this.create(cfg);
 		}

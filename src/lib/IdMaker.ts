@@ -12,7 +12,8 @@ export default class UuidMaker implements IIdMaker {
 		return uuid();
 	}
 	// ID_REGEX_STRING = '(\\d|[a-z]){8}-(\\d|[a-z]){4}-(\\d|[a-z]){4}-(\\d|[a-z]){4}-(\\d|[a-z]){12}'
-	ID_REGEX_STRING = '((?:\d|[a-z]){8}-(?:\d|[a-z]){4}-(?:\d|[a-z]){4}-(?:\d|[a-z]){4}-(?:\d|[a-z]){12})'
+	ID_REGEX_STRING = '((?:\\d|[a-z]){8}-(?:\\d|[a-z]){4}-(?:\\d|[a-z]){4}-(?:\\d|[a-z]){4}-(?:\\d|[a-z]){12})'
+
 	ID_REGEX = new RegExp(this.ID_REGEX_STRING, 'g')
 	symbolsCount = 36
 }

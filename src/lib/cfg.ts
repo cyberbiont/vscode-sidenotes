@@ -10,6 +10,8 @@ import {
 	OFileStorage,
 	OFileSystem,
 	OMarkerUtils,
+	OScanner,
+	OSidenoteFactory,
 	OStorageService,
 	OStyler,
 	// OVscodeChangeTracker,
@@ -26,15 +28,8 @@ export type ICfg =
 		)
 	& ODesigner & OStyler
 	& OStorageService & OFileStorage
-	& {
-		app: {
-			formats: {
-				file: {
-					[extension: string]: string
-				}
-			}
-		}
-	}
+	& OScanner
+	& OSidenoteFactory
 ;
 const settings = vscode.workspace.getConfiguration('sidenotes');
 
@@ -43,10 +38,11 @@ const cfg: ICfg = {
 		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
 		formats: {
 			file: {
-				'md': settings.get('defaultMarkdownEditor') || 'vscode',
-				'markdown': settings.get('defaultMarkdownEditor') || 'vscode',
-				'mdown': settings.get('defaultMarkdownEditor') || 'vscode',
-				'mmap': 'systemDefault'
+				'.md': settings.get('defaultMarkdownEditor') || 'vscode',
+				'.markdown': settings.get('defaultMarkdownEditor') || 'vscode',
+				'.mdown': settings.get('defaultMarkdownEditor') || 'vscode',
+				'.mmap': 'systemDefault',
+				'.txt': 'systemDefault'
 			}
 		}
 	},
@@ -54,7 +50,8 @@ const cfg: ICfg = {
 	storage: {
 		files: {
 			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
-			contentFileExtension: '.md' //json setting 🕮 b7f19c02-664e-4c1b-bfb1-9fbe581978f2
+			defaultContentFileExtension: '.md' // default content files extension. json setting: 🕮 b7f19c02-664e-4c1b-bfb1-9fbe581978f2
+			// extensionsQuickPick: ['.md', '.mmap', '.xmind'] // TODO
 		},
 	},
 
@@ -74,8 +71,12 @@ const cfg: ICfg = {
 			// affectNewlineSymbols: false
 		},
 		marker: {
+			// 🖉 f7cc1c04-8751-4431-af02-a912c375750c
 			prefix: settings.get('prefix') || '',
-			salt: '🕮 ',
+			salt: '🕮',
+			signature: 'YL',
+			readSignatures: ['YL']
+			//TODO glob support for signatures
 		},
 		styles: {
 			settings: {

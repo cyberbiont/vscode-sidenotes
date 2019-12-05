@@ -18,9 +18,9 @@ export default class SidenoteProcessor {
 
 	async delete(sidenote: ISidenote, { deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<ISidenote> {
 		const promises: Promise<void|boolean>[] = [ this.anchorer.delete(sidenote) ];
-		if (deleteContentFile) promises.push(Promise.resolve(this.storageService.delete(sidenote.id)));
+		if (deleteContentFile) promises.push(Promise.resolve(this.storageService.delete(sidenote)));
 		await Promise.all(promises);
-		if (deleteContentFile) this.pool.delete(sidenote.id);
+		if (deleteContentFile) this.pool.delete(sidenote.key);
 		return sidenote;
 	}
 
@@ -28,7 +28,7 @@ export default class SidenoteProcessor {
 		if (sidenote.content) {
 			// const { id, content } = sidenote;
 			const writeResults = await Promise.all([
-				this.storageService.write(sidenote as IStorable),
+				this.storageService.write(sidenote, sidenote as IStorable),
 				this.anchorer.write(sidenote, ranges)
 			]);
 			this.pool.add(sidenote);
@@ -39,7 +39,7 @@ export default class SidenoteProcessor {
 	}
 
 	updateContent(sidenote: ISidenote): ISidenote {
-		const data = this.storageService.get(sidenote.id);
+		const data = this.storageService.get(sidenote);
 		if (data) sidenote.content = data.content;
 		/* assuming the ranges hasn't change (update onEditorChange event is responsible for handling this)
 		we can extract ranges from decorations */
@@ -51,7 +51,7 @@ export default class SidenoteProcessor {
 	}
 
 	async open(sidenote: ISidenote): Promise<vscode.TextEditor> {
-		return this.storageService.open(sidenote.id);
+		return this.storageService.open(sidenote);
 	}
 
 	// TODO move to UserInteraction module
@@ -88,7 +88,7 @@ export default class SidenoteProcessor {
 
 			case 're-create':
 				sidenote.content = '';
-				this.storageService.write(sidenote);
+				this.storageService.write(sidenote, sidenote as IStorable);
 				return sidenote;
 
 			case 'lookup':

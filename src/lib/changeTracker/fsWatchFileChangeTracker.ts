@@ -37,7 +37,7 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 	}
 	setWatch(path: string) {
 		const watch = this.watcherService.watch(path, this.onChange.bind(this));
-		this.pool.add({ id: path, watch });
+		this.pool.add({ key: path, watch });
 	}
 
 	stopWatch(path: string) {
@@ -65,6 +65,6 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 
 
 export interface IWatch {
-	id: string;
+	key: string;
 	watch: nodeFs.FSWatcher;
 }

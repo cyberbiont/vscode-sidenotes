@@ -10,7 +10,8 @@ export type OChangeTracker = {
 }
 
 export type IChangeData = {
-	id: string
+	id: string,
+	path: string
 }
 
 export interface IChangeTracker {
@@ -39,7 +40,10 @@ export default abstract class ChangeTracker {
 	processEventData(eventData): IChangeData|undefined {
 		const id = this.getIdFromFileName(eventData.fileName);
 		if (id) {
-			const changeData = { id	};
+			const changeData = {
+				id,
+				path: eventData.fileName
+			};
 			return changeData;
 		}
 	}

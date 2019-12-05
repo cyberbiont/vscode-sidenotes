@@ -1,7 +1,7 @@
 // import Dictionary from './dictionary';
-import { IDictionary, HasIdProperty } from '../types';
+import { IDictionary, HasKeyProperty } from '../types';
 
-export default class SetDictionary<T extends HasIdProperty>
+export default class SetDictionary<T extends HasKeyProperty>
 	// extends Dictionary<T>
 	implements IDictionary<T>{
 
@@ -12,14 +12,14 @@ export default class SetDictionary<T extends HasIdProperty>
 		return this;
 	}
 
-	get(id) {
+	get(key) {
 		for (let el of this.list) {
-			if (id === el.id) return el;
+			if (key === el.key) return el;
 		}
 	}
 
-	delete(id): this {
-		this.list.delete(id);
+	delete(key): this {
+		this.list.delete(key);
 		return this;
 	}
 
@@ -36,8 +36,8 @@ export default class SetDictionary<T extends HasIdProperty>
 		return this.list;
 	}
 
-	has(id): boolean {
-		return this.list.has(id);
+	has(key): boolean {
+		return this.list.has(key);
 	}
 
 	clear() {

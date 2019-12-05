@@ -32,7 +32,7 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 	getWorkspaceFolderRelativePattern(workspace: vscode.WorkspaceFolder): vscode.RelativePattern {
 		return new vscode.RelativePattern(
 			this.getFullPathToSubfolder(workspace),
-			`*${this.cfg.storage.files.contentFileExtension}`
+			`*${this.cfg.storage.files.defaultContentFileExtension}`
 		);
 	}
 

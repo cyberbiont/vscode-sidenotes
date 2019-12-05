@@ -1,7 +1,7 @@
 // import Dictionary from './dictionary';
-import { IDictionary, HasIdProperty } from '../types';
+import { IDictionary, HasKeyProperty } from '../types';
 
-export default class ArrayDictionary<T extends HasIdProperty>
+export default class ArrayDictionary<T extends HasKeyProperty>
 	// extends Dictionary<T>
 	implements IDictionary<T> {
 
@@ -12,12 +12,12 @@ export default class ArrayDictionary<T extends HasIdProperty>
 		return this;
 	}
 
-	get(id) {
-		return this.list.find(el => el.id === id);
+	get(key) {
+		return this.list.find(el => el.key === key);
 	}
 
-	delete(id) {
-		this.list.splice(this.list.findIndex(el => el.id === id), 1);
+	delete(key) {
+		this.list.splice(this.list.findIndex(el => el.key === key), 1);
 		return this;
 	}
 

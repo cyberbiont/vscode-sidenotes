@@ -41,7 +41,7 @@ import Styler from './styler';
 import UuidMaker from './idMaker';
 import { EventEmitter } from 'events';
 import { FileStorage } from './storageService';
-import { MapDictionary, HasIdProperty } from './dictionary';
+import { MapDictionary, HasKeyProperty } from './dictionary';
 import {
 	ReferenceContainer,
 	ReferenceController
@@ -198,6 +198,7 @@ export default class App {
 			utils,
 			scanner,
 			SidenoteBuilder,
+			this.cfg
 		);
 
 		const sidenotesRepository: SidenotesRepository = new DictionaryRepository(sidenoteFactory, pool);

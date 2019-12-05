@@ -141,12 +141,34 @@ The extension uses certain Regex, based on unique id, to identify sidenote ancho
 
 ### Design
 
-
 <!-- 🕮 c220a6fb-1c9f-4eab-9d43-cf4786c06a31 -->
+
+### Signature
+
+If you collaborate with your colleague, who also uses Sidenotes, the document may contain sidenotes markers from both you and your colleague (*'foreign'* markers). Without signature setting, they all will be hanled by extension, disadvantages of this being:
+* you may not want to deal with other people's sidenotes, rather concentrating on your own;
+* if your colleague decided to make his notes private and did not commit them to VCS, his sidenotes will have 'broken' status and actions like 'prune broken' will potentially delete your colleague's sidenote markers.
+Specifying your signature guarantees that extension will only take into account your 'signatured' sidenote markers.
+
+If you and your colleague want to share sidenotes, no problem: you can either use some common signature when authoring, for example, 'Shared' (or none at all). Or each can add his colleague's signature to his `anchor.marker.signature.read` settings.
+
+If you want to change signature, you can manully edit signature of marker in document.
+
+#### anchor.marker.readSignatures
+
+This is an array of signatures that you want to be processed when looking for sidenote markers in document.
+
+#### anchor.marker.signature
+
+By default: false (highly recommended that you set it). This will be your signature that will be written down with every comment. Specifired string is added to the beginning of the marker, that will be included in search RegExp. Keep this short, you may set this to your initials, for example. SIgnature helps in understanding to whom the sidenote belongs to, even when extension is inactive.
 
 #### anchor.marker.prefix
 
-Adds the string that you specify here at the beginning of the inserted marker and removes it on sidenote deletion. Note that in constrast to 'before' setting this is the actual text that will be added, i.e. it is a part of the document and it will be visible when extension is deactivated. Useful if you want to hook your sidenotes to some coment-styling extension (see [styling](#Prefixing and additional styling sidenotes : tips)).
+Adds the string that you specify here at the beginning of the inserted marker and removes it on sidenote deletion. Note that in constrast to 'before' setting this is the actual text that will be added, i.e. it is a part of the document and it will be visible when extension is deactivated.
+
+It will be written in your document but will not affect Regex search.
+
+Useful if you want to hook your sidenotes to some comment-styling extension (see [styling](#Prefixing and additional styling sidenotes : tips)).
 
 #### anchor.design.before
 
@@ -337,5 +359,4 @@ Though extension concept idea occured to me independently, some initial implemen
 by [James Norton](https://marketplace.visualstudio.com/publishers/jamesnorton)
 
 <div>Icon made by <a href="https://www.flaticon.com/authors/kiranshastry" title="Kiranshastry">Kiranshastry</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
-
 ## By me a beer:

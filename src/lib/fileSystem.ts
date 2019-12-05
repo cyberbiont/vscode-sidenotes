@@ -23,11 +23,11 @@ export default class FileSystem
 		private scanner: Scanner,
 		public utils: EditorUtils,
 		private cfg: OFileSystem,
-		private vfs: vscode.FileSystem = vscode.workspace.fs,
+		// private vfs: vscode.FileSystem = vscode.workspace.fs,
 		private fs = nodeFs
 	) {}
 
-	async scanDirectoryFilesContentsForIds(folder: vscode.Uri): Promise<Set<string>> {
+	async scanDirectoryFilesContentsForKeys(folder: vscode.Uri): Promise<Set<string>> {
 		// 🕮 9a3ca084-350c-49c3-8fa8-631dbc63a254
 		const getFiles = async (folder: vscode.Uri): Promise<vscode.Uri[]> => {
 			return vscode.workspace.findFiles(
@@ -39,7 +39,7 @@ export default class FileSystem
 		const readFiles = (fileUris: vscode.Uri[]) => {
 			return Promise.all(
 				fileUris.map(async fileUri => {
-					const readData = await this.vfs.readFile(fileUri);
+					const readData = await vscode.workspace.fs.readFile(fileUri);
 					return Buffer.from(readData).toString('utf8');
 				})
 			);
@@ -47,17 +47,17 @@ export default class FileSystem
 
 		const scanContents = (contents: string[]) => {
 			const fileMatches = contents
-				.map(content => this.scanner.getIdsFromText(content), this.scanner)
+				.map(content => this.scanner.scanText(content), this.scanner)
 				.filter(scanData => scanData !== undefined) as unknown as IScanData[]; // 🕮 c02edcce-c3e0-48a5-ab51-c4d3053ec7d5
 			const flat = Array.prototype.concat(...fileMatches); // return files.flat();
-			const idsOnly: string[] = flat.map(scanData => scanData.id);
-			return idsOnly;
+			const keysOnly: string[] = flat.map(scanData => scanData.key);
+			return keysOnly;
 		};
 
 		const fileUris = await getFiles(folder);
 		const contents = await readFiles(fileUris);
-		const ids = scanContents(contents);
-		const uniqueIds = new Set(ids);
+		const keys = scanContents(contents);
+		const uniqueIds = new Set(keys);
 		return uniqueIds;
 	}
 	// TODO switch to fs.promises

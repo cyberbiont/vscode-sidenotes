@@ -13,7 +13,7 @@ export type OFileChangeTracker = {
 	storage: {
 		files: {
 			notesSubfolder: string,
-			contentFileExtension: string
+			defaultContentFileExtension: string
 		}
 	}
 }
@@ -24,7 +24,7 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 
 	protected o: {
 		notesSubfolder: string,
-		contentFileExtension: string
+		defaultContentFileExtension: string
 	};
 
 	constructor(

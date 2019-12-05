@@ -3,72 +3,109 @@ import * as vscode from 'vscode';
 import {
 	EditorUtils,
 	IAnchor,
+	ICfg,
 	MarkerUtils,
 } from './types';
+import { log } from 'util';
+
+export type OScanner = {}
 
 export interface IScanData {
-	id: string;
+	marker: {
+		fullMatch: string;
+		signature?: string;
+		id: string;
+		extension?: string;
+	};
 	ranges: vscode.Range[];
+
+	key: string;
 }
 
 export default class Scanner {
 	constructor(
-		private editor: vscode.TextEditor, //TODO narrow class to actual editor
+		private editor: vscode.TextEditor, //TODO narrow class to ActualEditor
 		private utils: EditorUtils & MarkerUtils,
+		// private cfg: OScanner
 	) {}
 
-	getIdsFromText(
+
+
+	scanText(
 		text: string = this.editor.document.getText()
 	): IScanData[]|undefined {
 
 		const result: {
-			[marker: string]: Set<number>
+			[key: string]:
+				Pick<IScanData, 'marker'>
+				& {
+				positions: Set<number|undefined>;
+			}
 		} = Object.create(null);
 
-		let match;
-		let regex = this.utils.bareMarkerRegex;
+		let match: RegExpMatchArray|null;
+		const regex = this.utils.bareMarkerRegex;
 
 		while ((match = regex.exec(text)) !== null) {
-			let [ marker ] = match; // = match[0]
-			let { index } = match; // = match.index
 
-			if (result[marker]) result[marker].add(index);
-			else result[marker] = new Set([index]);
+			let [ fullMatch, signature, id, extension ] = match;
+			let { index } = match;
+			let key = this.utils.getKey(id, extension);
+
+			if (result[key]) result[key].positions.add(index); // если уже есть такой маркер, добавляем индекс
+			else result[key] = {
+				marker: {
+					signature,
+					id,
+					extension,
+					fullMatch,
+				},
+				positions: new Set([index]),
+			};
 		}
+
 		const entries = Object.entries(result);
 		if (entries.length === 0) return undefined;
-    	else return entries.map(entry => {
-			let [marker, positions] = entry;
-
+		else return entries.map(entry => {
+			const [key, { marker, positions } ] = entry;
+			const { fullMatch, id, extension } = marker;
 			return {
-				id: this.utils.getIdFromMarker(marker),
+				key,
+				marker,
 				ranges: Array.from(positions, index => {
-					const position = this.editor.document.positionAt(index);
-
+					const position = this.editor.document.positionAt(index!);
 					const range = this.utils.getMarkerRange(
-						marker,
+						fullMatch,
 						position
 					);
 					return range;
 				})
-			};
+			}
+
 		});
 	}
 
 	scanLine(line: vscode.TextLine = this.utils.getTextLine()): IScanData|undefined {
 		if (line.isEmptyOrWhitespace) return undefined;
+
 		const match = line.text.match(this.utils.bareMarkerRegexNonG);
 
 		if (match) {
-			const [ marker ] = match;
-			const { index } = match;
+			let [ fullMatch, signature, id, extension ] = match;
+			let { index } = match;
+			const key = this.utils.getKey(id, extension);
 
-			const id = this.utils.getIdFromMarker(marker);
 			const position = line.range.start.translate({ characterDelta:index });
-			const range = this.utils.getMarkerRange(marker, position);
+			const range = this.utils.getMarkerRange(fullMatch, position);
 
 			return {
-				id,
+				key,
+				marker: {
+					signature,
+					id,
+					extension,
+					fullMatch,
+				},
 				ranges: [range]
 			}
 		}

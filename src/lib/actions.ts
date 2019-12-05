@@ -29,8 +29,7 @@ export default class Actions {
 	) {}
 
 	async scan(): Promise<void> {
-		// надо просто знать, если уже уже пул для этого документа или нет, если есть, то не пересканируем, просто апдейтим декорации
-		const scanResults = this.scanner.getIdsFromText();
+		const scanResults = this.scanner.scanText();
 		if (!scanResults)	return;
 
 		if (!this.pool.isInitialized) await this.initializeDocumentSidenotesPool(scanResults);
@@ -55,6 +54,7 @@ export default class Actions {
 		return Promise.all(scanResults.map(updateDecorationRange));
 	}
 
+
 	async run(): Promise<void> {
 		try {
 			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
@@ -75,6 +75,10 @@ export default class Actions {
 		} catch(e) {
 			console.log(e);
 		}
+	}
+
+	async createCustom() {
+
 	}
 
 	async delete({ deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<void> {

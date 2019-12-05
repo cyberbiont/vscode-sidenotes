@@ -7,14 +7,13 @@ import {
 } from './types';
 
 // 🕮 f58ba286-a09a-42d1-8bbf-a3bda39ccafa
-
 export interface IAnchor {
 	marker: string;
 	editor: vscode.TextEditor;
 }
 export interface IAnchorable {
 	anchor: IAnchor;
-	content: string | undefined;
+	content?: string;
 }
 
 export type OAnchorer = {
@@ -36,11 +35,10 @@ export default class Anchorer {
 		public cfg: OAnchorer
 	) {}
 
-	getAnchor(id: string,
-		): IAnchor {
+	getAnchor(uuid: string, extension?: string): IAnchor {
 		return {
 			editor: this.editor,
-			marker: this.utils.getMarker(id),
+			marker: this.utils.getMarker(uuid, extension),
 		};
 	}
 
