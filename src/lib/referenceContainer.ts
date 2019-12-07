@@ -26,7 +26,7 @@ export class ReferenceController<T extends object, K = string> {
 
 	constructor(
 		ReferenceContainer: Constructor<ReferenceContainer<any>>,
-		public getInstance: (key?: K) => T
+		public getItem: (key?: K) => T
 	) {
 		this.container = new ReferenceContainer();
 	}
@@ -36,7 +36,7 @@ export class ReferenceController<T extends object, K = string> {
 	}
 
 	async update(key?: K): Promise<this> {
-		const instance = await this.getInstance(key);
+		const instance = await this.getItem(key);
 		this.container.load(instance);
 		if (key) this.key = key;
 		return this;

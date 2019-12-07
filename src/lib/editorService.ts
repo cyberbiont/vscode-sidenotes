@@ -17,7 +17,8 @@ export class VscodeEditor implements IEditorService {
 	constructor(
 		public changeTracker: FileChangeTracker,
 			// | VscodeChangeTracker,
-		private eventEmitter: vscode.EventEmitter<OnOpenData>
+		// private eventEmitter: vscode.EventEmitter<OnOpenData>
+		private parentContainer
 	) {
 		this.changeTracker.init();
 	}
@@ -28,7 +29,9 @@ export class VscodeEditor implements IEditorService {
 	async open(path: string, scheme: string = 'file'): Promise<vscode.TextEditor> {
 		const URI = vscode.Uri.parse(`${scheme}:${path}`);
 
-		this.eventEmitter.fire({ parentDocument: vscode.window.activeTextEditor!.document });
+		this.parentContainer.parent = vscode.window.activeTextEditor!.document;
+		// this.lastOpenedParentController.update(vscode.window.activeTextEditor!.document);
+		// this.eventEmitter.fire({ parentDocument: vscode.window.activeTextEditor!.document });
 
 		return await vscode.workspace.openTextDocument(URI).then(
 			doc => vscode.window.showTextDocument(doc, {

@@ -30,7 +30,7 @@ export default abstract class ChangeTracker {
 		public utils: MarkerUtils
 	) {}
 
-	generateCustomEvent(fileName: string, event: string): void {;
+	generateCustomEvent(fileName: string, event: string): void {
 		const changeData = this.processEventData({ event, fileName });
 		if (changeData) this.dispatch(changeData);
 	}

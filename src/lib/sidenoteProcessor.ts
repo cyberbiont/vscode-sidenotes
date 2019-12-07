@@ -39,7 +39,7 @@ export default class SidenoteProcessor {
 	updateContent(sidenote: ISidenote): ISidenote {
 		const data = this.storageService.get(sidenote);
 		if (data) sidenote.content = data.content;
-		/* assuming the ranges hasn't change (update onEditorChange event is responsible for handling this)
+		/* assuming that ranges hasn't change (update onEditorChange event is responsible for handling this)
 		we can extract ranges from decorations */
 		const ranges = Array.from(new Set(
 			sidenote.decorations.map(decoration => decoration.options.range)

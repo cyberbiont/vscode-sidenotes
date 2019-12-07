@@ -46,22 +46,15 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		this.pool.get(path)!.watch.close();
 	}
 
-	onChange(event, fileName: string) {
-		this.debounce(this.generateCustomEvent.bind(this, fileName, event)); // change args order to conform with chokidar
-	}
+	onChange = this.debounce(function (event, fileName: string) {
+		this.generateCustomEvent(fileName, event); // change args order to conform with chokidar
+	})
+
 
 	processEventData(eventData): IChangeData | undefined {
 		if (eventData.event === 'rename' || ~eventData.fileName.indexOf('~'))
 			return;
 		return super.processEventData(eventData);
-	}
-
-	debounce(cb) {
-		let fsWait: NodeJS.Timeout | boolean = false;
-		if (fsWait)
-			return;
-		fsWait = setTimeout(() => { fsWait = false; }, 500);
-		cb();
 	}
 }
 

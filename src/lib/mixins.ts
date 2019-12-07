@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import {
 	Constructor,
 	Mixin,
@@ -32,6 +33,20 @@ export type Initializable = Mixin<typeof Initializable>
 export function Initializable<T extends Constructor>(Base: T) {
 	return class Initializable extends Base {
 		public isInitialized: boolean = false;
+	};
+}
+
+export type HasParentDocument = Mixin<typeof HasParentDocument>
+export function HasParentDocument<T extends Constructor>(Base: T) {
+	return class HasParentDocument extends Base {
+		public parent?: vscode.TextDocument;
+		getParent() {
+			return this.parent;
+		}
+		public editor: vscode.TextEditor;
+		// parentGet() {
+		// 	super.get()
+		// }
 	};
 }
 

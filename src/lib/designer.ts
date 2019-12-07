@@ -11,6 +11,13 @@ export interface IDesignable {
 }
 
 export type ODesigner = OStyler
+// & {
+// 	storage: {
+// 		files: {
+// 			readableExtensions: string[]
+// 		}
+// 	}
+// }
 
 export default class Designer {
 
@@ -81,6 +88,7 @@ export default class Designer {
 	): IStylableDecoration {
 		const hoverMessage: string = this.cfg.anchor.styles.categories[category].message
 			? this.cfg.anchor.styles.categories[category].message
+			// : designable.extension
 			: designable.content;
 
 		const decoration: IStylableDecoration = {

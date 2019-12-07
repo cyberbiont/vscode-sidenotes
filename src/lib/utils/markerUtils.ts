@@ -14,14 +14,7 @@ export type OMarkerUtils = {
 			readUnsigned?: boolean
 			// template?: string,
 		}
-	},
-	// app: {
-	// 	formats: {
-	// 		file: {
-	// 			[extension: string]: string
-	// 		}
-	// 	}
-	// }
+	}
 }
 
 export default class MarkerUtils {

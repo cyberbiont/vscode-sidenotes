@@ -110,8 +110,9 @@ export class FileStorage implements IFileStorage {
 	}
 
 	open(key: FileStorageKey) {
+		const { extension = this.o.defaultContentFileExtension } = key;
 		const path = this.getContentFilePath(key);
-		return this.editorServiceController.open(path, key.extension!);
+		return this.editorServiceController.open(path, extension);
 	}
 
 	private getContentFileName(key: FileStorageKey): string {

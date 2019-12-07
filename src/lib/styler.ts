@@ -146,22 +146,22 @@ export default class Styler<T extends IStylable> {
 		return lastBase;
 	};
 
-	updateDecorations({ reset = false }: { reset?: boolean } = {}): Set<vscode.TextEditor> {
-		const editorsToUpdate: Set<vscode.TextEditor> = new Set();
+	updateDecorations({ pool = this.pool, reset = false }: { pool ?: SidenotesDictionary, reset?: boolean } = {}): void {
+		// const editorsToUpdate: Set<vscode.TextEditor> = new Set();
 
-		this.pool.each(getStylableDecorationOptions.bind(this));
+		pool.each(getStylableDecorationOptions.bind(this));
 
 		function getStylableDecorationOptions(stylable: IStylable) {
 			if (stylable.decorations)	{
 				stylable.decorations.forEach(decoration => {
 					this.decorations[decoration.category].options.push(decoration.options);
-					editorsToUpdate.add(stylable.anchor.editor);
+					// editorsToUpdate.add(stylable.anchor.editor);
 				})
 			}
 		};
 
 		// if we have deleted last note
-		if (editorsToUpdate.size === 0) editorsToUpdate.add(vscode.window.activeTextEditor!);
+		// if (editorsToUpdate.size === 0) editorsToUpdate.add(vscode.window.activeTextEditor!);
 
 		for (let category in this.decorations) {
 			const applyDecorations = editor => {
@@ -172,16 +172,18 @@ export default class Styler<T extends IStylable> {
 			};
 			const resetDecorations = editor => editor.setDecorations(this.decorations[category].type, []);
 
-			if (reset) editorsToUpdate.forEach(resetDecorations);
-			else editorsToUpdate.forEach(applyDecorations);
+			// if (reset) editorsToUpdate.forEach(resetDecorations);
+			// else editorsToUpdate.forEach(applyDecorations);
+			if (reset) resetDecorations(pool.editor);
+			else applyDecorations(pool.editor);
 
 			this.decorations[category].options.length = 0 // clear array
 		}
 
-		return editorsToUpdate;
+		// return editorsToUpdate;
 	}
 
-	resetDecorations(): Set<vscode.TextEditor> {
+	resetDecorations(): void {
 		return this.updateDecorations({ reset: true });
 	}
 

@@ -58,7 +58,8 @@ const cfg: ICfg = {
 		files: {
 			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
 			defaultContentFileExtension: '.md', // default content files extension. json setting: 🕮 b7f19c02-664e-4c1b-bfb1-9fbe581978f2
-			extensionsQuickPick: ['.md', '.mmap', '.xmind'] // TODO
+			extensionsQuickPick: ['.md', '.mmap', '.xmind'], // TODO
+			// readableExtensions: ['.md', '.mdown', '.markdown', '.txt', '.doc', '.docx']
 		},
 	},
 

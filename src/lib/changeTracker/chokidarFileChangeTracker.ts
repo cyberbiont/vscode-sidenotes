@@ -33,16 +33,16 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 
 		this.watcher = this.watcherService.watch(target, {
 			// ignored: /(^|[\/\\])\../, // ignore dotfiles
-			persistent: true
+			persistent: true,
 		})
 		.on('change', this.onChange.bind(this));
 
 		this.initListeners();
 	}
 
-	onChange(path) {
+	onChange = this.debounce(function (path, stats) {
 		this.generateCustomEvent(path, 'change');
-	}
+	})
 
 	setWatch(path: string) {
 		this.watcher.add(path);

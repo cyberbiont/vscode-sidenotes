@@ -21,8 +21,9 @@ import {
 } from './editorService';
 
 import {
-	ChokidarChangeTracker,
+	// ChokidarChangeTracker,
 	// VscodeChangeTracker,
+	VSCodeFileSystemWatcher
 } from './changeTracker';
 
 import {
@@ -52,7 +53,7 @@ import {
 	DictionaryRepository
 } from './repository';
 
-import { Initializable } from './mixins';
+import { Initializable, HasParentDocument } from './mixins';
 
 import {
 	MarkerUtils,
@@ -62,18 +63,15 @@ import Events from './events';
 
 import EditorServiceController from './editorServiceController';
 
-export type OApp = {
-	// app: {
-	// 	defaultMarkdownEditor: 'typora'|'vscode'|'system default',
-	// }
-}
+export type OApp = {}
 
 export default class App {
 	public actions: Actions
-	private editorServiceController: EditorServiceController
+	// private editorServiceController: EditorServiceController
 	private events: Events
 	private eventEmitter: EventEmitter
 	private storageService: IStorageService
+	private utils: EditorUtils
 
 	constructor(
 		private cfg: ICfg,
@@ -87,6 +85,7 @@ export default class App {
 		this.checkRequirements();
 		this.registerCommands();
 		this.setEventListeners();
+		// this.utils.cycleEditors(this.actions.scan.bind(this.actions));
 		this.actions.scan();
 	}
 
@@ -95,13 +94,22 @@ export default class App {
 
 		const eventEmitter = new EventEmitter;
 
-		const InitializableMapDictionary = Initializable(MapDictionary);
+		const MixinedMapDictionary = HasParentDocument(Initializable(MapDictionary));
 		// 🕮 bd961532-0e0f-4b5f-bb70-a286acdfab37
+
+		let parentContainer: { parent?: vscode.TextDocument } = { };
 
 		const poolRepository: DocumentInitializableSidenotesRepository =	new MapRepository(
 			{ // adding static create method
-				...InitializableMapDictionary,
-				create() { return new InitializableMapDictionary; }
+				...MixinedMapDictionary,
+				create() {
+					const dictionary: SidenotesDictionary = new MixinedMapDictionary;
+
+					dictionary.parent = parentContainer.parent;
+					dictionary.editor = vscode.window.activeTextEditor!;
+					// dictionary.prototype = lastOpenedParent;
+					return dictionary;
+				}
 			},
 			new WeakMap
 		);
@@ -149,9 +157,7 @@ export default class App {
 
 		const fileSystem = new FileSystem(scanner, utils,this.cfg);
 
-		const onOpenEmitter = new vscode.EventEmitter<OnOpenData>();
-
-		let changeTracker = new ChokidarChangeTracker(
+		let changeTracker = new VSCodeFileSystemWatcher(
 			uuidMaker,
 			eventEmitter,
 			utils,
@@ -163,7 +169,10 @@ export default class App {
 		const editorServiceController = new EditorServiceController(
 			new TyporaEditor(changeTracker, editor),
 			new SystemDefaultEditor(changeTracker),
-			new VscodeEditor(changeTracker, onOpenEmitter),
+			new VscodeEditor(
+				changeTracker,
+				parentContainer
+			),
 			this.cfg
 		);
 
@@ -225,23 +234,22 @@ export default class App {
 		const events = new Events(
 			actions,
 			this.cfg,
-			// changeTracker,
 			editor,
 			pool,
 			scanner,
 			sidenoteProcessor,
-			sidenotesRepository,
 			styler,
 			utils,
 			editorController,
 			poolController,
+			poolRepository
 		);
 
 		this.actions = actions;
 		this.eventEmitter = eventEmitter;
-		this.editorServiceController = editorServiceController;
 		this.storageService = storageService;
 		this.events = events;
+		this.utils = utils;
 	}
 
 	checkRequirements() {
@@ -253,12 +261,7 @@ export default class App {
 	}
 
 	setEventListeners() {
-		vscode.window.onDidChangeActiveTextEditor(
-			this.editorServiceController.markdownEditor instanceof VscodeEditor
-				? this.events.onVscodeEditorChange
-				: this.events.onEditorChange,
-			this.events, this.context.subscriptions
-		);
+		vscode.window.onDidChangeActiveTextEditor(this.events.onEditorChange,	this.events, this.context.subscriptions);
 		vscode.workspace.onDidChangeTextDocument(this.events.onDidChangeTextDocument, this.events, this.context.subscriptions)
 		this.eventEmitter.on('sidenoteDocumentChange', this.events.onSidenoteDocumentChange.bind(this.events));
 	}

@@ -34,7 +34,7 @@ export default class Pruner {
 		);
 	}
 
-	private async prune(getCondition): Promise<void> {
+	private async prune(getCondition: (sidenote: ISidenote) => boolean): Promise<void> {
 		const processSidenote = async (sidenote: ISidenote): Promise<boolean> => {
 			const condition = getCondition(sidenote);
 			if (condition) await this.sidenoteProcessor.delete(sidenote);
@@ -45,5 +45,4 @@ export default class Pruner {
 			// processSidenote(sidenote);
 		}
 	}
-
 }

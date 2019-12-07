@@ -34,7 +34,8 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 	getWorkspaceFolderRelativePattern(workspace: vscode.WorkspaceFolder): vscode.RelativePattern {
 		return new vscode.RelativePattern(
 			this.getFullPathToSubfolder(workspace),
-			`*${this.cfg.storage.files.defaultContentFileExtension}`
+			// `*${this.cfg.storage.files.defaultContentFileExtension}`
+			'*.*'
 		);
 	}
 
@@ -45,13 +46,17 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 			false,
 			true
 		);
-		watcher.onDidChange(this.onChange.bind(this));
+		watcher.onDidChange(this.onChange, this);
 		return watcher;
 	}
 
-	onChange(path) {
-		console.log('change detected');
-		this.generateCustomEvent(path, 'change');
+	// onChange = this.debounce(function (uri: vscode.Uri) {
+	// 	this.generateCustomEvent(uri.fsPath, 'change');
+	// })
+
+	onChange(uri: vscode.Uri) {
+		// this.debounce(() => this.generateCustomEvent(uri.fsPath, 'change'));
+		this.generateCustomEvent(uri.fsPath, 'change');
 	}
 
 	setWatch(pattern: vscode.GlobPattern): void {

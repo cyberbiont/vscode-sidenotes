@@ -110,7 +110,7 @@ export type AnyFunction<T = any> = (...input: any[]) => T
 export type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>
 export type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
 
-import {	Initializable } from './mixins';
+import {	Initializable, HasParentDocument } from './mixins';
 import {
 	HasKeyProperty,
 	IDictionary,
@@ -126,7 +126,7 @@ import { ISidenote, SidenoteFactoryOptions } from './sidenote';
 // import ReferenceContainer from './referenceContainer';
 
 export type SidenotesDictionary
-	= MapDictionary<ISidenote> & Initializable
+	= MapDictionary<ISidenote> & Initializable & HasParentDocument
 
 export type DocumentInitializableSidenotesRepository
 	=	MapRepository<

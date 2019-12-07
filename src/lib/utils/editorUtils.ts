@@ -80,6 +80,19 @@ export default class EditorUtils {
 		return content;
 	}
 
+	cycleEditors = async function(cb) {
+		// const firstEditor = this.editor;
+		// const editors: string[] = [];
+		console.log(vscode.workspace.textDocuments.length);
+		let i = 0;
+		do {
+			// await cb();
+			++i;
+			vscode.commands.executeCommand('workbench.action.nextEditor');
+		} while (i < vscode.workspace.textDocuments.length);
+		//что-то толком не работает
+	}
+
 	toggleComment = async function(
 		range: vscode.Range,
 		editor: vscode.TextEditor = this.editor,

@@ -22,6 +22,7 @@ export type OFileChangeTracker = {
 // 🕮 39bcba93-982b-44c1-8fa7-4eb99e3acab0
 export default abstract class FileChangeTracker extends ChangeTracker {
 	protected watcherService;
+	protected wait: NodeJS.Timeout | boolean = false;
 
 	protected o: {
 		notesSubfolder: string,
@@ -50,6 +51,14 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 
 	initListeners() {
 		vscode.workspace.onDidChangeWorkspaceFolders(this.onWorkspaceChange.bind(this), this.context.subscriptions);
+	}
+
+	debounce(cb) {
+		return function(...args) {
+			if (this.wait)	return;
+			this.wait = setTimeout(() => { this.wait = false; }, 500);
+			cb.call(this,...args);
+		}
 	}
 
 	abstract init(targetPath?: string): void
