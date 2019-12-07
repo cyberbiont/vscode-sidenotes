@@ -62,10 +62,10 @@ export type OFileStorage = {
 	}
 }
 
-// TODO 🕮 1744f795-4133-4688-97d3-e8f02b26c886
+// TODO 🕮 <YL> 1744f795-4133-4688-97d3-e8f02b26c886.md
 export class FileStorage implements IFileStorage {
 	private pathCache: WeakMap<FileStorageKey, string> = new WeakMap;
-	// 🕮 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
+	// 🕮 <YL> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
 		notesSubfolder: string;
@@ -147,7 +147,7 @@ export class FileStorage implements IFileStorage {
 	}
 
 	async ensureNotesFolderExists() {
-		// 🕮 5a7d9cf7-71ee-4a84-abbe-ea320afe220f
+		// 🕮 <YL> 5a7d9cf7-71ee-4a84-abbe-ea320afe220f.md
 		if (!this.fs.exists(this.notesFolder)) {
 			try {
 				await this.fs.createDirectory(this.notesFolder);
@@ -162,7 +162,7 @@ export class FileStorage implements IFileStorage {
 		const path = this.getContentFilePath(key);
 
 		try {
-			// 🕮 40e7f83a-036c-4944-9af1-c63be09f369d
+			// 🕮 <YL> 40e7f83a-036c-4944-9af1-c63be09f369d.md
 			if (!this.fs.exists(path)) {
 				this.fs.write(path, data.content);
 				return true;
@@ -272,7 +272,7 @@ export class FileStorage implements IFileStorage {
 						// ids.map
 						broken.map(async key => {
 							const [ id, extension ] = key.split('.');
-							// {YL} 🕮 8fc4b127-f19f-498b-afea-70c6d27839bf.md
+							// 🕮 <YL> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
 							return this.lookup({ id, extension }, lookupUri[0].fsPath);
 
 						})
@@ -370,7 +370,7 @@ export class FileStorage implements IFileStorage {
 		fileIds: { [id: string]: string	},
 		strayEntries: string[]
 	}> {
-		// 🕮 d7ba6b50-007c-4c92-84e9-d0c10e0386ef
+		// 🕮 <YL> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
 		const notesSubfolderPath = path.join(
 			folder.fsPath,
 			this.o.notesSubfolder

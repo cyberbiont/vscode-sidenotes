@@ -46,7 +46,7 @@ export default class Actions {
 
 		if (!this.pool.isInitialized) await this.initializeDocumentSidenotesPool(scanResults);
 		else await this.updateDocumentSidenotesPool(scanResults);
-		// 🕮 70b9807e-7739-4e0f-bfb5-7f1603cb4377
+		// 🕮 <YL> 70b9807e-7739-4e0f-bfb5-7f1603cb4377.md
 
 		this.styler.updateDecorations();
 	}

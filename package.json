@@ -4,8 +4,10 @@
 	"description": "annotate your code with external notes, stored separately and shown on hover",
 	"publisher": "Yaroslav Larin",
 	"version": "1.0.0",
+	"license": "MIT",
 	"engines": {
-		"vscode": "^1.38.0"
+		"vscode": "^1.38.0",
+		"node": "^10.16.0"
 	},
 	"categories": [
 		"Other"
@@ -14,8 +16,7 @@
 		"notes",
 		"comments",
 		"Markdown",
-		"annotations",
-		"external"
+		"annotations"
 	],
 	"activationEvents": [
 		"*"
@@ -28,7 +29,6 @@
 				"properties": {
 					"sidenotes.notesSubfolder": {
 						"type": "string",
-						"default": ".sidenotes",
 						"description": "Specifies the folder to use for storing notes. By default the notes are stored in the top level folders of the workspace."
 					},
 					"sidenotes.prefix": {
@@ -44,7 +44,7 @@
 							"system default"
 						],
 						"default": "vscode",
-						"description": "Specifies the external editor executable name to open sidenotes."
+						"description": "Specifies the external editor executable name to open sidenotes"
 					},
 					"sidenotes.gutterIcon": {
 						"type": "boolean",
@@ -64,12 +64,12 @@
 					"sidenotes.after": {
 						"type": "string",
 						"default": "🕮",
-						"description": "A string that is used as main sidenote representation marker when id is hidden."
+						"description": "A string that is used as main sidenote representation marker when id is hidden"
 					},
 					"sidenotes.hideMarkers": {
 						"type": "boolean",
 						"default": true,
-						"description": "Whether to hide uuid string  "
+						"description": "Whether to hide uuid string"
 					},
 					"sidenotes.colorIndication": {
 						"type": "array",
@@ -217,6 +217,7 @@
 	},
 	"dependencies": {
 		"chokidar": "^3.2.2",
+		"mime-types": "^2.1.25",
 		"open": "^7.0.0",
 		"uuid": "^3.3.3"
 	}

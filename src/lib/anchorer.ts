@@ -6,7 +6,7 @@ import {
 	Scanner,
 } from './types';
 
-// 🕮 f58ba286-a09a-42d1-8bbf-a3bda39ccafa
+// 🕮 <YL> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface IAnchor {
 	marker: string;
 	editor: vscode.TextEditor;
@@ -42,7 +42,7 @@ export default class Anchorer {
 		};
 	}
 
-	// 🕮 ea500e39-2499-4f4c-9f71-45a579bbe7af
+	// 🕮 <YL> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: IAnchorable, ranges: vscode.Range[]): Promise<void> {
 
 		const iterator = this.editsChainer(ranges, this.writeRange.bind(this, anchorable));
@@ -87,7 +87,7 @@ export default class Anchorer {
 			// just delete the whole line
 			rangeToDelete = this.utils.getTextLine(range.start).range;
 
-			// 🕮 04489f5c-ef73-4c4d-a40b-d7d824ebc9db
+			// 🕮 <YL> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
 		} else {
 			await this.utils.toggleComment(
 				range,
@@ -105,7 +105,7 @@ export default class Anchorer {
 			edit => { edit.delete(rangeToDelete); },
 			{ undoStopAfter: false, undoStopBefore: false }
 		);
-		// internalization 🕮 07fb08db-1c38-4376-90c2-72ca16623ff5
+		// internalization 🕮 <YL> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 
 		return;
 	}

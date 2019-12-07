@@ -31,7 +31,7 @@ export class MapRepository<K extends object, V> {
 		else {
 			item = await this.create(key);
 			this.set(key, item);
-			// 🕮 af58a51e-96f7-4c16-9509-d16211d116a5
+			// 🕮 <YL> af58a51e-96f7-4c16-9509-d16211d116a5.md
 		}
 
 		return item;
@@ -51,7 +51,7 @@ export class MapRepository<K extends object, V> {
 	}
 }
 
-// 🕮 7f52e358-d011-44ac-9073-83738f5abb44
+// 🕮 <YL> 7f52e358-d011-44ac-9073-83738f5abb44.md
 export interface HasBuildFactoryMethod<V> {
 	build: (key: any) => V | Promise<V>
 }
@@ -86,8 +86,8 @@ export class DictionaryRepository<C, V extends HasKeyProperty> {
 	}
 }
 
-// TODO introduce separate classes MapPool & WeakMapPool 🕮 fea781b6-9af8-435c-9a7e-9f42f1affc14
-// what to use as a key 🕮 9ec1095e-abfb-49f5-af6d-4a9fed205b6c
-// 🕮 f82a72dc-baae-448e-8737-126f0dec5e2d
-// @old 🕮 7e2a51d6-a376-4fa0-b1b9-09cbfb35d967
-// 🕮 3d6ba811-d108-408c-9692-58671b29f68f
+// TODO introduce separate classes MapPool & WeakMapPool 🕮 <YL> fea781b6-9af8-435c-9a7e-9f42f1affc14.md
+// what to use as a key 🕮 <YL> 9ec1095e-abfb-49f5-af6d-4a9fed205b6c.md
+// 🕮 <YL> f82a72dc-baae-448e-8737-126f0dec5e2d.md
+// @old 🕮 <YL> 7e2a51d6-a376-4fa0-b1b9-09cbfb35d967.md
+// 🕮 <YL> 3d6ba811-d108-408c-9692-58671b29f68f.md

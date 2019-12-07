@@ -125,13 +125,13 @@ export default class Styler<T extends IStylable> {
 	}
 
 	private setColor(color: string | {	dark: string,	light: string	}, style, prop: string) {
-		// 🕮 2be2105d-c01b-4bf7-89ab-03665aaa2ce1
+		// 🕮 <YL> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
 		this.addNestedProperty(style,prop, typeof color === 'string' ? color : color.dark);
 		this.addNestedProperty(style,`light.${prop}`, typeof color === 'string' ? color : color.light);
 	}
 
 	private addNestedProperty(base, propsString, value) {
-		// 🕮 c5745bee-a5b1-4b45-966e-839fec3db57a
+		// 🕮 <YL> c5745bee-a5b1-4b45-966e-839fec3db57a.md
 		const props = propsString.split('.');
 		const lastProp = arguments.length === 3 ? props.pop() : false;
 

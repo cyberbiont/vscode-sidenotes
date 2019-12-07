@@ -4,8 +4,6 @@ import * as open from 'open';
 import {
 	FileChangeTracker,
 	IChangeTracker,
-	OnOpenData
-	// VscodeChangeTracker,
 } from  './types';
 
 export interface IEditorService {
@@ -16,8 +14,6 @@ export interface IEditorService {
 export class VscodeEditor implements IEditorService {
 	constructor(
 		public changeTracker: FileChangeTracker,
-			// | VscodeChangeTracker,
-		// private eventEmitter: vscode.EventEmitter<OnOpenData>
 		private parentContainer
 	) {
 		this.changeTracker.init();
@@ -28,15 +24,12 @@ export class VscodeEditor implements IEditorService {
 	*/
 	async open(path: string, scheme: string = 'file'): Promise<vscode.TextEditor> {
 		const URI = vscode.Uri.parse(`${scheme}:${path}`);
-
-		this.parentContainer.parent = vscode.window.activeTextEditor!.document;
-		// this.lastOpenedParentController.update(vscode.window.activeTextEditor!.document);
-		// this.eventEmitter.fire({ parentDocument: vscode.window.activeTextEditor!.document });
+		//@old 🕮 <YL> ea2901bc-16b1-4153-8753-1daa685ca125.md
 
 		return await vscode.workspace.openTextDocument(URI).then(
 			doc => vscode.window.showTextDocument(doc, {
 				viewColumn: vscode.ViewColumn.Beside,
-				// 🕮 f94a2a43-584b-49fb-bf3b-1ae27b53079b
+				// 🕮 <YL> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
 			}),
 			error => {
 				vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`);
@@ -67,7 +60,7 @@ export class TyporaEditor implements IEditorService {
 		this.changeTracker.init();
 	}
 
-	// 🕮 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4
+	// 🕮 <YL> 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4.md
 	open(path: string): vscode.Terminal|false {
 		try {
 			this.terminal.sendText(`typora "${path}"`);

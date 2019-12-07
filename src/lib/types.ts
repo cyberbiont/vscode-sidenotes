@@ -10,10 +10,6 @@ export {
 	default as Actions
 } from './actions';
 
-export interface OnOpenData {
-	parentDocument: vscode.TextDocument
-}
-
 export {
 	IDictionary,
 	HasKeyProperty
@@ -123,17 +119,14 @@ import {
 import Styler from './styler';
 import { IScanData } from './scanner';
 import { ISidenote, SidenoteFactoryOptions } from './sidenote';
-// import ReferenceContainer from './referenceContainer';
 
 export type SidenotesDictionary
 	= MapDictionary<ISidenote> & Initializable & HasParentDocument
 
 export type DocumentInitializableSidenotesRepository
-	=	MapRepository<
-		vscode.TextDocument,
-		SidenotesDictionary
-	>;
+	=	MapRepository<vscode.TextDocument,	SidenotesDictionary>;
 
 export type SidenotesStyler = Styler<ISidenote>;
+
 export type SidenotesRepository
 	= DictionaryRepository<SidenoteFactoryOptions, ISidenote>;

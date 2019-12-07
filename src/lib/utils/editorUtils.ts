@@ -8,7 +8,7 @@ export type OEditorUtils = {
 	}
 }
 
-// 🕮 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0
+// 🕮 <YL> 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0.md
 export default class EditorUtils {
 	private matchPattern;
 	private excludePattern;
@@ -22,7 +22,7 @@ export default class EditorUtils {
 	}
 
 	getWorkspaceFolderPath = function(): string {
-		//@bug 🕮 1a6740cd-a7a6-49a9-897c-f8ed877dea0f
+		//@bug 🕮 <YL> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
 		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find( // already handle undefined case in app requirements check
 			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
 		);

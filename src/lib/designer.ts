@@ -7,17 +7,12 @@ import {
 
 export interface IDesignable {
 	content?: string;
-	color ?: string
+	color?: string;
+	mime?: string|false;
+	extension?: string
 }
 
 export type ODesigner = OStyler
-// & {
-// 	storage: {
-// 		files: {
-// 			readableExtensions: string[]
-// 		}
-// 	}
-// }
 
 export default class Designer {
 
@@ -58,7 +53,7 @@ export default class Designer {
 	}
 
 	getRandomHSLColor(lightness: string = '75%') {
-		// 🕮 16762ea0-4553-4aee-8dd2-508e37ca0adb
+		// 🕮 <YL> 16762ea0-4553-4aee-8dd2-508e37ca0adb.md
 		const color = 'hsl(' + Math.random() * 360 + `, 100%, ${lightness})`;
 		return color;
 	}
@@ -86,10 +81,27 @@ export default class Designer {
 		range: vscode.Range,
 		designable: IDesignable
 	): IStylableDecoration {
-		const hoverMessage: string = this.cfg.anchor.styles.categories[category].message
-			? this.cfg.anchor.styles.categories[category].message
-			// : designable.extension
-			: designable.content;
+		const { extension, mime, content } = designable;
+		const isTextFile = (mime === undefined)
+			? true
+			: (mime === false)
+				? false
+				: mime.includes('text')
+
+		const hoverMessageBase: string =
+			(!isTextFile)
+				? `This content type cannot be displayed in tooltip. Extension: ${extension} MIME type: ${mime}`
+				: (this.cfg.anchor.styles.categories[category].message)
+					? this.cfg.anchor.styles.categories[category].message
+					: content
+
+		const hoverMessageButtons: vscode.MarkdownString = new vscode.MarkdownString(
+			`[Edit](command:sidenotes.annotate) [Delete](command:sidenotes.delete) [Wipe](command:sidenotes.wipeAnchor) \n`
+		);
+		hoverMessageButtons.isTrusted = true;
+
+		const hoverMessage = hoverMessageButtons.appendMarkdown(hoverMessageBase);
+		//? TODO  how to prepend?
 
 		const decoration: IStylableDecoration = {
 			options: {

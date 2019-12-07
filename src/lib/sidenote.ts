@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as mimeTypes from 'mime-types';
 import {
 	Anchorer,
 	Constructor,
@@ -29,12 +30,12 @@ export type ISidenote =
 	}
 
 export class Sidenote implements ISidenote {
-	// 🖉 11d423eb-b5c9-4ce9-9750-6d2a5bfdae93
 	key: string;
 	id: string;
 	content?: string;
 	signature?: string;
 	extension?: string;
+	mime?: string|false;
 	anchor: IAnchor;
 	decorations: IStylableDecoration[];
 	color?: string;
@@ -57,13 +58,14 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 	key?: string;
 	id?: string;
 	extension?: string;
+	mime?: string|false;
 	signature?: string;
 	anchor?: IAnchor;
 	content?: string;
 	decorations?: IStylableDecoration[];
 
-	withId(key: string, id: string, extension?: string, signature?: string): this & Pick<Sidenote, 'key'|'id'|'extension'|'signature'> {
-		return Object.assign(this, { key, id, extension, signature });
+	withMeta(key: string, id: string, extension?: string, mime?: string|false, signature?: string): this & Pick<Sidenote, 'key'|'id'|'extension'|'signature'|'mime'> {
+		return Object.assign(this, { key, id, mime, extension, signature });
 	}
 
 	withAnchor(anchor: IAnchor): this & Pick<Sidenote, 'anchor'> {
@@ -133,15 +135,17 @@ export class SidenoteFactory {
 		let id: string;
 		let extension: string | undefined;
 		let signature: string |undefined;
+		let mime: string|false;
 		let ranges: vscode.Range[];
 		let sidenote: ISidenote;
 
 		if (isScannedSidenoteOptions(o)) {
 			({ key, ranges, marker: { id, signature, extension }} = o);
+			mime = mimeTypes.lookup(extension);
 			const storageEntry = this.storageService.get({ id, extension });
 			const content = storageEntry ? storageEntry.content : undefined;
 			const undecorated = new SidenoteBuilder()
-				.withId(key, id, extension, signature)
+				.withMeta(key, id, extension, mime, signature)
 				.withContent(content)
 				.withAnchor(this.anchorer.getAnchor(id, extension));
 
@@ -153,11 +157,12 @@ export class SidenoteFactory {
 			const extension = o && o.marker && o.marker.extension
 				? o.marker.extension
 				: this.cfg.storage.files.defaultContentFileExtension;
+			mime = mimeTypes.lookup(extension);
 			signature = this.cfg.anchor.marker.signature;
 
 			key = this.utils.getKey(id, extension);
 			const undecorated = new SidenoteBuilder()
-				.withId(key, id, extension, signature)
+				.withMeta(key, id, extension, mime, signature)
 				.withContent(await this.utils.extractSelectionContent())
 				.withAnchor(this.anchorer.getAnchor(id, extension));
 

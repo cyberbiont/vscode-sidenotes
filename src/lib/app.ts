@@ -11,7 +11,6 @@ import {
 	SidenotesDictionary,
 	SidenotesRepository,
 	SidenotesStyler,
-	OnOpenData
 } from './types';
 
 import {
@@ -22,7 +21,6 @@ import {
 
 import {
 	// ChokidarChangeTracker,
-	// VscodeChangeTracker,
 	VSCodeFileSystemWatcher
 } from './changeTracker';
 
@@ -67,7 +65,6 @@ export type OApp = {}
 
 export default class App {
 	public actions: Actions
-	// private editorServiceController: EditorServiceController
 	private events: Events
 	private eventEmitter: EventEmitter
 	private storageService: IStorageService
@@ -95,7 +92,7 @@ export default class App {
 		const eventEmitter = new EventEmitter;
 
 		const MixinedMapDictionary = HasParentDocument(Initializable(MapDictionary));
-		// 🕮 bd961532-0e0f-4b5f-bb70-a286acdfab37
+		// 🕮 <YL> bd961532-0e0f-4b5f-bb70-a286acdfab37.md
 
 		let parentContainer: { parent?: vscode.TextDocument } = { };
 
@@ -103,12 +100,7 @@ export default class App {
 			{ // adding static create method
 				...MixinedMapDictionary,
 				create() {
-					const dictionary: SidenotesDictionary = new MixinedMapDictionary;
-
-					dictionary.parent = parentContainer.parent;
-					dictionary.editor = vscode.window.activeTextEditor!;
-					// dictionary.prototype = lastOpenedParent;
-					return dictionary;
+					return new MixinedMapDictionary;
 				}
 			},
 			new WeakMap
@@ -164,7 +156,7 @@ export default class App {
 			this.cfg,
 			this.context
 		);
-		// 🕮 a1f2b34f-bad3-45fb-8605-c5a233e65933
+		// 🕮 <YL> a1f2b34f-bad3-45fb-8605-c5a233e65933.md
 
 		const editorServiceController = new EditorServiceController(
 			new TyporaEditor(changeTracker, editor),
