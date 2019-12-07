@@ -5,7 +5,7 @@ import {
 	EventEmitter,
 	ICfg,
 	IChangeData,
-	IChangeTracker,
+	// IChangeTracker,
 	ISidenote,
 	MarkerUtils,
 	ReferenceController,
@@ -20,7 +20,7 @@ export default class Events {
 	constructor(
 		private actions: Actions,
 		private cfg: ICfg,
-		private changeTracker: IChangeTracker,
+		// private changeTracker: IChangeTracker,
 		private editor: vscode.TextEditor,
 		private pool: SidenotesDictionary,
 		private scanner: Scanner,
@@ -47,7 +47,7 @@ export default class Events {
 	 * includes additional check to prevent triggering scan on sidenote files
 	 */
 	onVscodeEditorChange(editor: vscode.TextEditor) {
-		if (this.changeTracker.getIdFromFileName(editor.document.fileName)) return;
+		if (this.utils.getIdFromString(editor.document.fileName)) return;
 		this.onEditorChange(editor);
 	};
 

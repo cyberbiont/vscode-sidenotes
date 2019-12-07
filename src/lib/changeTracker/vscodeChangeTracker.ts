@@ -3,7 +3,8 @@ import ChangeTracker from './changeTracker';
 import {
 	IIdMaker,
 	EventEmitter,
-	IChangeData
+	IChangeData,
+	MarkerUtils
 } from '../types';
 
 export type OVscodeChangeTracker = {
@@ -13,9 +14,10 @@ export default class VscodeChangeTracker extends ChangeTracker {
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
+		utils: MarkerUtils,
 		public context: vscode.ExtensionContext
 	) {
-		super(idMaker, eventEmitter);
+		super(idMaker, eventEmitter, utils);
 	}
 
 	init() {

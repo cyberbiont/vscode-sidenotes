@@ -5,6 +5,7 @@ import {
 	IChangeData,
 	IDictionary,
 	IIdMaker,
+	MarkerUtils,
 	OFileChangeTracker
 	// FSWatcher
 } from '../types';
@@ -17,11 +18,12 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
 		cfg: OFileChangeTracker,
+		utils: MarkerUtils,
 		context: vscode.ExtensionContext,
 		public pool: IDictionary<IWatch> = new MapDictionary(),
 		public watcherService = nodeFs
 	) {
-		super(idMaker, eventEmitter, cfg, context);
+		super(idMaker, eventEmitter, utils, cfg, context);
 	}
 	init(targetPath?: string) {
 		if (targetPath) {

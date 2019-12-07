@@ -6,6 +6,7 @@ import {
 	ICfg,
 	IChangeData,
 	IIdMaker,
+	MarkerUtils
 } from '../types';
 import { FileStorage } from '../storageService';
 
@@ -30,10 +31,11 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
+		utils: MarkerUtils,
 		public cfg: OFileChangeTracker,
 		public context: vscode.ExtensionContext
 	) {
-		super(idMaker, eventEmitter);
+		super(idMaker, eventEmitter, utils);
 		this.o = cfg.storage.files;
 	}
 

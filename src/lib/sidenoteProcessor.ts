@@ -26,13 +26,11 @@ export default class SidenoteProcessor {
 
 	async write(sidenote: ISidenote, ranges: vscode.Range[]): Promise<void> {
 		if (sidenote.content) {
-			// const { id, content } = sidenote;
 			const writeResults = await Promise.all([
 				this.storageService.write(sidenote, sidenote as IStorable),
 				this.anchorer.write(sidenote, ranges)
 			]);
-			this.pool.add(sidenote);
-			// return writeResults[1];
+			// this.pool.add(sidenote);
 		} else {
 			vscode.window.showErrorMessage('no content to write!');
 		}

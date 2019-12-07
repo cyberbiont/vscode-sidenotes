@@ -5,7 +5,14 @@ export { ICfg } from './cfg';
 export { IEditorService } from './editorService';
 export { IIdMaker } from './idMaker';
 export { OApp } from './app';
-export { default as Actions } from './actions';
+export {
+	OActions,
+	default as Actions
+} from './actions';
+
+export interface OnOpenData {
+	parentDocument: vscode.TextDocument
+}
 
 export {
 	IDictionary,
@@ -79,8 +86,14 @@ export {
 	ISidenote,
 	Inspector,
 	OSidenoteFactory,
-	SidenoteFactory
+	SidenoteFactory,
+	SidenoteFactoryOptions
 } from './sidenote';
+
+export {
+	OEditorServiceController,
+	default as EditorServiceController
+} from './editorServiceController'
 
 export {
 	FileChangeTracker,
@@ -95,6 +108,7 @@ export {
 export type Constructor<T = {}> = new (...args: any[]) => T;
 export type AnyFunction<T = any> = (...input: any[]) => T
 export type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>
+export type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
 
 import {	Initializable } from './mixins';
 import {
@@ -108,7 +122,7 @@ import {
 } from './repository';
 import Styler from './styler';
 import { IScanData } from './scanner';
-import { ISidenote } from './sidenote';
+import { ISidenote, SidenoteFactoryOptions } from './sidenote';
 // import ReferenceContainer from './referenceContainer';
 
 export type SidenotesDictionary
@@ -122,4 +136,4 @@ export type DocumentInitializableSidenotesRepository
 
 export type SidenotesStyler = Styler<ISidenote>;
 export type SidenotesRepository
-	= DictionaryRepository<IScanData, ISidenote>;
+	= DictionaryRepository<SidenoteFactoryOptions, ISidenote>;

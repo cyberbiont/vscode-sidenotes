@@ -5,6 +5,7 @@ import FileChangeTracker from './fileChangeTracker';
 import {
 	EventEmitter,
 	IIdMaker,
+	MarkerUtils,
 	OFileChangeTracker,
 } from '../types';
 
@@ -13,11 +14,12 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
+		utils: MarkerUtils,
 		cfg: OFileChangeTracker,
 		context: vscode.ExtensionContext,
 		public watcherService = chokidar
 	) {
-		super(idMaker, eventEmitter, cfg, context);
+		super(idMaker, eventEmitter, utils, cfg, context);
 	}
 
 	init(targetPath?: string) {

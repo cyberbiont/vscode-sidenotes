@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import {
 	Anchorer,
 	Constructor,
+	DeepPartial,
 	Designer,
 	EditorUtils,
 	IAnchor,
@@ -17,7 +18,6 @@ import {
 	MarkerUtils,
 	Scanner,
 } from './types';
-import { Tracing } from 'trace_events';
 
 export type ISidenote =
 	IDesignable &
@@ -96,6 +96,24 @@ export type OSidenoteFactory = {
 	}
 }
 
+export type ScannedSidenoteOptions = {
+	key: string
+	marker: {
+		id: string
+		extension?: string
+		signature?: string
+	}
+	ranges: vscode.Range[]
+}
+
+export type NewSidenoteOptions = DeepPartial<ScannedSidenoteOptions>
+
+export type SidenoteFactoryOptions = ScannedSidenoteOptions | NewSidenoteOptions
+
+function isScannedSidenoteOptions(o?: SidenoteFactoryOptions): o is ScannedSidenoteOptions {
+	return (o as ScannedSidenoteOptions).ranges !== undefined;
+}
+
 export class SidenoteFactory {
 	constructor(
 		private idMaker: IIdMaker,
@@ -105,22 +123,35 @@ export class SidenoteFactory {
 		private utils: EditorUtils & MarkerUtils,
 		private scanner: Scanner,
 		private SidenoteBuilder: Constructor<Partial<Sidenote>>,
-		private cfg: ICfg
+		private cfg: OSidenoteFactory
 	) {}
 
-	async build(scanData?: IScanData, customExtension?: string): Promise<ISidenote> {
+	async build(o: NewSidenoteOptions): Promise<ISidenote>
+	async build(o: ScannedSidenoteOptions): Promise<ISidenote>
+	async build(o?: NewSidenoteOptions | ScannedSidenoteOptions): Promise<ISidenote> {
 		let key: string;
 		let id: string;
 		let extension: string | undefined;
-		let signature: string | undefined;
+		let signature: string |undefined;
 		let ranges: vscode.Range[];
 		let sidenote: ISidenote;
-		// let position: vscode.Position;
 
-		if (!scanData) { // buildNewSidenote
+		if (isScannedSidenoteOptions(o)) {
+			({ key, ranges, marker: { id, signature, extension }} = o);
+			const storageEntry = this.storageService.get({ id, extension });
+			const content = storageEntry ? storageEntry.content : undefined;
+			const undecorated = new SidenoteBuilder()
+				.withId(key, id, extension, signature)
+				.withContent(content)
+				.withAnchor(this.anchorer.getAnchor(id, extension));
+
+			return sidenote = undecorated.withDecorations(
+				this.designer.get(undecorated, ranges)
+			).build();
+		} else { // buildNewSidenote
 			const id = this.idMaker.makeId();
-			extension = customExtension
-				? customExtension
+			const extension = o && o.marker && o.marker.extension
+				? o.marker.extension
 				: this.cfg.storage.files.defaultContentFileExtension;
 			signature = this.cfg.anchor.marker.signature;
 
@@ -145,19 +176,6 @@ export class SidenoteFactory {
 			({ ranges } = this.scanner.scanLine(
 				this.utils.getTextLine(range.start)
 			)!);
-
-			return sidenote = undecorated.withDecorations(
-				this.designer.get(undecorated, ranges)
-			).build();
-
-		} else {
-			({ key, ranges, marker: { id, signature, extension }} = scanData);
-			const storageEntry = this.storageService.get({ id, extension });
-			const content = storageEntry ? storageEntry.content : undefined;
-			const undecorated = new SidenoteBuilder()
-				.withId(key, id, extension, signature)
-				.withContent(content)
-				.withAnchor(this.anchorer.getAnchor(id, extension));
 
 			return sidenote = undecorated.withDecorations(
 				this.designer.get(undecorated, ranges)

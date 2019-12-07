@@ -4,6 +4,7 @@ import * as open from 'open';
 import {
 	FileChangeTracker,
 	IChangeTracker,
+	OnOpenData
 	// VscodeChangeTracker,
 } from  './types';
 
@@ -14,8 +15,9 @@ export interface IEditorService {
 
 export class VscodeEditor implements IEditorService {
 	constructor(
-		public changeTracker: FileChangeTracker
+		public changeTracker: FileChangeTracker,
 			// | VscodeChangeTracker,
+		private eventEmitter: vscode.EventEmitter<OnOpenData>
 	) {
 		this.changeTracker.init();
 	}
@@ -25,6 +27,9 @@ export class VscodeEditor implements IEditorService {
 	*/
 	async open(path: string, scheme: string = 'file'): Promise<vscode.TextEditor> {
 		const URI = vscode.Uri.parse(`${scheme}:${path}`);
+
+		this.eventEmitter.fire({ parentDocument: vscode.window.activeTextEditor!.document });
+
 		return await vscode.workspace.openTextDocument(URI).then(
 			doc => vscode.window.showTextDocument(doc, {
 				viewColumn: vscode.ViewColumn.Beside,

@@ -11,6 +11,7 @@ import {
 	SidenotesDictionary,
 	SidenotesRepository,
 	SidenotesStyler,
+	OnOpenData
 } from './types';
 
 import {
@@ -59,15 +60,17 @@ import {
 } from './utils';
 import Events from './events';
 
+import EditorServiceController from './editorServiceController';
+
 export type OApp = {
-	app: {
-		defaultMarkdownEditor: 'typora'|'vscode'|'system default',
-	}
+	// app: {
+	// 	defaultMarkdownEditor: 'typora'|'vscode'|'system default',
+	// }
 }
 
 export default class App {
 	public actions: Actions
-	private editorService: IEditorService
+	private editorServiceController: EditorServiceController
 	private events: Events
 	private eventEmitter: EventEmitter
 	private storageService: IStorageService
@@ -98,7 +101,7 @@ export default class App {
 		const poolRepository: DocumentInitializableSidenotesRepository =	new MapRepository(
 			{ // adding static create method
 				...InitializableMapDictionary,
-				create(key) { return new InitializableMapDictionary; }
+				create() { return new InitializableMapDictionary; }
 			},
 			new WeakMap
 		);
@@ -146,25 +149,26 @@ export default class App {
 
 		const fileSystem = new FileSystem(scanner, utils,this.cfg);
 
-		let editorService: IEditorService;
+		const onOpenEmitter = new vscode.EventEmitter<OnOpenData>();
 
 		let changeTracker = new ChokidarChangeTracker(
 			uuidMaker,
 			eventEmitter,
+			utils,
 			this.cfg,
 			this.context
 		);
 		// 🕮 a1f2b34f-bad3-45fb-8605-c5a233e65933
 
-		switch (this.cfg.app.defaultMarkdownEditor) {
-			case 'typora': editorService = new TyporaEditor(changeTracker, editor);	break;
-			case 'system default': editorService = new SystemDefaultEditor(changeTracker);	break;
-			case 'vscode':
-			default: editorService = new VscodeEditor(changeTracker);
-		}
+		const editorServiceController = new EditorServiceController(
+			new TyporaEditor(changeTracker, editor),
+			new SystemDefaultEditor(changeTracker),
+			new VscodeEditor(changeTracker, onOpenEmitter),
+			this.cfg
+		);
 
 		const storageService = new FileStorage(
-			editorService,
+			editorServiceController,
 			utils,
 			fileSystem,
 			this.cfg,
@@ -207,19 +211,21 @@ export default class App {
 			designer,
 			inspector,
 			pool,
+			poolController,
 			pruner,
 			scanner,
 			sidenoteProcessor,
 			sidenotesRepository,
 			styler,
 			stylerController,
-			utils
+			utils,
+			this.cfg
 		);
 
 		const events = new Events(
 			actions,
 			this.cfg,
-			changeTracker,
+			// changeTracker,
 			editor,
 			pool,
 			scanner,
@@ -233,7 +239,7 @@ export default class App {
 
 		this.actions = actions;
 		this.eventEmitter = eventEmitter;
-		this.editorService = editorService;
+		this.editorServiceController = editorServiceController;
 		this.storageService = storageService;
 		this.events = events;
 	}
@@ -248,7 +254,7 @@ export default class App {
 
 	setEventListeners() {
 		vscode.window.onDidChangeActiveTextEditor(
-			this.editorService instanceof VscodeEditor
+			this.editorServiceController.markdownEditor instanceof VscodeEditor
 				? this.events.onVscodeEditorChange
 				: this.events.onEditorChange,
 			this.events, this.context.subscriptions
@@ -260,8 +266,9 @@ export default class App {
 	registerCommands() {
 		return this.context.subscriptions.push(
 			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
+			vscode.commands.registerCommand('sidenotes.annotatePickExt', this.actions.run.bind(this.actions, { selectExtensionBy: 'pick' }), this.actions),
+			vscode.commands.registerCommand('sidenotes.annotateInputExt', this.actions.run.bind(this.actions, { selectExtensionBy: 'input' }), this.actions),
 			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
-			// vscode.commands.registerCommand('sidenotes.wipeAnchor', this.actions.delete.bind(this.actions, { deleteContentFile: false }), this.actions),
 			vscode.commands.registerCommand('sidenotes.wipeAnchor', this.actions.wipeAnchor, this.actions),
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),

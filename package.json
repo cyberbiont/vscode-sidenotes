@@ -115,13 +115,22 @@
 		"commands": [
 			{
 				"command": "sidenotes.annotate",
-				"title": "Add or edit sidenote",
-				"category": "Sidenotes",
-				"icon": "images/icon.png"
+				"title": "Sidenotes: edit or add sidenote (default extension)",
+				"category": "Sidenotes"
+			},
+			{
+				"command": "sidenotes.annotatePickExt",
+				"title": "Sidenotes: edit or add sidenote (pick custom extension from list)",
+				"category": "Sidenotes"
+			},
+			{
+				"command": "sidenotes.annotateInputExt",
+				"title": "Sidenotes: edit or add sidenote (input custom extension)",
+				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.delete",
-				"title": "Delete sidenote and content file",
+				"title": "Sidenotes: delete sidenote and content file",
 				"category": "Sidenotes"
 			},
 			{

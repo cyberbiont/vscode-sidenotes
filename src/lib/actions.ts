@@ -14,18 +14,30 @@ import {
 	ReferenceController
 } from './types';
 
+type ExtensionSelectionDialogTypes = 'input'|'pick';
+
+export type OActions = {
+	storage: {
+		files: {
+			extensionsQuickPick: string[]
+		}
+	}
+}
+
 export default class Actions {
 	constructor(
 		public designer: Designer,
 		public inspector: Inspector,
 		public pool: SidenotesDictionary,
+		public poolController,
 		public pruner: Pruner,
 		public scanner: Scanner,
 		public sidenoteProcessor: SidenoteProcessor,
 		public sidenotesRepository: SidenotesRepository,
 		public styler: SidenotesStyler,
 		public stylerController: ReferenceController<SidenotesStyler, string>,
-		public utils: EditorUtils
+		public utils: EditorUtils,
+		public cfg: OActions
 	) {}
 
 	async scan(): Promise<void> {
@@ -54,19 +66,28 @@ export default class Actions {
 		return Promise.all(scanResults.map(updateDecorationRange));
 	}
 
-
-	async run(): Promise<void> {
+	async run({ selectExtensionBy = false }: { selectExtensionBy?:  ExtensionSelectionDialogTypes|false } = {}): Promise<void> {
 		try {
 			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
 
 			const scanData = this.scanner.scanLine();
 
-			let obtainedSidenote = await this.sidenotesRepository.obtain(scanData);
-
 			let sidenote: ISidenote | undefined;
-			if (this.inspector.isBroken(obtainedSidenote)) {
-				sidenote = await this.sidenoteProcessor.handleBroken(obtainedSidenote);
-			} else sidenote = obtainedSidenote;
+
+			if (scanData) {
+				let obtainedSidenote = await this.sidenotesRepository.obtain(scanData);
+				if (this.inspector.isBroken(obtainedSidenote)) {
+					sidenote = await this.sidenoteProcessor.handleBroken(obtainedSidenote);
+				}
+				else sidenote = obtainedSidenote;
+			}	else {
+				const extension = selectExtensionBy ? `.${await this.promptExtension(selectExtensionBy)}` : undefined;
+				sidenote = await this.sidenotesRepository.create({
+					marker: {
+						extension
+					}
+				});
+			}
 
 			if (sidenote) await this.sidenoteProcessor.open(sidenote);
 
@@ -76,16 +97,29 @@ export default class Actions {
 			console.log(e);
 		}
 	}
+	// TODO extract to User Interactions
+	async promptExtension(dialogType:  ExtensionSelectionDialogTypes = 'input'): Promise<string|undefined> {
+		let extension: string|undefined;
 
-	async createCustom() {
+		if (dialogType === 'pick') {
+			const action = await vscode.window.showQuickPick(
+				this.cfg.storage.files.extensionsQuickPick.map(ext => ({
+					label: ext
+				})), {
+					placeHolder: `choose extension to the content file to be created`
+				}
+			);
+			extension = action ? action.label : undefined;
 
+		} else {
+			extension = await vscode.window.showInputBox({
+				prompt: 'Enter extension for your content file (without dot)',
+				value: 'md',
+			})
+		}
+
+		return extension;
 	}
-
-	// checkCurrentLine(): IScanData|undefined {
-	// 	const scanData = this.scanner.scanLine();
-
-	// 	return scanData;
-	// }
 
 	async delete({ deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<void> {
 
@@ -94,14 +128,11 @@ export default class Actions {
 
 		let sidenote = await this.sidenotesRepository.obtain(scanData);
 		await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
-		// т.к. если мы не удаляем контент-файл, то не заметка и из пула не удаляется, соответственно апдейт ничего не даст
-		// можно в любом случае удалять из пула (просто сайднот будет пересоздаваться тогда)
-		// либо апдейтить позиции всех анкоров
-		// в текущем варианте еще и удаляются все остальные заметки... плохо
 		this.styler.updateDecorations();
 	}
 
 	async wipeAnchor(): Promise<void> {
+		// 🕮 <YL> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
 		const scanData = this.scanner.scanLine();
 		if (!scanData) return;
 
@@ -113,7 +144,6 @@ export default class Actions {
 		);
 
 		this.refresh();
-
 	}
 
 	async prune(category) {

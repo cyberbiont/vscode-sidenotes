@@ -1,6 +1,7 @@
 import {
 	EventEmitter,
 	IIdMaker,
+	MarkerUtils
 } from '../types';
 
 import * as path from 'path';
@@ -25,7 +26,8 @@ export interface IChangeTracker {
 export default abstract class ChangeTracker {
 	constructor(
 		public idMaker: IIdMaker,
-		public eventEmitter: EventEmitter
+		public eventEmitter: EventEmitter,
+		public utils: MarkerUtils
 	) {}
 
 	generateCustomEvent(fileName: string, event: string): void {;
@@ -49,8 +51,6 @@ export default abstract class ChangeTracker {
 	}
 
 	getIdFromFileName(fileName: string): string|null {
-		const match = fileName.match(this.idMaker.ID_REGEX)
-		if (match) return match[0];
-		return null;
+		return this.utils.getIdFromString(fileName);
 	}
 }

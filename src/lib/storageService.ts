@@ -2,10 +2,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import {
+	EditorServiceController,
 	EditorUtils,
 	FileSystem,
 	ICfg,
-	IEditorService,
+	MarkerUtils,
+	// IEditorService,
 	Scanner
 } from './types';
 import { throws } from 'assert';
@@ -73,8 +75,8 @@ export class FileStorage implements IFileStorage {
 	private notesFolder: string
 
 	constructor(
-		public editorService: IEditorService,
-		public utils: EditorUtils,
+		public editorServiceController: EditorServiceController,
+		public utils: EditorUtils & MarkerUtils,
 		public fs: FileSystem,
 		cfg: OFileStorage,
 		private commands,
@@ -109,7 +111,7 @@ export class FileStorage implements IFileStorage {
 
 	open(key: FileStorageKey) {
 		const path = this.getContentFilePath(key);
-		return this.editorService.open(path);
+		return this.editorServiceController.open(path, key.extension!);
 	}
 
 	private getContentFileName(key: FileStorageKey): string {
@@ -378,7 +380,7 @@ export class FileStorage implements IFileStorage {
 		for (const [name, type] of await vscode.workspace.fs.readDirectory(folder.with({ path: notesSubfolderPath }))) {
 			const filePath = path.join(notesSubfolderPath, name);
 			if (type === vscode.FileType.File) {
-				const id = this.editorService.changeTracker.getIdFromFileName(filePath);
+				const id = this.utils.getIdFromString(filePath);
 				if (!id) strayEntries.push(filePath);
  				else {
 					const key = this.getContentFileName({

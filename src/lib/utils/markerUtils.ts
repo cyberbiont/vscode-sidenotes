@@ -15,13 +15,13 @@ export type OMarkerUtils = {
 			// template?: string,
 		}
 	},
-	app: {
-		formats: {
-			file: {
-				[extension: string]: string
-			}
-		}
-	}
+	// app: {
+	// 	formats: {
+	// 		file: {
+	// 			[extension: string]: string
+	// 		}
+	// 	}
+	// }
 }
 
 export default class MarkerUtils {
@@ -40,10 +40,11 @@ export default class MarkerUtils {
 
 	getBareMarkerRegexString() {
 		const o = this.cfg.anchor.marker;
+
 		const extensionRegexString = '(.\\w+)?';
+
 		const signatures: string[] = o.readSignatures ? o.readSignatures: ['.*'];
 		if (o.signature) signatures.push(o.signature);
-
 		const readSignaturesRegexString =
 		 `(?:<(${signatures.join('|')})> )${o.readUnsigned ? '?' : ''}`
 
@@ -64,6 +65,12 @@ export default class MarkerUtils {
 
 	getKey = function(id: string, extension?: string): string {
 		return `${id}${extension ?  extension : ''}`;
+	}
+
+	getIdFromString = function(string: string): string|null {
+		const match = string.match(this.idMaker.ID_REGEX)
+		if (match) return match[0];
+		return null;
 	}
 
 	/**

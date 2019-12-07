@@ -56,7 +56,7 @@ export interface HasBuildFactoryMethod<V> {
 	build: (key: any) => V | Promise<V>
 }
 
-export class DictionaryRepository<C extends HasKeyProperty, V extends HasKeyProperty> {
+export class DictionaryRepository<C, V extends HasKeyProperty> {
 	constructor(
 		private Factory: HasBuildFactoryMethod<V>,
 		private dictionary: IDictionary<V>
@@ -72,15 +72,15 @@ export class DictionaryRepository<C extends HasKeyProperty, V extends HasKeyProp
 		return value;
 	}
 
-	public async obtain(cfg?: C): Promise<V>	{
+	public async obtain(keyedCfg: C & HasKeyProperty): Promise<V>	{
 		let value: V;
 
-		if (cfg) {
-			let queryResult: V | undefined = this.dictionary.get(cfg.key);
+		// if (cfg) {
+			let queryResult: V | undefined = this.dictionary.get(keyedCfg.key);
 			if (queryResult) value = queryResult;
-			else value = await this.create(cfg);
-		}
-		else value = await this.create(); // new sidenote
+			else value = await this.create(keyedCfg);
+		// }
+		// else value = await this.create(); // new sidenote
 
 		return value;
 	}

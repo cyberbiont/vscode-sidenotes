@@ -5,7 +5,8 @@ import {
 	EventEmitter,
 	IIdMaker,
 	OFileChangeTracker,
-	FileChangeTracker
+	FileChangeTracker,
+	MarkerUtils
 } from '../types';
 
 export default class VSCodeFileSystemWatcher extends FileChangeTracker {
@@ -15,10 +16,11 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 	constructor(
 		idMaker: IIdMaker,
 		eventEmitter: EventEmitter,
+		utils: MarkerUtils,
 		public cfg: OFileChangeTracker,
 		public context: vscode.ExtensionContext
 	) {
-		super(idMaker, eventEmitter, cfg, context);
+		super(idMaker, eventEmitter, utils, cfg, context);
 		this.o = cfg.storage.files;
 	}
 

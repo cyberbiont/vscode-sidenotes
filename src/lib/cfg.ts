@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 
 import {
+	OActions,
 	OAnchorer,
 	OApp,
 	OChangeTracker,
@@ -15,6 +16,7 @@ import {
 	OSidenoteFactory,
 	OStorageService,
 	OStyler,
+	OEditorServiceController,
 	// OVscodeChangeTracker,
  } from './types';
 
@@ -31,28 +33,32 @@ export type ICfg =
 	& OStorageService & OFileStorage
 	& OScanner
 	& OSidenoteFactory
+	& OEditorServiceController
+	& OActions
 ;
 const settings = vscode.workspace.getConfiguration('sidenotes');
+
+// const notesSubfolder: string = settings.get('notesSubfolder') || '.sidenotes';
 
 const cfg: ICfg = {
 	app: {
 		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
-		formats: {
-			file: {
-				'.md': settings.get('defaultMarkdownEditor') || 'vscode',
-				'.markdown': settings.get('defaultMarkdownEditor') || 'vscode',
-				'.mdown': settings.get('defaultMarkdownEditor') || 'vscode',
-				'.mmap': 'systemDefault',
-				'.txt': 'systemDefault'
-			}
-		}
+		// formats: {
+		// 	file: {
+		// 		'.md': settings.get('defaultMarkdownEditor') || 'vscode',
+		// 		'.markdown': settings.get('defaultMarkdownEditor') || 'vscode',
+		// 		'.mdown': settings.get('defaultMarkdownEditor') || 'vscode',
+		// 		'.mmap': 'systemDefault',
+		// 		'.txt': 'systemDefault'
+		// 	}
+		// }
 	},
 
 	storage: {
 		files: {
 			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
-			defaultContentFileExtension: '.md' // default content files extension. json setting: 🕮 b7f19c02-664e-4c1b-bfb1-9fbe581978f2
-			// extensionsQuickPick: ['.md', '.mmap', '.xmind'] // TODO
+			defaultContentFileExtension: '.md', // default content files extension. json setting: 🕮 b7f19c02-664e-4c1b-bfb1-9fbe581978f2
+			extensionsQuickPick: ['.md', '.mmap', '.xmind'] // TODO
 		},
 	},
 
@@ -61,7 +67,7 @@ const cfg: ICfg = {
 		matchFiles: settings.get('includeFilter')
 			||  "**/*",
 		excludeFiles: settings.get('excludeFilter')
-			|| '**/{node_modules,.git,.idea,target,out,build,vendor}/**/*',
+			|| `**/{node_modules,.git,.idea,target,out,build,vendor}/**/*`,
 	},
 
 	// 🕮 7995614f-ef55-42c0-a9f6-e372ba94e93b
