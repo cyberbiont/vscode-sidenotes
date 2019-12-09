@@ -36,13 +36,13 @@ export function Initializable<T extends Constructor>(Base: T) {
 	};
 }
 
-export type HasParentDocument = Mixin<typeof HasParentDocument>
-export function HasParentDocument<T extends Constructor>(Base: T) {
-	return class HasParentDocument extends Base {
-		public parent?: vscode.TextDocument;
-		getParent() {
-			return this.parent;
-		}
+export type HasEditorReference = Mixin<typeof HasEditorReference>
+export function HasEditorReference<T extends Constructor>(Base: T) {
+	return class HasEditorReference extends Base {
+		// public parent?: vscode.TextDocument;
+		// getParent() {
+		// 	return this.parent;
+		// }
 		public editor: vscode.TextEditor;
 		// parentGet() {
 		// 	super.get()

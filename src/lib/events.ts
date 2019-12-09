@@ -36,7 +36,7 @@ export default class Events {
 		try {
 			await this.editorController.update();
 			await this.poolController.update(editor.document);
-			this.pool.each((sidenote: ISidenote) => sidenote.anchor.editor = editor);
+			// this.pool.each((sidenote: ISidenote) => sidenote.anchor.editor = editor);
 			this.pool.editor = editor;
 			this.actions.scan();
 		} catch (e) {

@@ -9,7 +9,7 @@ import {
 // 🕮 <YL> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface IAnchor {
 	marker: string;
-	editor: vscode.TextEditor;
+	// editor: vscode.TextEditor;
 }
 export interface IAnchorable {
 	anchor: IAnchor;
@@ -37,7 +37,7 @@ export default class Anchorer {
 
 	getAnchor(uuid: string, extension?: string): IAnchor {
 		return {
-			editor: this.editor,
+			// editor: this.editor,
 			marker: this.utils.getMarker(uuid, extension),
 		};
 	}
@@ -52,16 +52,17 @@ export default class Anchorer {
 	/**
 	* writes anchor comment to document at current cursor position
 	*/
-	private async writeRange(anchorable: IAnchorable, range: vscode.Range) {
-		const selection = anchorable.anchor.editor.selection;
+	private async writeRange(anchorable: IAnchorable, range: vscode.Range, editor = this.editor) {
+		// const editor = anchorable.anchor.editor;
+		const selection = editor.selection;
 
-		await anchorable.anchor.editor.edit(
+		await editor.edit(
 			edit => edit.insert(range.start, anchorable.anchor.marker),
 			{ undoStopAfter: false, undoStopBefore: false }
 		);
 		await this.utils.toggleComment(
 			range,
-			anchorable.anchor.editor,
+			editor,
 			{ useBlockComments: this.cfg.anchor.comments.useBlockComments }
 		);
 	};
@@ -79,9 +80,9 @@ export default class Anchorer {
 		for await(let range of iterator);
 	}
 
-	private async deleteRange(anchored: IAnchorable, range: vscode.Range) {
+	private async deleteRange(anchored: IAnchorable, range: vscode.Range, editor = this.editor) {
 		let rangeToDelete: vscode.Range;
-		const editor = anchored.anchor.editor;
+		// const editor = anchored.anchor.editor;
 
 		if (!this.cfg.anchor.comments.useBlockComments) {
 			// just delete the whole line

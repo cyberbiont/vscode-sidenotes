@@ -29,8 +29,6 @@ export default class Scanner {
 		// private cfg: OScanner
 	) {}
 
-
-
 	scanText(
 		text: string = this.editor.document.getText()
 	): IScanData[]|undefined {

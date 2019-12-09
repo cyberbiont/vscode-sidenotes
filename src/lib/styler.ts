@@ -17,9 +17,9 @@ export interface IStylableDecoration {
 
 export interface IStylable {
 	decorations: IStylableDecoration[]
-	anchor: {
-		editor: vscode.TextEditor
-	}
+	// anchor: {
+	// 	editor: vscode.TextEditor
+	// }
 }
 
 interface IDecorations {
@@ -163,25 +163,35 @@ export default class Styler<T extends IStylable> {
 		// if we have deleted last note
 		// if (editorsToUpdate.size === 0) editorsToUpdate.add(vscode.window.activeTextEditor!);
 
-		for (let category in this.decorations) {
-			const applyDecorations = editor => {
-				editor.setDecorations(
-					this.decorations[category].type,
-					this.decorations[category].options
-				);
-			};
-			const resetDecorations = editor => editor.setDecorations(this.decorations[category].type, []);
+		// const resetCategoryDecorations = (editor, category) => editor.setDecorations(this.decorations[category].type, []);
+		// const applyCategoryDecorations = (editor, category) => {
+		// 	editor.setDecorations(
+		// 		this.decorations[category].type,
+		// 		this.decorations[category].options
+		// 	);
+		// };
 
-			// if (reset) editorsToUpdate.forEach(resetDecorations);
-			// else editorsToUpdate.forEach(applyDecorations);
-			if (reset) resetDecorations(pool.editor);
-			else applyDecorations(pool.editor);
+		for (let category in this.decorations) {
+			// if (reset) editorsToUpdate.forEach(editor => this.resetCategoryDecorations(editor, category));
+			// else editorsToUpdate.forEach(editor => this.applyCategoryDecorations(editor, category));
+			if (reset) this.resetCategoryDecorations(pool.editor, category);
+			else this.applyCategoryDecorations(pool.editor, category);
 
 			this.decorations[category].options.length = 0 // clear array
 		}
-
 		// return editorsToUpdate;
 	}
+
+	resetCategoryDecorations(editor, category) {
+		editor.setDecorations(this.decorations[category].type, []);
+	}
+
+	applyCategoryDecorations(editor, category) {
+		editor.setDecorations(
+			this.decorations[category].type,
+			this.decorations[category].options
+		);
+	};
 
 	resetDecorations(): void {
 		return this.updateDecorations({ reset: true });

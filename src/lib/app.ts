@@ -51,7 +51,7 @@ import {
 	DictionaryRepository
 } from './repository';
 
-import { Initializable, HasParentDocument } from './mixins';
+import { Initializable, HasEditorReference } from './mixins';
 
 import {
 	MarkerUtils,
@@ -91,7 +91,7 @@ export default class App {
 
 		const eventEmitter = new EventEmitter;
 
-		const MixinedMapDictionary = HasParentDocument(Initializable(MapDictionary));
+		const MixinedMapDictionary = HasEditorReference(Initializable(MapDictionary));
 		// 🕮 <YL> bd961532-0e0f-4b5f-bb70-a286acdfab37.md
 
 		let parentContainer: { parent?: vscode.TextDocument } = { };
@@ -100,7 +100,9 @@ export default class App {
 			{ // adding static create method
 				...MixinedMapDictionary,
 				create() {
-					return new MixinedMapDictionary;
+					const dictionary: SidenotesDictionary = new MixinedMapDictionary;
+					dictionary.editor = vscode.window.activeTextEditor!;
+					return dictionary;
 				}
 			},
 			new WeakMap

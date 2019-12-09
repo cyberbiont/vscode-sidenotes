@@ -170,7 +170,9 @@ export class SidenoteFactory {
 			because comment toggling changes range and it may vary with language,
 			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
 
-			const position = undecorated.anchor.editor.selection.anchor;
+			// const position = undecorated.anchor.editor.selection.anchor;
+			const position = this.utils.editor.selection.anchor;
+
 			let range = this.utils.getMarkerRange(undecorated.anchor.marker, position);
 			await Promise.all([
 				this.storageService.write(undecorated, { content: undecorated.content! }),
