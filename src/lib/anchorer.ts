@@ -9,7 +9,6 @@ import {
 // 🕮 <YL> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface IAnchor {
 	marker: string;
-	// editor: vscode.TextEditor;
 }
 export interface IAnchorable {
 	anchor: IAnchor;
@@ -37,14 +36,12 @@ export default class Anchorer {
 
 	getAnchor(uuid: string, extension?: string): IAnchor {
 		return {
-			// editor: this.editor,
 			marker: this.utils.getMarker(uuid, extension),
 		};
 	}
 
 	// 🕮 <YL> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: IAnchorable, ranges: vscode.Range[]): Promise<void> {
-
 		const iterator = this.editsChainer(ranges, this.writeRange.bind(this, anchorable));
 		for await(let range of iterator);
 	}
@@ -53,7 +50,6 @@ export default class Anchorer {
 	* writes anchor comment to document at current cursor position
 	*/
 	private async writeRange(anchorable: IAnchorable, range: vscode.Range, editor = this.editor) {
-		// const editor = anchorable.anchor.editor;
 		const selection = editor.selection;
 
 		await editor.edit(
@@ -74,7 +70,12 @@ export default class Anchorer {
 
 		const iterator = this.editsChainer(
 			ranges,
-			range => this.deleteRange.call(this, anchored, range, internalize)
+			(range: vscode.Range, i: number) => {
+				// if (i > 0) {
+				// 	// range = this.editor.getText().match(...)
+				// }
+				this.deleteRange.call(this, anchored, range, internalize)
+			}
 		);
 
 		for await(let range of iterator);
@@ -82,7 +83,6 @@ export default class Anchorer {
 
 	private async deleteRange(anchored: IAnchorable, range: vscode.Range, editor = this.editor) {
 		let rangeToDelete: vscode.Range;
-		// const editor = anchored.anchor.editor;
 
 		if (!this.cfg.anchor.comments.useBlockComments) {
 			// just delete the whole line
@@ -95,10 +95,12 @@ export default class Anchorer {
 				editor,
 				{ useBlockComments: this.cfg.anchor.comments.useBlockComments }
 			);
+
 			// we have to re-calculate range after comment toggle
-			const commentedRange = this.scanner.scanLine(
+			const [ commentedRange ] = this.scanner.scanLine(
 				this.utils.getTextLine(range.start)
-			)!.ranges[0];
+			)!.ranges;
+
 			rangeToDelete = commentedRange;
 		}
 
@@ -112,6 +114,6 @@ export default class Anchorer {
 	}
 
 	private async *editsChainer(iterable, cb) {
-		for (let item of iterable) yield cb.call(this, item);
+		for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
 	}
 }

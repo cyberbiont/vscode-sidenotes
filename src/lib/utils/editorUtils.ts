@@ -1,50 +1,49 @@
 import * as vscode from 'vscode';
-import { Minimatch } from 'minimatch';
+import { Minimatch, IMinimatch } from 'minimatch';
 
 export type OEditorUtils = {
-	sources: {
-		matchFiles: string, // GlobPattern
-		excludeFiles: string, // GlobPattern
+	filter: {
+		includePattern: string,
+		excludePattern: string
 	}
 }
 
+//@bug 🕮 <YL> 72ef1c23-5ee7-4109-82ea-7d6b411bfff3.md
 // 🕮 <YL> 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0.md
 export default class EditorUtils {
-	private matchPattern;
-	private excludePattern;
+	private includePattern: IMinimatch;
+	private excludePattern: IMinimatch;
 
 	constructor(
 		public editor: vscode.TextEditor,
 		public cfg: OEditorUtils
 	) {
-		this.matchPattern = new Minimatch(this.cfg.sources.matchFiles, { dot: true });
-		this.excludePattern = new Minimatch(this.cfg.sources.excludeFiles, { dot: true, flipNegate: true });
+		this.includePattern = new Minimatch(this.cfg.filter.includePattern, { dot: true });
+		this.excludePattern = new Minimatch(this.cfg.filter.excludePattern, { dot: true, flipNegate: true });
 	}
 
 	getWorkspaceFolderPath = function(): string {
 		//@bug 🕮 <YL> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
-		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find( // already handle undefined case in app requirements check
+		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find(
 			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
 		);
 		return currentWorkspaceFolder!.uri.fsPath;
-
 	}
 
 	checkFileIsLegible = function({ showMessage = false }: { showMessage?: boolean } = {}): boolean {
 		if (!this.getWorkspaceFolderPath()) {
-			if (showMessage) vscode.window.showErrorMessage(
+			if (showMessage) vscode.window.showWarningMessage(
 				`Sidenotes: ${this.editor.document.uri.fsPath}
 				Files outside of a workspace cannot be annotated!`);
 			return false;
 		}
 
 		if (
-			!this.matchPattern.match(this.editor.document.uri.fsPath)
+			!this.includePattern.match(this.editor.document.uri.fsPath)
 			|| this.excludePattern.match(this.editor.document.uri.fsPath)
 		) {
-			vscode.window.showErrorMessage(
-				`Sidenotes:
-				Files excluded by pattern in configuration settings cannot be annotated!`
+			if (showMessage) vscode.window.showWarningMessage(
+				`Sidenotes: this file is excluded by glob pattern in configuration settings and can not be annotated!`
 			);
 			return false;
 		}
@@ -60,6 +59,7 @@ export default class EditorUtils {
 	 * @memberof ActiveEditorUtils
 	 */
 	getTextLine = function(position = this.editor.selection.anchor): vscode.TextLine {
+		position = this.editor.selection.anchor;
 		return this.editor.document.lineAt(position);
 	}
 

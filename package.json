@@ -108,6 +108,11 @@
 						"type": "boolean",
 						"default": true,
 						"description": "Whether to process unsigned sidenotes"
+					},
+					"sidenotes.hoverToolbar": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show actions buttons underneath the hover tooltip"
 					}
 				}
 			}
@@ -115,57 +120,57 @@
 		"commands": [
 			{
 				"command": "sidenotes.annotate",
-				"title": "Sidenotes: edit or add sidenote (default extension)",
+				"title": "Sidenotes: Annotate",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.annotatePickExt",
-				"title": "Sidenotes: edit or add sidenote (pick custom extension from list)",
+				"title": "Sidenotes: Annotate (Custom - Pick)",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.annotateInputExt",
-				"title": "Sidenotes: edit or add sidenote (input custom extension)",
+				"title": "Sidenotes: Annotate (Custom - Input)",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.delete",
-				"title": "Sidenotes: delete sidenote and content file",
+				"title": "Sidenotes: Delete",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.wipeAnchor",
-				"title": "Delete sidenote anchor only",
+				"title": "Sidenotes: Wipe Marker",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.pruneBroken",
-				"title": "Delete broken sidenotes",
+				"title": "Sidenotes: Prune Broken",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.pruneEmpty",
-				"title": "Delete empty sidenotes",
+				"title": "Sidenotes: Prune Empty",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.refresh",
-				"title": "Reset extension cache and rescan",
+				"title": "Sidenotes: Refresh",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.migrate",
-				"title": "Migrate sidenotes from another worskspace",
+				"title": "Sidenotes: Migrate",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.extraneous",
-				"title": "Clean extraneous (orphaned) files from current sidenotes folder",
+				"title": "Sidenotes: Clean",
 				"category": "Sidenotes"
 			},
 			{
 				"command": "sidenotes.showMarkers",
-				"title": "Toggle full markers display",
+				"title": "Sidenotes: Toggle Markers",
 				"category": "Sidenotes"
 			}
 		],
@@ -181,6 +186,12 @@
 				"key": "shift+alt+D",
 				"mac": "shift+cmd+D",
 				"when": "editorTextFocus"
+			},
+			{
+				"command": "sidenotes.wipeAnchor",
+				"key": "shift+alt+W",
+				"mac": "shift+cmd+W",
+				"when": "editorTextFocus"
 			}
 		],
 		"menus": {
@@ -191,6 +202,10 @@
 				},
 				{
 					"command": "sidenotes.delete",
+					"group": "sidenotes"
+				},
+				{
+					"command": "sidenotes.wipeAnchor",
 					"group": "sidenotes"
 				}
 			]

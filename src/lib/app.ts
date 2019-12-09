@@ -61,7 +61,11 @@ import Events from './events';
 
 import EditorServiceController from './editorServiceController';
 
-export type OApp = {}
+export type OApp = {
+	app: {
+		hoverToolbar: boolean
+	}
+}
 
 export default class App {
 	public actions: Actions
@@ -82,6 +86,7 @@ export default class App {
 		this.checkRequirements();
 		this.registerCommands();
 		this.setEventListeners();
+		this.registerProviders();
 		// this.utils.cycleEditors(this.actions.scan.bind(this.actions));
 		this.actions.scan();
 	}
@@ -273,6 +278,26 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.showMarkers', this.actions.switchStylesCfg, this.actions),
 			// vscode.commands.registerCommand('sidenotes.reset', this.actions.reset, this.actions),
 			// vscode.commands.registerCommand('sidenotes.scan', this.actions.scan, this.actions),
+		);
+	}
+
+	registerProviders() {
+		const app = this;
+		// 🕮 <YL> 59cd0823-4911-4a88-a657-88fcd4f1dcba.md
+		if (this.cfg.app.hoverToolbar) vscode.languages.registerHoverProvider(
+			// '*',
+			{
+				scheme: 'file'
+			},
+			new class implements vscode.HoverProvider {
+				provideHover(
+					document: vscode.TextDocument,
+					position: vscode.Position,
+					token: vscode.CancellationToken
+				): vscode.ProviderResult<vscode.Hover> {
+					return app.actions.getHover(document, position);
+				}
+			}()
 		);
 	}
 }

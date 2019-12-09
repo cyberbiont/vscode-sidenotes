@@ -18,7 +18,6 @@ import {
 	OStorageService,
 	OStyler,
 	OEditorServiceController,
-	// OVscodeChangeTracker,
  } from './types';
 
 export type ICfg =
@@ -26,10 +25,7 @@ export type ICfg =
 	& OFileSystem
 	& OAnchorer
 	& OApp
-	& OChangeTracker & (
-		OFileChangeTracker
-		// | OVscodeChangeTracker
-		)
+	& OChangeTracker & OFileChangeTracker
 	& ODesigner & OStyler
 	& OStorageService & OFileStorage
 	& OScanner
@@ -45,21 +41,22 @@ const notesSubfolder: string = settings.get('notesSubfolder') || path.join('.sid
 const cfg: ICfg = {
 	app: {
 		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
+		hoverToolbar: settings.get('hoverButtons') || true
 	},
 
 	storage: {
 		files: {
 			notesSubfolder,
 			defaultContentFileExtension: '.md', // default content files extension. json setting: 🕮 <YL> b7f19c02-664e-4c1b-bfb1-9fbe581978f2.md
-			extensionsQuickPick: ['.md', '.mmap', '.xmind'], // TODO
+			extensionsQuickPick: ['.md', '.mmap', '.xmind'],
 		},
 	},
 
-	sources: {
+	filter: {
 		// 🕮 <YL> 7372242a-1c7a-4342-8de9-9a45539d2f39.md
-		matchFiles: settings.get('includeFilter')
+		includePattern: settings.get('includeFilter')
 			||  "**/*",
-		excludeFiles: settings.get('excludeFilter')
+		excludePattern: settings.get('excludeFilter')
 			|| `**/{node_modules,.git,.idea,target,out,build,vendor}/**/*`,
 	},
 
@@ -113,7 +110,7 @@ const cfg: ICfg = {
 				broken: {
 					color: 'rgba(255, 0, 0, 1)',
 					icon: 'sidenote_broken.svg',
-					message: `⮜ BROKEN ⮞:
+					message: `⮜ BROKEN ⮞
 					Can not find content file, associated with this comment.
 					Run 'annotate' command to choose your action.`
 				},
@@ -121,7 +118,7 @@ const cfg: ICfg = {
 				empty: {
 					color: 'rgb(248, 171, 27)',
 					icon: 'sidenote_empty.svg',
-					message: `⮜ EMPTY ⮞: this sidenote is empty.`
+					message: `⮜ EMPTY ⮞ This sidenote is empty.`
 				},
 			}
 		}

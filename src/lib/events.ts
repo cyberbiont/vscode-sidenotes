@@ -6,14 +6,12 @@ import {
 	EventEmitter,
 	ICfg,
 	IChangeData,
-	// IChangeTracker,
 	ISidenote,
 	MarkerUtils,
 	ReferenceController,
 	Scanner,
 	SidenoteProcessor,
 	SidenotesDictionary,
-	// SidenotesRepository,
 	SidenotesStyler,
 } from './types';
 
@@ -36,7 +34,6 @@ export default class Events {
 		try {
 			await this.editorController.update();
 			await this.poolController.update(editor.document);
-			// this.pool.each((sidenote: ISidenote) => sidenote.anchor.editor = editor);
 			this.pool.editor = editor;
 			this.actions.scan();
 		} catch (e) {
@@ -74,7 +71,6 @@ export default class Events {
 						change.rangeLength >= this.utils.BARE_MARKER_SYMBOLS_COUNT) ||
 					(this.utils.BARE_MARKER_SYMBOLS_COUNT &&
 						change.text.includes(this.cfg.anchor.marker.salt))
-						// change.text.indexOf(this.cfg.anchor.marker.salt) !== -1) // ensures that change includes marker
 				);
 				return condition;
 			}

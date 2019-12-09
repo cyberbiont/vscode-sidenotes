@@ -9,7 +9,8 @@ export interface IDesignable {
 	content?: string;
 	color?: string;
 	mime?: string|false;
-	extension?: string
+	extension?: string;
+	// hoverMessage?: string;
 }
 
 export type ODesigner = OStyler
@@ -88,19 +89,23 @@ export default class Designer {
 				? false
 				: mime.includes('text')
 
-		let hoverMessageBase: string = (this.cfg.anchor.styles.categories[category].message)
+		let hoverMessage: string[] = [(this.cfg.anchor.styles.categories[category].message)
 			? this.cfg.anchor.styles.categories[category].message
-			: (isTextFile) ? content: '';
-		if (!isTextFile) hoverMessageBase += `⮜ NOT TEXT FILE TYPE ⮞: This content type cannot be displayed in tooltip. Extension: ${extension} MIME type: ${mime}`;
+			: (isTextFile) ? content: ''
+		];
+		if (!isTextFile) hoverMessage.push(`⮜ NOT TEXT FILE TYPE ⮞ This content type cannot be displayed in tooltip. Extension: ${extension} MIME type: ${mime}`);
 
 		// 🕮 <YL> 7d0274da-2eba-4948-93d6-993af5e1bcf5.md
-		const hoverMessageButtons: vscode.MarkdownString = new vscode.MarkdownString(
-			`[Edit](command:sidenotes.annotate) [Delete](command:sidenotes.delete) [Wipe](command:sidenotes.wipeAnchor) \n`
-		);
-		hoverMessageButtons.isTrusted = true;
+		// const hoverMessageButtons: vscode.MarkdownString = new vscode.MarkdownString(
+		// 	`[Edit](command:sidenotes.annotate) [Delete](command:sidenotes.delete) [Wipe](command:sidenotes.wipeAnchor) \n`
+		// );
+		// hoverMessageButtons.isTrusted = true;
 
-		const hoverMessage = hoverMessageButtons.appendMarkdown(hoverMessageBase);
+		// const hoverMessage = hoverMessageButtons.appendMarkdown(hoverMessageBase);
 		//? TODO how to prepend?
+
+		// let hoverMessageBase: string = (this.cfg.anchor.styles.categories[category].message)
+		// designable.hoverMessage = hoverMessageBase;
 
 		const decoration: IStylableDecoration = {
 			options: {

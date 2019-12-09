@@ -9,10 +9,10 @@ import {
 } from './types';
 
 export type OFileSystem = {
-	sources: {
-		// 🕮 <YL> e4f5fe76-3db2-4c20-a796-1300f779ff6f.md
-		matchFiles: string, // GlobPattern
-		excludeFiles: string, // GlobPattern
+	// 🕮 <YL> e4f5fe76-3db2-4c20-a796-1300f779ff6f.md
+	filter: {
+		includePattern: string,
+		excludePattern: string
 	}
 }
 
@@ -31,10 +31,10 @@ export default class FileSystem
 		// 🕮 <YL> 9a3ca084-350c-49c3-8fa8-631dbc63a254.md
 		const getFiles = async (folder: vscode.Uri): Promise<vscode.Uri[]> => {
 			return vscode.workspace.findFiles(
-				new vscode.RelativePattern(folder.fsPath, this.cfg.sources.matchFiles),
-				new vscode.RelativePattern(folder.fsPath, this.cfg.sources.excludeFiles),
+				new vscode.RelativePattern(folder.fsPath, this.cfg.filter.includePattern),
+				new vscode.RelativePattern(folder.fsPath, this.cfg.filter.excludePattern),
 			);
-		}
+		};
 
 		const readFiles = (fileUris: vscode.Uri[]) => {
 			return Promise.all(

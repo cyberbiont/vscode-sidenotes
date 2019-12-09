@@ -51,6 +51,23 @@ export default class Actions {
 		this.styler.updateDecorations();
 	}
 
+	async getHover(document: vscode.TextDocument, position: vscode.Position) {
+		const scanData = this.scanner.scanLine(document.lineAt(position));
+		if (!scanData) return undefined;
+
+		const uriEncodedScanData = encodeURIComponent(JSON.stringify({ onHoverScanData: scanData }));
+
+		const editCommandUri = vscode.Uri.parse(`command:sidenotes.annotate?${uriEncodedScanData}`);
+		const deleteCommandUri = vscode.Uri.parse(`command:sidenotes.delete?${uriEncodedScanData}`);
+		const wipeCommandUri = vscode.Uri.parse(`command:sidenotes.wipeAnchor?${uriEncodedScanData}`);
+
+		const contents = new vscode.MarkdownString(`[Edit](${editCommandUri}) [Delete](${deleteCommandUri}) [Wipe](${wipeCommandUri})`);
+		const [ range ] = scanData.ranges;
+		contents.isTrusted = true;
+
+		return new vscode.Hover(contents, range);
+	}
+
 	async initializeDocumentSidenotesPool(scanResults: IScanData[]): Promise<void> {
 		if (!this.utils.checkFileIsLegible()) return;
 		await Promise.all(scanResults.map(this.sidenotesRepository.create, this.sidenotesRepository));
@@ -66,16 +83,23 @@ export default class Actions {
 		return Promise.all(scanResults.map(updateDecorationRange));
 	}
 
-	async run({ selectExtensionBy = false }: { selectExtensionBy?:  ExtensionSelectionDialogTypes|false } = {}): Promise<void> {
+	async run({
+			selectExtensionBy = false,
+			onHoverScanData
+		}: {
+			selectExtensionBy?: ExtensionSelectionDialogTypes|false,
+			onHoverScanData?: IScanData
+		} = {}
+	): Promise<void> {
 		try {
 			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
 
-			const scanData = this.scanner.scanLine();
+			const scanData = onHoverScanData ? onHoverScanData : this.scanner.scanLine();
 
 			let sidenote: ISidenote | undefined;
 
 			if (scanData) {
-				let obtainedSidenote = await this.sidenotesRepository.obtain(scanData);
+				const obtainedSidenote = await this.sidenotesRepository.obtain(scanData);
 				if (this.inspector.isBroken(obtainedSidenote)) {
 					sidenote = await this.sidenoteProcessor.handleBroken(obtainedSidenote);
 				}
@@ -98,7 +122,7 @@ export default class Actions {
 		}
 	}
 	// TODO extract to User Interactions
-	async promptExtension(dialogType:  ExtensionSelectionDialogTypes = 'input'): Promise<string|undefined> {
+	async promptExtension(dialogType: ExtensionSelectionDialogTypes = 'input'): Promise<string|undefined> {
 		let extension: string|undefined;
 
 		if (dialogType === 'pick') {
@@ -121,25 +145,48 @@ export default class Actions {
 		return extension;
 	}
 
-	async delete({ deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<void> {
+	async delete({
+			deleteContentFile = true,
+			onHoverScanData
+		}: {
+			deleteContentFile?: boolean,
+			onHoverScanData?: IScanData
+		} = {}
+	): Promise<void> {
 
-		const scanData = this.scanner.scanLine();
-		if (!scanData) return;
-
-		let sidenote = await this.sidenotesRepository.obtain(scanData);
+		const scanData = onHoverScanData ? onHoverScanData : this.scanner.scanLine();
+		if (!scanData) {
+			vscode.window.showWarningMessage(
+				'There is no sidenotes attached at current cursor position'
+			);
+			return;
+		};
+		const sidenote = await this.sidenotesRepository.obtain(scanData);
 		await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
 		this.styler.updateDecorations();
 	}
 
-	async wipeAnchor(): Promise<void> {
+	async wipeAnchor({
+			onHoverScanData
+		}: {
+			onHoverScanData?: any
+		} = {}): Promise<void> {
 		// 🕮 <YL> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
-		const scanData = this.scanner.scanLine();
+		const scanData = onHoverScanData ? onHoverScanData : this.scanner.scanLine();
 		if (!scanData) return;
 
-		const [ range ] = scanData.ranges;
+		// const sidenote = await this.sidenotesRepository.obtain(scanData);
+		// const range = sidenote.decorations[0].options.range;
+		const [[ start, end ]] = scanData.ranges as any;
+		// const [ start, end ] = ranges;
+		const range = new vscode.Range(
+			new vscode.Position(start.line, start.character),
+			new vscode.Position(end.line, end.character)
+		);
+		const lineRange = this.utils.getTextLine(range.start).range;
 
-		await vscode.window.activeTextEditor!.edit(
-			edit => { edit.delete(range); },
+		await this.utils.editor.edit(
+			edit => { edit.delete(lineRange); },
 			{ undoStopAfter: false, undoStopBefore: false }
 		);
 

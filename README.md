@@ -86,9 +86,18 @@ Toggles visibility of markers. If you set full markers visisble by default in co
 
 <!-- 🕮 9c424c17-95db-4d86-83f2-8441a487868e -->
 
-### Files filter
+#### app.hoverToolbar
 
-Files excluded by filter are no scanned for anchors and cannot be annotated.
+The extension uses vscode.hoverProvider to show convinience button links at the bottom of the tooltip.
+This (probably) can slow thing down a little so if you don't need it you can turn this off.
+
+Note that due to no negation support in VSCode glob patterns and namely document selectors, your [filter](#filter) settings will not have effect here, so hover butoons toolbar will be working in all files.
+
+<!-- 🕮 <YL> 007d8c93-429b-4927-a89e-5cd9a972d20c.md -->
+### Filter
+
+vscode GlobPattern (relative to your workspace folder) to specify files and directories which your want to be available for annotation. Files excluded by filter are no scanned for anchors and cannot be annotated.
+(see [vscode.GlobPattern](https://code.visualstudio.com/api/references/vscode-api#GlobPattern) for details)
 
 #### sources.matchFiles
 
@@ -105,7 +114,6 @@ vscode GlobPattern to exclude files and directories which your don't want to be 
 The default edit that will be used to open your sidenotes for editing on `annotate` command. The available options are:
 
 ##### vscode
-
 By default, sidenote will open in vscode's rightmost panel for editing.
 
 ##### system default
@@ -358,6 +366,7 @@ When you manually move / copy / paste your anchor markers, the decorations need 
 Obviously, if you want to move your sidenote to other file, that uses different comment syntax (according to language used), you'll have to manually edit comment to match (tip: untoggle comment before moving, then toggle back after);
 
 Since sidenotes scanning is done lazily, you have to make editor active to initialize it. This can be seen on application start if you have several editors visible simultaneosly in different panes.
+Also, 'undo' in vscode doesn't trigger 'editor change' event. So if you undo marker deletion, you may end up with broken decorations.
 
 Anyway, in case of unpredicted rendering artefacts you can use `refresh` command to re-draw sidenotes decorations, and report about the issue on Github so I can fix it.
 

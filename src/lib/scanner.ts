@@ -18,7 +18,6 @@ export interface IScanData {
 		extension?: string;
 	};
 	ranges: vscode.Range[];
-
 	key: string;
 }
 
@@ -107,10 +106,7 @@ export default class Scanner {
 				ranges: [range]
 			}
 		} else {
-			vscode.window.showInformationMessage(
-				'There is no sidenotes attached at current cursor position'
-			);
-			return;
+			return undefined;
 		}
 	}
 }
