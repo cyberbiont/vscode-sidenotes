@@ -33,7 +33,6 @@
 					},
 					"sidenotes.prefix": {
 						"type": "string",
-						"default": "",
 						"description": "Specifies the string to use as a prefix for comment markers. Can be used to hook up to other extension such as 'Anchor comments'"
 					},
 					"sidenotes.defaultMarkdownEditor": {
@@ -43,32 +42,26 @@
 							"typora",
 							"system default"
 						],
-						"default": "vscode",
 						"description": "Specifies the external editor executable name to open sidenotes"
 					},
 					"sidenotes.gutterIcon": {
 						"type": "boolean",
-						"default": true,
 						"description": "Whether to show gutter icon for each sidenote"
 					},
 					"sidenotes.ruler": {
 						"type": "boolean",
-						"default": true,
 						"description": "Whether to show sidenotes in overviewRuler"
 					},
 					"sidenotes.before": {
 						"type": "string",
-						"default": "",
 						"description": "A string to show before all your comment markers, decorative only"
 					},
 					"sidenotes.after": {
 						"type": "string",
-						"default": "🕮",
 						"description": "A string that is used as main sidenote representation marker when id is hidden"
 					},
 					"sidenotes.hideMarkers": {
 						"type": "boolean",
-						"default": true,
 						"description": "Whether to hide uuid string"
 					},
 					"sidenotes.colorIndication": {
@@ -76,21 +69,14 @@
 						"items": {
 							"type": "string"
 						},
-						"default": [
-							"after",
-							"text",
-							"ruler"
-						],
 						"description": "Defines what part of comment anchor will change color, indicating sidenote status."
 					},
 					"sidenotes.includeFilter": {
 						"type": "string",
-						"default": "**/*",
 						"description": "Glob pattern for files that will be enabled for annotation."
 					},
 					"sidenotes.excludeFilter": {
 						"type": "string",
-						"default": "**/{node_modules,.git,.idea,target,out,build,vendor}/**/*",
 						"description": "Glob pattern for files that will be disabled for annotation."
 					},
 					"sidenotes.signature": {
@@ -106,12 +92,10 @@
 					},
 					"sidenotes.readUnsigned": {
 						"type": "boolean",
-						"default": true,
 						"description": "Whether to process unsigned sidenotes"
 					},
 					"sidenotes.hoverToolbar": {
 						"type": "boolean",
-						"default": true,
 						"description": "Show actions buttons underneath the hover tooltip"
 					}
 				}

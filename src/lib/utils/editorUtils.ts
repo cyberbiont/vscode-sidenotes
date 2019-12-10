@@ -5,6 +5,11 @@ export type OEditorUtils = {
 	filter: {
 		includePattern: string,
 		excludePattern: string
+	},
+	anchor: {
+		comments: {
+			affectNewlineSymbols: boolean
+		}
 	}
 }
 
@@ -22,7 +27,7 @@ export default class EditorUtils {
 		this.excludePattern = new Minimatch(this.cfg.filter.excludePattern, { dot: true, flipNegate: true });
 	}
 
-	getWorkspaceFolderPath = function(): string {
+	getWorkspaceFolderPath(this: EditorUtils): string {
 		//@bug 🕮 <YL> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
 		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find(
 			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
@@ -30,7 +35,7 @@ export default class EditorUtils {
 		return currentWorkspaceFolder!.uri.fsPath;
 	}
 
-	checkFileIsLegible = function({ showMessage = false }: { showMessage?: boolean } = {}): boolean {
+	checkFileIsLegible(this: EditorUtils, { showMessage = false }: { showMessage?: boolean } = {}): boolean {
 		if (!this.getWorkspaceFolderPath()) {
 			if (showMessage) vscode.window.showWarningMessage(
 				`Sidenotes: ${this.editor.document.uri.fsPath}
@@ -58,16 +63,20 @@ export default class EditorUtils {
 	 * @returns {vscode.TextLine}
 	 * @memberof ActiveEditorUtils
 	 */
-	getTextLine = function(position = this.editor.selection.anchor): vscode.TextLine {
-		position = this.editor.selection.anchor;
+	getTextLine(this: EditorUtils, position = this.editor.selection.anchor): vscode.TextLine {
 		return this.editor.document.lineAt(position);
+	}
+
+	extendRangeToFullLine(range: vscode.Range): vscode.Range {
+		const line = this.getTextLine(range.start);
+		return this.cfg.anchor.comments.affectNewlineSymbols ? line.rangeIncludingLineBreak : line.range;
 	}
 
 	/**
 	 * @returns {Promise<string>} current selection content
 	 * @memberof EditorUtils
 	 */
-	extractSelectionContent = async function(): Promise<string> {
+	async extractSelectionContent(this: EditorUtils): Promise<string> {
 		if (this.editor.selection.isEmpty) return '';
 
 		const content = this.editor.document.getText(this.editor.selection);
@@ -80,7 +89,7 @@ export default class EditorUtils {
 		return content;
 	}
 
-	cycleEditors = async function(cb) {
+	async cycleEditors(cb) {
 		// const firstEditor = this.editor;
 		// const editors: string[] = [];
 		console.log(vscode.workspace.textDocuments.length);
@@ -93,7 +102,7 @@ export default class EditorUtils {
 		//что-то толком не работает
 	}
 
-	toggleComment = async function(
+	async toggleComment(
 		range: vscode.Range,
 		editor: vscode.TextEditor = this.editor,
 		{ useBlockComments = false}: { useBlockComments?: boolean } = {}

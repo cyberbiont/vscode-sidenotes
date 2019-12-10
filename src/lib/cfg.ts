@@ -38,10 +38,11 @@ const settings = vscode.workspace.getConfiguration('sidenotes');
 const signature: string = settings.get('signature') || os.userInfo().username;
 const notesSubfolder: string = settings.get('notesSubfolder') || path.join('.sidenotes', signature);
 
+//@bug 🕮 <YL> 389a9433-4182-43cb-b559-e567ba7dfc95.md
 const cfg: ICfg = {
 	app: {
 		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
-		hoverToolbar: settings.get('hoverButtons') || true
+		hoverToolbar: settings.get('hoverToolbar') || true
 	},
 
 	storage: {
@@ -65,7 +66,7 @@ const cfg: ICfg = {
 		comments: {
 			useBlockComments: false,
 			cleanWholeLine: true,
-			// affectNewlineSymbols: false
+			affectNewlineSymbols: true
 		},
 		marker: {
 			// 🕮 <YL> f7cc1c04-8751-4431-af02-a912c375750c.md
@@ -78,9 +79,9 @@ const cfg: ICfg = {
 		styles: {
 			settings: {
 				before: settings.get('before') || false,
-				after: settings.get('after') || '',
+				after: settings.get('after') || '🕮',
 				ruler: settings.get('ruler') || true,
-				gutterIcon: settings.get('gutterIcon') || false,
+				gutterIcon: settings.get('gutterIcon') || true,
 				hideMarkers: settings.get('hideMarkers') || true,
 				colorIndication: settings.get('colorIndication') || ['after', 'text', 'ruler'],
 			},

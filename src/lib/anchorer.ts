@@ -11,6 +11,7 @@ export interface IAnchor {
 	marker: string;
 }
 export interface IAnchorable {
+	id: string,
 	anchor: IAnchor;
 	content?: string;
 }
@@ -42,7 +43,16 @@ export default class Anchorer {
 
 	// 🕮 <YL> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: IAnchorable, ranges: vscode.Range[]): Promise<void> {
-		const iterator = this.editsChainer(ranges, this.writeRange.bind(this, anchorable));
+		const iterator = this.editsChainer(
+			ranges,
+			// this.writeRange.bind(this, anchorable)
+			async (range: vscode.Range, i: number) => {
+				// if (i > 0) {
+				// 	// range = this.editor.getText().match(...)
+				// }
+				return this.writeRange.call(this, anchorable, range)
+			}
+		);
 		for await(let range of iterator);
 	}
 
@@ -50,7 +60,7 @@ export default class Anchorer {
 	* writes anchor comment to document at current cursor position
 	*/
 	private async writeRange(anchorable: IAnchorable, range: vscode.Range, editor = this.editor) {
-		const selection = editor.selection;
+		// const selection = editor.selection;
 
 		await editor.edit(
 			edit => edit.insert(range.start, anchorable.anchor.marker),
@@ -70,11 +80,17 @@ export default class Anchorer {
 
 		const iterator = this.editsChainer(
 			ranges,
-			(range: vscode.Range, i: number) => {
-				// if (i > 0) {
-				// 	// range = this.editor.getText().match(...)
-				// }
-				this.deleteRange.call(this, anchored, range, internalize)
+			async (range: vscode.Range, i: number) => {
+				if (i != 0) {
+					const regexp = new RegExp(this.utils.getBareMarkerRegexString(anchored.id));
+					const nextRange = this.scanner.rescanForRange(regexp);
+
+					if (!nextRange) return;
+					else {
+						range = this.utils.extendRangeToFullLine(nextRange);
+					}
+				}
+				return this.deleteRange.call(this, anchored, range, internalize)
 			}
 		);
 
@@ -86,8 +102,7 @@ export default class Anchorer {
 
 		if (!this.cfg.anchor.comments.useBlockComments) {
 			// just delete the whole line
-			rangeToDelete = this.utils.getTextLine(range.start).range;
-
+			rangeToDelete = this.utils.extendRangeToFullLine(range);
 			// 🕮 <YL> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
 		} else {
 			await this.utils.toggleComment(
@@ -113,7 +128,8 @@ export default class Anchorer {
 		return;
 	}
 
-	private async *editsChainer(iterable, cb) {
+	private async *editsChainer(iterable: vscode.Range[], cb) {
 		for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
+		// for (let item of iterable) yield cb.call(this, item);
 	}
 }

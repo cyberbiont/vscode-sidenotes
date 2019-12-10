@@ -146,11 +146,27 @@ export default class App {
 		const styler: SidenotesStyler = await stylerController.getReference();
 		// const styler: SidenotesStyler = new Styler(pool, this.cfg);
 
-		const utils = Object.assign(
-			Object.create(null),
-			new EditorUtils(editor, this.cfg),
-			new MarkerUtils(uuidMaker, this.cfg),
-		);
+		// const utils = Object.assign(
+		// 	Object.create(null),
+		// 	new EditorUtils(editor, this.cfg),
+		// 	new MarkerUtils(uuidMaker, this.cfg),
+		// );
+		const editorUtils = new EditorUtils(editor, this.cfg);
+		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
+
+		let utils = Object.create(null);
+		copyProperties(utils, editorUtils);
+		copyProperties(utils, markerUtils);
+
+		function copyProperties(target, source) {
+			for (let o = source; o != Object.prototype; o = Object.getPrototypeOf(o)) {
+				for (let name of Object.getOwnPropertyNames(o)) {
+					if (name == 'constructor') continue;
+					target[name] = o[name];
+				}
+			}
+			return target;
+		}
 
 		const scanner = new Scanner(editor, utils);
 

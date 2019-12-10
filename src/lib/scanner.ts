@@ -82,6 +82,18 @@ export default class Scanner {
 		});
 	}
 
+	rescanForRange(regex: RegExp, text: string = this.editor.document.getText()): vscode.Range|undefined {
+		const match = text.match(regex);
+		if (match) {
+			let [ fullMatch, signature, id, extension ] = match;
+			let { index } = match;
+			const position = this.editor.document.positionAt(index!);
+			const range = this.utils.getMarkerRange(fullMatch, position);
+			return range;
+		}
+		return undefined;
+	}
+
 	scanLine(line: vscode.TextLine = this.utils.getTextLine()): IScanData|undefined {
 		if (line.isEmptyOrWhitespace) return;
 

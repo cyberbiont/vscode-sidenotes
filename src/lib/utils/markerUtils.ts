@@ -23,15 +23,15 @@ export default class MarkerUtils {
 		public cfg: OMarkerUtils
 	) {}
 
-	BARE_MARKER_SYMBOLS_COUNT: number =	this.cfg.anchor.marker.salt.length + this.idMaker.symbolsCount
+	BARE_MARKER_SYMBOLS_COUNT: number =	this.cfg.anchor.marker.salt.length + this.idMaker.symbolsCount;
 
-	bareMarkerRegexString: string = this.getBareMarkerRegexString()
+	bareMarkerRegexString: string = this.getBareMarkerRegexString();
 
-	bareMarkerRegex: RegExp = new RegExp(this.bareMarkerRegexString,	'g')
+	bareMarkerRegex: RegExp = new RegExp(this.bareMarkerRegexString,	'g');
 
-	bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString)
+	bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString);
 
-	getBareMarkerRegexString() {
+	getBareMarkerRegexString(idString: string = this.idMaker.ID_REGEX_STRING) {
 		const o = this.cfg.anchor.marker;
 
 		const extensionRegexString = '(.\\w+)?';
@@ -42,7 +42,7 @@ export default class MarkerUtils {
 		 `(?:<(${signatures.join('|')})> )${o.readUnsigned ? '?' : ''}`
 
 	 // 🕮 <YL> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
-		return `(?:${o.salt}|🖉) ${readSignaturesRegexString}${this.idMaker.ID_REGEX_STRING}${extensionRegexString}`;
+		return `(?:${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
 	}
 
 	/**
@@ -50,17 +50,17 @@ export default class MarkerUtils {
 	 * @returns {string} full marker to be written in document
 	 * @memberof MarkerUtils
 	 */
-	getMarker = function(id: string, extension?: string): string {
+	getMarker(id: string, extension?: string): string {
 		// template 🕮 <YL> 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c.md
 		const o = this.cfg.anchor.marker;
 		return `${o.prefix ? o.prefix+' ':''}${o.salt} <${o.signature}> ${id}${extension}`;
 	}
 
-	getKey = function(id: string, extension?: string): string {
+	getKey(id: string, extension?: string): string {
 		return `${id}${extension ?  extension : ''}`;
 	}
 
-	getIdFromString = function(string: string): string|null {
+	getIdFromString(string: string): string|null {
 		const match = string.match(this.idMaker.ID_REGEX)
 		if (match) return match[0];
 		return null;
@@ -74,7 +74,7 @@ export default class MarkerUtils {
 	 * @returns {vscode.Range} range of marker
 	 * @memberof MarkerUtils
 	 */
-	getMarkerRange = function(
+	getMarkerRange(
 		str: string,
 		start: vscode.Position
 	): vscode.Range {

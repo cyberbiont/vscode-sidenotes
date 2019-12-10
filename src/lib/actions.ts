@@ -21,6 +21,11 @@ export type OActions = {
 		files: {
 			extensionsQuickPick: string[]
 		}
+	},
+	anchor: {
+		comments: {
+			affectNewlineSymbols: boolean
+		}
 	}
 }
 
@@ -106,6 +111,11 @@ export default class Actions {
 				else sidenote = obtainedSidenote;
 			}	else {
 				const extension = selectExtensionBy ? `.${await this.promptExtension(selectExtensionBy)}` : undefined;
+
+				if (this.cfg.anchor.comments.affectNewlineSymbols && this.utils.editor.selection.isEmpty) {
+					await vscode.commands.executeCommand('editor.action.insertLineBefore');
+				}
+
 				sidenote = await this.sidenotesRepository.create({
 					marker: {
 						extension
@@ -172,17 +182,20 @@ export default class Actions {
 			onHoverScanData?: any
 		} = {}): Promise<void> {
 		// 🕮 <YL> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
-		const scanData = onHoverScanData ? onHoverScanData : this.scanner.scanLine();
-		if (!scanData) return;
+		let range: vscode.Range;
+		if (onHoverScanData) {
+			const [[ start, end ]] = onHoverScanData.ranges as any;
 
-		// const sidenote = await this.sidenotesRepository.obtain(scanData);
-		// const range = sidenote.decorations[0].options.range;
-		const [[ start, end ]] = scanData.ranges as any;
-		// const [ start, end ] = ranges;
-		const range = new vscode.Range(
-			new vscode.Position(start.line, start.character),
-			new vscode.Position(end.line, end.character)
-		);
+			range = new vscode.Range(
+				new vscode.Position(start.line, start.character),
+				new vscode.Position(end.line, end.character)
+			);
+		} else {
+			const scanData = this.scanner.scanLine();
+			if (!scanData) return;
+			([ range ] = scanData.ranges);
+		}
+
 		const lineRange = this.utils.getTextLine(range.start).range;
 
 		await this.utils.editor.edit(

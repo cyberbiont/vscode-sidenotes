@@ -31,6 +31,7 @@ export default class Events {
 	) {}
 
 	async onEditorChange(editor: vscode.TextEditor) {
+		if (!editor) return; //! 🕮 <YL> 23a3d9cc-aa47-487e-952a-78c177efe655.md
 		try {
 			await this.editorController.update();
 			await this.poolController.update(editor.document);
