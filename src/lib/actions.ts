@@ -89,15 +89,19 @@ export default class Actions {
 	}
 
 	async run({
+			useCodeFence = false,
 			selectExtensionBy = false,
 			onHoverScanData
 		}: {
+			useCodeFence?: boolean,
 			selectExtensionBy?: ExtensionSelectionDialogTypes|false,
 			onHoverScanData?: IScanData
 		} = {}
 	): Promise<void> {
 		try {
 			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
+
+			if (useCodeFence && !process.env.SIDENOTES_USE_CODE_FENCE) process.env.SIDENOTES_USE_CODE_FENCE = 'true';
 
 			const scanData = onHoverScanData ? onHoverScanData : this.scanner.scanLine();
 
@@ -117,15 +121,15 @@ export default class Actions {
 				}
 
 				sidenote = await this.sidenotesRepository.create({
-					marker: {
-						extension
-					}
+					marker: {	extension	}
 				});
 			}
 
 			if (sidenote) await this.sidenoteProcessor.open(sidenote);
 
 			this.styler.updateDecorations();
+
+			if (process.env.SIDENOTES_USE_CODE_FENCE) delete process.env.SIDENOTES_USE_CODE_FENCE;
 
 		} catch(e) {
 			console.log(e);
@@ -176,16 +180,12 @@ export default class Actions {
 		this.styler.updateDecorations();
 	}
 
-	async wipeAnchor({
-			onHoverScanData
-		}: {
-			onHoverScanData?: any
-		} = {}): Promise<void> {
+	async wipeAnchor({ onHoverScanData }: { onHoverScanData?: IScanData	} = {}): Promise<void> {
 		// 🕮 <YL> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
 		let range: vscode.Range;
+
 		if (onHoverScanData) {
 			const [[ start, end ]] = onHoverScanData.ranges as any;
-
 			range = new vscode.Range(
 				new vscode.Position(start.line, start.character),
 				new vscode.Position(end.line, end.character)
@@ -196,7 +196,7 @@ export default class Actions {
 			([ range ] = scanData.ranges);
 		}
 
-		const lineRange = this.utils.getTextLine(range.start).range;
+		const lineRange = this.utils.extendRangeToFullLine(range);
 
 		await this.utils.editor.edit(
 			edit => { edit.delete(lineRange); },

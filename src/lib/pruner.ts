@@ -5,11 +5,6 @@ import {
 	SidenotesDictionary,
 } from './types';
 
-// export interface IPrunable {
-// 	isBroken(): boolean
-// 	isEmpty(): boolean
-// }
-
 export default class Pruner {
 	constructor(
 		public pool: SidenotesDictionary,

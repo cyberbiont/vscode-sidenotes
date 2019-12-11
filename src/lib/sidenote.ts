@@ -44,8 +44,6 @@ export class Sidenote implements ISidenote {
 	) {
 		Object.assign(this, sidenote);
 	}
-	// isBroken(): boolean { return typeof this.content === 'undefined'; }
-	// isEmpty(): boolean { return this.content === ''; }
 }
 
 export class Inspector {
@@ -54,7 +52,7 @@ export class Inspector {
 }
 
 export class SidenoteBuilder implements Partial<Sidenote> {
-	// works even without making all properties optional
+	// 🕮 <YL> d86498f7-fcd0-4150-bcf2-bbbdbf5f4b14.md
 	key?: string;
 	id?: string;
 	extension?: string;

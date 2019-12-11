@@ -10,10 +10,15 @@ export interface IDesignable {
 	color?: string;
 	mime?: string|false;
 	extension?: string;
-	// hoverMessage?: string;
 }
 
-export type ODesigner = OStyler
+export type ODesigner = OStyler & {
+	anchor: {
+		styles: {
+			instanceRenderOptions: (color: string) => vscode.DecorationInstanceRenderOptions
+		}
+	}
+}
 
 export default class Designer {
 
@@ -40,17 +45,7 @@ export default class Designer {
 	}
 
 	private markAsDuplicated(decoration: IStylableDecoration, color: string) {
-		// TODO move to config
-		// const after = this.cfg.anchor.styles.categories.common.style.after!.contentText;
-		return decoration.options.renderOptions = {
-			// before: {
-			// 	contentText: `*` ,
-			// 	color
-			// },
-			after: {
-				border: `1px dotted ${color}`
-			}
-		}
+		decoration.options.renderOptions = this.cfg.anchor.styles.instanceRenderOptions(color);
 	}
 
 	getRandomHSLColor(lightness: string = '75%') {
@@ -87,25 +82,18 @@ export default class Designer {
 			? true
 			: (mime === false)
 				? false
-				: mime.includes('text')
+				: mime.includes('text');
 
 		let hoverMessage: string[] = [(this.cfg.anchor.styles.categories[category].message)
 			? this.cfg.anchor.styles.categories[category].message
 			: (isTextFile) ? content: ''
 		];
-		if (!isTextFile) hoverMessage.push(`⮜ NOT TEXT FILE TYPE ⮞ This content type cannot be displayed in tooltip. Extension: ${extension} MIME type: ${mime}`);
+		if (!isTextFile) hoverMessage.push(`⮜ NOT TEXT FILE TYPE ⮞
+			This content type cannot be displayed in tooltip.
+			Extension: ${extension} MIME type: ${mime}`);
 
 		// 🕮 <YL> 7d0274da-2eba-4948-93d6-993af5e1bcf5.md
-		// const hoverMessageButtons: vscode.MarkdownString = new vscode.MarkdownString(
-		// 	`[Edit](command:sidenotes.annotate) [Delete](command:sidenotes.delete) [Wipe](command:sidenotes.wipeAnchor) \n`
-		// );
-		// hoverMessageButtons.isTrusted = true;
-
-		// const hoverMessage = hoverMessageButtons.appendMarkdown(hoverMessageBase);
 		//? TODO how to prepend?
-
-		// let hoverMessageBase: string = (this.cfg.anchor.styles.categories[category].message)
-		// designable.hoverMessage = hoverMessageBase;
 
 		const decoration: IStylableDecoration = {
 			options: {

@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import { Minimatch, IMinimatch } from 'minimatch';
 
 export type OEditorUtils = {
-	filter: {
-		includePattern: string,
-		excludePattern: string
+	worskspaceFilter: {
+		include: string,
+		exclude: string
 	},
 	anchor: {
 		comments: {
@@ -23,11 +23,11 @@ export default class EditorUtils {
 		public editor: vscode.TextEditor,
 		public cfg: OEditorUtils
 	) {
-		this.includePattern = new Minimatch(this.cfg.filter.includePattern, { dot: true });
-		this.excludePattern = new Minimatch(this.cfg.filter.excludePattern, { dot: true, flipNegate: true });
+		this.includePattern = new Minimatch(this.cfg.worskspaceFilter.include, { dot: true });
+		this.excludePattern = new Minimatch(this.cfg.worskspaceFilter.exclude, { dot: true, flipNegate: true });
 	}
 
-	getWorkspaceFolderPath(this: EditorUtils): string {
+	getWorkspaceFolderPath(): string {
 		//@bug 🕮 <YL> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
 		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find(
 			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
@@ -35,7 +35,7 @@ export default class EditorUtils {
 		return currentWorkspaceFolder!.uri.fsPath;
 	}
 
-	checkFileIsLegible(this: EditorUtils, { showMessage = false }: { showMessage?: boolean } = {}): boolean {
+	checkFileIsLegible({ showMessage = false }: { showMessage?: boolean } = {}): boolean {
 		if (!this.getWorkspaceFolderPath()) {
 			if (showMessage) vscode.window.showWarningMessage(
 				`Sidenotes: ${this.editor.document.uri.fsPath}
@@ -63,7 +63,7 @@ export default class EditorUtils {
 	 * @returns {vscode.TextLine}
 	 * @memberof ActiveEditorUtils
 	 */
-	getTextLine(this: EditorUtils, position = this.editor.selection.anchor): vscode.TextLine {
+	getTextLine(position = this.editor.selection.anchor): vscode.TextLine {
 		return this.editor.document.lineAt(position);
 	}
 
@@ -76,16 +76,21 @@ export default class EditorUtils {
 	 * @returns {Promise<string>} current selection content
 	 * @memberof EditorUtils
 	 */
-	async extractSelectionContent(this: EditorUtils): Promise<string> {
-		if (this.editor.selection.isEmpty) return '';
+	async extractSelectionContent(): Promise<string> {
+		let content: string;
 
-		const content = this.editor.document.getText(this.editor.selection);
-		if (content) {
-			await this.editor.edit(
-				edit => { edit.delete(this.editor.selection); },
-				{ undoStopAfter: false, undoStopBefore: false }
-			);
+		if (this.editor.selection.isEmpty) content = '';
+		else {
+			content = this.editor.document.getText(this.editor.selection);
+			if (content) {
+				await this.editor.edit(
+					edit => { edit.delete(this.editor.selection); },
+					{ undoStopAfter: false, undoStopBefore: false }
+				);
+			}
 		}
+
+		if (process.env.SIDENOTES_USE_CODE_FENCE) content = `\`\`\`${this.editor.document.languageId}\n${content}\n\`\`\``
 		return content;
 	}
 

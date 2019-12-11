@@ -10,9 +10,9 @@ import {
 
 export type OFileSystem = {
 	// 🕮 <YL> e4f5fe76-3db2-4c20-a796-1300f779ff6f.md
-	filter: {
-		includePattern: string,
-		excludePattern: string
+	worskspaceFilter: {
+		include: string,
+		exclude: string
 	}
 }
 
@@ -31,8 +31,8 @@ export default class FileSystem
 		// 🕮 <YL> 9a3ca084-350c-49c3-8fa8-631dbc63a254.md
 		const getFiles = async (folder: vscode.Uri): Promise<vscode.Uri[]> => {
 			return vscode.workspace.findFiles(
-				new vscode.RelativePattern(folder.fsPath, this.cfg.filter.includePattern),
-				new vscode.RelativePattern(folder.fsPath, this.cfg.filter.excludePattern),
+				new vscode.RelativePattern(folder.fsPath, this.cfg.worskspaceFilter.include),
+				new vscode.RelativePattern(folder.fsPath, this.cfg.worskspaceFilter.exclude),
 			);
 		};
 

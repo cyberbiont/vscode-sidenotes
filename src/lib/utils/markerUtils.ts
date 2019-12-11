@@ -10,7 +10,7 @@ export type OMarkerUtils = {
 			salt: string,
 			prefix?: string,
 			signature: string,
-			readSignatures?: string[]
+			signatureFilter?: string[]
 			readUnsigned?: boolean
 			// template?: string,
 		}
@@ -36,7 +36,7 @@ export default class MarkerUtils {
 
 		const extensionRegexString = '(.\\w+)?';
 
-		const signatures: string[] = o.readSignatures ? o.readSignatures: ['.*'];
+		const signatures: string[] = o.signatureFilter ? o.signatureFilter: ['.*'];
 		if (o.signature) signatures.push(o.signature);
 		const readSignaturesRegexString =
 		 `(?:<(${signatures.join('|')})> )${o.readUnsigned ? '?' : ''}`

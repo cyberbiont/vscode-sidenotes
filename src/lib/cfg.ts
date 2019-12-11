@@ -48,42 +48,45 @@ const cfg: ICfg = {
 	storage: {
 		files: {
 			notesSubfolder,
-			defaultContentFileExtension: '.md', // default content files extension. json setting: 🕮 <YL> b7f19c02-664e-4c1b-bfb1-9fbe581978f2.md
-			extensionsQuickPick: ['.md', '.mmap', '.xmind'],
+			defaultContentFileExtension: settings.get('defaultContentFileExtension') || '.md',
+			extensionsQuickPick: settings.get('extensionsQuickPick') || ['.md', '.mmap', '.xmind'],
 		},
 	},
 
-	filter: {
+	worskspaceFilter: {
 		// 🕮 <YL> 7372242a-1c7a-4342-8de9-9a45539d2f39.md
-		includePattern: settings.get('includeFilter')
+		include: settings.get('filter.include')
 			||  "**/*",
-		excludePattern: settings.get('excludeFilter')
+		exclude: settings.get('filter.exclude')
 			|| `**/{node_modules,.git,.idea,target,out,build,vendor}/**/*`,
 	},
 
 	// 🕮 <YL> 7995614f-ef55-42c0-a9f6-e372ba94e93b.md
 	anchor: {
+
 		comments: {
 			useBlockComments: false,
 			cleanWholeLine: true,
 			affectNewlineSymbols: true
 		},
+
 		marker: {
 			// 🕮 <YL> f7cc1c04-8751-4431-af02-a912c375750c.md
 			prefix: settings.get('prefix') || '',
 			salt: '🕮',
 			signature,
-			readSignatures: settings.get('readSignatures'),
+			signatureFilter: settings.get('signatureFilter'),
 			readUnsigned: settings.get('readUnsigned')
 		},
+
 		styles: {
 			settings: {
-				before: settings.get('before') || false,
-				after: settings.get('after') || '🕮',
-				ruler: settings.get('ruler') || true,
-				gutterIcon: settings.get('gutterIcon') || true,
-				hideMarkers: settings.get('hideMarkers') || true,
-				colorIndication: settings.get('colorIndication') || ['after', 'text', 'ruler'],
+				before: settings.get('design.before') || false,
+				after: settings.get('design.after') || '🕮',
+				ruler: settings.get('design.ruler') || true,
+				gutterIcon: settings.get('design.gutterIcon') || true,
+				hideMarkers: settings.get('design.hideMarkers') || true,
+				colorIndication: settings.get('design.colorIndication') || ['after', 'text', 'ruler'],
 			},
 
 			categories: {
@@ -121,8 +124,20 @@ const cfg: ICfg = {
 					icon: 'sidenote_empty.svg',
 					message: `⮜ EMPTY ⮞ This sidenote is empty.`
 				},
-			}
-		}
+			},
+
+			instanceRenderOptions: (color: string) => ({
+				after: {
+					border: `1px dotted ${color}`
+				}
+			})
+		},
+
+		// markersVisible: {
+		// 	settings: {
+		// 		hideMarkers: false
+		// 	}
+		// }
 	}
 };
 

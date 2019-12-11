@@ -144,13 +144,7 @@ export default class App {
 		).update('default');
 
 		const styler: SidenotesStyler = await stylerController.getReference();
-		// const styler: SidenotesStyler = new Styler(pool, this.cfg);
 
-		// const utils = Object.assign(
-		// 	Object.create(null),
-		// 	new EditorUtils(editor, this.cfg),
-		// 	new MarkerUtils(uuidMaker, this.cfg),
-		// );
 		const editorUtils = new EditorUtils(editor, this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
 
@@ -159,9 +153,9 @@ export default class App {
 		copyProperties(utils, markerUtils);
 
 		function copyProperties(target, source) {
-			for (let o = source; o != Object.prototype; o = Object.getPrototypeOf(o)) {
+			for (let o = source; o !== Object.prototype; o = Object.getPrototypeOf(o)) {
 				for (let name of Object.getOwnPropertyNames(o)) {
-					if (name == 'constructor') continue;
+					if (name === 'constructor') continue;
 					target[name] = o[name];
 				}
 			}
@@ -284,6 +278,7 @@ export default class App {
 	registerCommands() {
 		return this.context.subscriptions.push(
 			vscode.commands.registerCommand('sidenotes.annotate', this.actions.run, this.actions),
+			vscode.commands.registerCommand('sidenotes.annotateCode', this.actions.run.bind(this.actions, { useCodeFence: true }), this.actions),
 			vscode.commands.registerCommand('sidenotes.annotatePickExt', this.actions.run.bind(this.actions, { selectExtensionBy: 'pick' }), this.actions),
 			vscode.commands.registerCommand('sidenotes.annotateInputExt', this.actions.run.bind(this.actions, { selectExtensionBy: 'input' }), this.actions),
 			vscode.commands.registerCommand('sidenotes.delete', this.actions.delete, this.actions),
@@ -291,9 +286,7 @@ export default class App {
 			vscode.commands.registerCommand('sidenotes.pruneBroken', this.actions.prune.bind(this.actions, 'broken')),
 			vscode.commands.registerCommand('sidenotes.pruneEmpty', this.actions.prune.bind(this.actions, 'empty')),
 			vscode.commands.registerCommand('sidenotes.refresh', this.actions.refresh, this.actions),
-			vscode.commands.registerCommand('sidenotes.showMarkers', this.actions.switchStylesCfg, this.actions),
-			// vscode.commands.registerCommand('sidenotes.reset', this.actions.reset, this.actions),
-			// vscode.commands.registerCommand('sidenotes.scan', this.actions.scan, this.actions),
+			vscode.commands.registerCommand('sidenotes.showMarkers', this.actions.switchStylesCfg, this.actions)
 		);
 	}
 
