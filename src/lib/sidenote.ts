@@ -152,7 +152,7 @@ export class SidenoteFactory {
 		if (isScannedSidenoteOptions(o)) {
 			({ key, ranges, marker: { id, signature, extension }} = o);
 			mime = mimeTypes.lookup(extension);
-			const storageEntry = this.storageService.get({ id, extension });
+			const storageEntry = await this.storageService.get({ id, extension });
 			content = storageEntry ? storageEntry.content : undefined;
 			const withAnchor = new SidenoteBuilder()
 				.withMeta(key, id, extension, mime, signature)
@@ -164,16 +164,12 @@ export class SidenoteFactory {
 			).build();
 
 		} else { // buildNewSidenote
-			const id = this.idMaker.makeId();
-
-			const extension = o	&& o.marker	&& o.marker.extension
+			id = this.idMaker.makeId();
+			extension = o	&& o.marker	&& o.marker.extension
 				? o.marker.extension
 				: this.cfg.storage.files.defaultContentFileExtension;
-
 			mime = mimeTypes.lookup(extension);
-
 			signature = this.cfg.anchor.marker.signature;
-
 			key = this.utils.getKey(id, extension);
 
 			const withMeta = new SidenoteBuilder()

@@ -207,7 +207,8 @@ export default class App {
 			storageService,
 			anchorer,
 			pool,
-			styler
+			styler,
+			inspector
 		);
 
 		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
@@ -263,8 +264,8 @@ export default class App {
 	}
 
 	checkRequirements() {
-		if (this.storageService.checkRequirements)
-			this.storageService.checkRequirements();
+		if (this.storageService.checkStartupRequirements)
+			this.storageService.checkStartupRequirements();
 
 		if (!vscode.window.activeTextEditor)
 			throw new Error('active text editor is undefined');

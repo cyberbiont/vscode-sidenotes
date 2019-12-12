@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as nodeFs from 'fs';
+import { TextEncoder, TextDecoder } from 'util';
 
 import {
 	IScanData,
@@ -19,12 +20,16 @@ export type OFileSystem = {
 export default class FileSystem
 // implements vscode.FileSystem
 {
+	private textEncoder: TextEncoder = new TextEncoder();
+	private textDecoder: TextDecoder = new TextDecoder();
+	// 🕮 <YL> 9753d71e-a4e4-4778-af8c-181e62776254.md
+
 	constructor(
 		private scanner: Scanner,
 		public utils: EditorUtils,
 		private cfg: OFileSystem,
-		// private vfs: vscode.FileSystem = vscode.workspace.fs,
-		private fs = nodeFs
+		private fs = vscode.workspace.fs,
+		private nfs = nodeFs
 	) {}
 
 	async scanDirectoryFilesContentsForKeys(folder: vscode.Uri): Promise<Set<string>> {
@@ -38,9 +43,9 @@ export default class FileSystem
 
 		const readFiles = (fileUris: vscode.Uri[]) => {
 			return Promise.all(
-				fileUris.map(async fileUri => {
-					const readData = await vscode.workspace.fs.readFile(fileUri);
-					return Buffer.from(readData).toString('utf8');
+				fileUris.map(async uri => {
+					const data = await vscode.workspace.fs.readFile(uri);
+					return this.textDecoder.decode(data);
 				})
 			);
 		};
@@ -57,40 +62,39 @@ export default class FileSystem
 		const fileUris = await getFiles(folder);
 		const contents = await readFiles(fileUris);
 		const keys = scanContents(contents);
-		const uniqueIds = new Set(keys);
-		return uniqueIds;
-	}
-	// TODO switch to fs.promises
-	createDirectory(path: string) {
-		return this.fs.mkdirSync(path);
+		const uniqueKeys = new Set(keys);
+		return uniqueKeys;
 	}
 
-	delete(path: string) {
-		return this.fs.unlinkSync(path);
+	createDirectory(uri: vscode.Uri) {
+		return this.fs.createDirectory(uri);
 	}
 
+	delete(uri: vscode.Uri) {
+		return this.fs.delete(uri, { recursive: true, useTrash: true });
+	}
+
+	// TODO get done without it
 	exists(path: string) {
-		return this.fs.existsSync(path);
+		return this.nfs.existsSync(path);
 	}
 
-	read(path: string) {
-		return this.fs.readFileSync(path, {
-			encoding: 'utf8'
-		});
+	async read(uri: vscode.Uri) {
+		const data = await this.fs.readFile(uri);
+		return this.textDecoder.decode(data);
 	}
 
-	write(path: string, data: string) {
-		return this.fs.writeFileSync(path, data);
+	write(uri: vscode.Uri, data: string) {
+		const encodedData = this.textEncoder.encode(data);
+		return this.fs.writeFile(uri, encodedData);
 	}
 
-	copy(src: string, dest: string) {
-		return this.fs.copyFileSync(src, dest);
+	copy(src: vscode.Uri, dest: vscode.Uri) {
+		return this.fs.copy(src, dest, { overwrite: false });
 	}
 
-	rename(oldPath: string, newPath: string) {
-		return this.fs.rename(oldPath, newPath, err => {
-			if (err) throw err;
-		})
+	rename(oldName: vscode.Uri, newName: vscode.Uri) {
+		return this.fs.rename(oldName, newName);
 	}
 
 }

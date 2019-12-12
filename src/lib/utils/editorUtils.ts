@@ -29,10 +29,12 @@ export default class EditorUtils {
 
 	getWorkspaceFolderPath(): string {
 		//@bug 🕮 <YL> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
-		const currentWorkspaceFolder = vscode.workspace.workspaceFolders!.find(
+		if (!vscode.workspace.workspaceFolders) throw new Error('Adding notes requires an open folder.');
+		const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
 			folder => this.editor.document.fileName.includes(folder.uri.fsPath)
 		);
-		return currentWorkspaceFolder!.uri.fsPath;
+		if (!currentWorkspaceFolder) throw new Error('Files outside a workspace folder cannot be aanotated.');
+		return currentWorkspaceFolder.uri.fsPath;
 	}
 
 	checkFileIsLegible({ showMessage = false }: { showMessage?: boolean } = {}): boolean {

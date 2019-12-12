@@ -1,4 +1,6 @@
+import * as vscode from 'vscode';
 import {
+	IEditorService,
 	SystemDefaultEditor,
 	TyporaEditor,
 	VscodeEditor,
@@ -11,7 +13,8 @@ export type OEditorServiceController = {
 }
 
 export default class editorServiceController {
-	public markdownEditor: TyporaEditor | SystemDefaultEditor | VscodeEditor;
+	// public markdownEditor: VscodeEditor | TyporaEditor | SystemDefaultEditor ;
+	public markdownEditor: IEditorService;
 
 	constructor(
 		private typora: TyporaEditor,
@@ -27,15 +30,15 @@ export default class editorServiceController {
 		}
 	}
 	// 🕮 <YL> 114e29b0-8288-4b64-9fde-060bbb889c90.md
-	open(path: string, extension: string) {
+	open(uri: vscode.Uri, extension: string) {
 		switch(extension) {
 			case '.md':
 			case '.mdown':
-				this.markdownEditor.open(path); break;
+				this.markdownEditor.open(uri); break;
 			case '.markdown':
-				this.typora.open(path); break;
+				this.typora.open(uri.fsPath); break;
 			default:
-				this.systemDefault.open(path);
+				this.systemDefault.open(uri.fsPath);
 		}
 	}
 }

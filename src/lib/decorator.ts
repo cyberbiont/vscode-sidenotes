@@ -148,9 +148,9 @@ export default class Decorator<T extends IDecorable> {
 
 		pool.each(getStylableDecorationOptions.bind(this));
 
-		function getStylableDecorationOptions(stylable: IDecorable) {
-			if (stylable.decorations)	{
-				stylable.decorations.forEach(decoration => {
+		function getStylableDecorationOptions(designable: IDecorable) {
+			if (designable.decorations)	{
+				designable.decorations.forEach(decoration => {
 					this.decorations[decoration.category].options.push(decoration.options);
 					// editorsToUpdate.add(stylable.anchor.editor);
 				})

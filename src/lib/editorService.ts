@@ -8,7 +8,7 @@ import {
 
 export interface IEditorService {
 	changeTracker: IChangeTracker;
-	open(path: string);
+	open(path: string | vscode.Uri);
 }
 
 export class VscodeEditor implements IEditorService {
@@ -22,19 +22,21 @@ export class VscodeEditor implements IEditorService {
 	* opens sidenote document, associated with comment anchor in current line, creating comment and document if they don't exits
 	* in new editor window
 	*/
-	async open(path: string, scheme: string = 'file'): Promise<vscode.TextEditor> {
-		const URI = vscode.Uri.parse(`${scheme}:${path}`);
+	async open(uri: vscode.Uri): Promise<vscode.TextEditor> {
 		//@old 🕮 <YL> ea2901bc-16b1-4153-8753-1daa685ca125.md
 
-		return await vscode.workspace.openTextDocument(URI).then(
-			doc => vscode.window.showTextDocument(doc, {
-				viewColumn: vscode.ViewColumn.Beside,
-				// 🕮 <YL> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
-			}),
+		return vscode.workspace.openTextDocument(uri).then(
+			async doc => {
+				return await vscode.window.showTextDocument(doc, {
+					viewColumn: vscode.ViewColumn.Beside,
+					// 🕮 <YL> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
+				});
+			},
 			error => {
 				vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`);
 			}
-		);
+		)
+
 	}
 }
 
@@ -61,7 +63,7 @@ export class TyporaEditor implements IEditorService {
 	}
 
 	// 🕮 <YL> 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4.md
-	open(path: string): vscode.Terminal|false {
+	open(path: string): vscode.Terminal | false {
 		try {
 			this.terminal.sendText(`typora "${path}"`);
 		} catch (e) {
