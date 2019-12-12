@@ -7,7 +7,7 @@ import {
 	OAnchorer,
 	OApp,
 	OChangeTracker,
-	ODesigner,
+	OStyler,
 	OEditorUtils,
 	OFileChangeTracker,
 	OFileStorage,
@@ -16,7 +16,7 @@ import {
 	OScanner,
 	OSidenoteFactory,
 	OStorageService,
-	OStyler,
+	ODecorator,
 	OEditorServiceController,
  } from './types';
 
@@ -26,7 +26,7 @@ export type ICfg =
 	& OAnchorer
 	& OApp
 	& OChangeTracker & OFileChangeTracker
-	& ODesigner & OStyler
+	& OStyler & ODecorator
 	& OStorageService & OFileStorage
 	& OScanner
 	& OSidenoteFactory
@@ -49,7 +49,7 @@ const cfg: ICfg = {
 		files: {
 			notesSubfolder,
 			defaultContentFileExtension: settings.get('defaultContentFileExtension') || '.md',
-			extensionsQuickPick: settings.get('extensionsQuickPick') || ['.md', '.mmap', '.xmind'],
+			extensionsQuickPick: settings.get('extensionsQuickPick') || [],
 		},
 	},
 

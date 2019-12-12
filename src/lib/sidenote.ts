@@ -4,25 +4,25 @@ import {
 	Anchorer,
 	Constructor,
 	DeepPartial,
-	Designer,
+	Styler,
 	EditorUtils,
 	IAnchor,
 	IAnchorable,
 	ICfg,
-	IDesignable,
+	IStylable,
 	IIdMaker,
 	IScanData,
 	IStorable,
 	IStorageService,
-	IStylable,
-	IStylableDecoration,
+	IDecorable,
+	IDecorableDecoration,
 	MarkerUtils,
 	Scanner,
 } from './types';
 
 export type ISidenote =
-	IDesignable &
 	IStylable &
+	IDecorable &
 	IAnchorable &
 	{
 		id: string,
@@ -37,10 +37,11 @@ export class Sidenote implements ISidenote {
 	extension?: string;
 	mime?: string|false;
 	anchor: IAnchor;
-	decorations: IStylableDecoration[];
+	decorations: IDecorableDecoration[];
 	color?: string;
 	constructor(
 		sidenote: ISidenote,
+		// status: Inspector
 	) {
 		Object.assign(this, sidenote);
 	}
@@ -49,6 +50,12 @@ export class Sidenote implements ISidenote {
 export class Inspector {
 	isBroken(sidenote): boolean { return typeof sidenote.content === 'undefined'; }
 	isEmpty(sidenote): boolean { return sidenote.content === ''; }
+	isText(sidenote): boolean { return (sidenote.mime === undefined)
+		? true
+		: (sidenote.mime === false)
+			? false
+			: sidenote.mime.includes('text');
+	}
 }
 
 export class SidenoteBuilder implements Partial<Sidenote> {
@@ -60,7 +67,7 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 	signature?: string;
 	anchor?: IAnchor;
 	content?: string;
-	decorations?: IStylableDecoration[];
+	decorations?: IDecorableDecoration[];
 
 	withMeta(key: string, id: string, extension?: string, mime?: string|false, signature?: string): this & Pick<Sidenote, 'key'|'id'|'extension'|'signature'|'mime'> {
 		return Object.assign(this, { key, id, mime, extension, signature });
@@ -74,7 +81,7 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 		return Object.assign(this, { content });
 	}
 
-	withDecorations(decorations: IStylableDecoration[]): this & Pick<Sidenote, 'decorations'> {
+	withDecorations(decorations: IDecorableDecoration[]): this & Pick<Sidenote, 'decorations'> {
 		return Object.assign(this, { decorations });
 	}
 
@@ -91,8 +98,11 @@ export type OSidenoteFactory = {
 	},
 	anchor: {
 		marker: {
-			signature: string
+			signature: string,
 		},
+		comments: {
+			affectNewlineSymbols: boolean
+		}
 	}
 }
 
@@ -119,10 +129,11 @@ export class SidenoteFactory {
 		private idMaker: IIdMaker,
 		private anchorer: Anchorer,
 		private storageService: IStorageService,
-		private designer: Designer,
+		private styler: Styler,
 		private utils: EditorUtils & MarkerUtils,
 		private scanner: Scanner,
 		private SidenoteBuilder: Constructor<Partial<Sidenote>>,
+		private inspector: Inspector,
 		private cfg: OSidenoteFactory
 	) {}
 
@@ -131,9 +142,10 @@ export class SidenoteFactory {
 	async build(o?: NewSidenoteOptions | ScannedSidenoteOptions): Promise<ISidenote> {
 		let key: string;
 		let id: string;
+		let content: string | undefined;
 		let extension: string | undefined;
-		let signature: string |undefined;
-		let mime: string|false;
+		let signature: string | undefined;
+		let mime: string | false;
 		let ranges: vscode.Range[];
 		let sidenote: ISidenote;
 
@@ -141,40 +153,63 @@ export class SidenoteFactory {
 			({ key, ranges, marker: { id, signature, extension }} = o);
 			mime = mimeTypes.lookup(extension);
 			const storageEntry = this.storageService.get({ id, extension });
-			const content = storageEntry ? storageEntry.content : undefined;
-			const undecorated = new SidenoteBuilder()
+			content = storageEntry ? storageEntry.content : undefined;
+			const withAnchor = new SidenoteBuilder()
 				.withMeta(key, id, extension, mime, signature)
 				.withContent(content)
 				.withAnchor(this.anchorer.getAnchor(id, extension));
 
-			return sidenote = undecorated.withDecorations(
-				this.designer.get(undecorated, ranges)
+			return sidenote = withAnchor.withDecorations(
+				this.styler.get(withAnchor, ranges)
 			).build();
 
 		} else { // buildNewSidenote
 			const id = this.idMaker.makeId();
-			const extension = o && o.marker && o.marker.extension
+
+			const extension = o	&& o.marker	&& o.marker.extension
 				? o.marker.extension
 				: this.cfg.storage.files.defaultContentFileExtension;
+
 			mime = mimeTypes.lookup(extension);
+
 			signature = this.cfg.anchor.marker.signature;
 
 			key = this.utils.getKey(id, extension);
-			const undecorated = new SidenoteBuilder()
-				.withMeta(key, id, extension, mime, signature)
-				.withContent(await this.utils.extractSelectionContent())
+
+			const withMeta = new SidenoteBuilder()
+				.withMeta(key, id, extension, mime, signature);
+
+			if	(this.inspector.isText(withMeta)) {
+				content = await this.utils.extractSelectionContent();
+			} else {
+				// remove selection
+				let selection = this.utils.editor.selection;
+				this.utils.editor.selection = new vscode.Selection(selection.start, selection.start);
+				content = ''
+			}
+
+			const withAnchor = withMeta
+				.withContent(content)
 				.withAnchor(this.anchorer.getAnchor(id, extension));
 
 			/* cannot generate decoration with proper range before write method,
 			because comment toggling changes range and it may vary with language,
 			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
 
-			const position = this.utils.editor.selection.anchor;
+			if (
+				this.cfg.anchor.comments.affectNewlineSymbols
+				&& this.utils.editor.selection.isEmpty
+				&& !this.utils.getTextLine().isEmptyOrWhitespace
+			) {
+				await vscode.commands.executeCommand('editor.action.insertLineBefore');
+			}
 
-			let range = this.utils.getMarkerRange(undecorated.anchor.marker, position);
+			const position = this.utils.editor.selection.anchor;
+			let range = this.utils.getMarkerRange(withAnchor.anchor.marker, position);
+
 			await Promise.all([
-				this.storageService.write(undecorated, { content: undecorated.content! }),
-				this.anchorer.write(undecorated, [range])
+				this.storageService.write(withAnchor, { content: withAnchor.content! }),
+				this.anchorer.write(withAnchor, [range])
 			]);
 
 			// re-calculate range after comment toggle
@@ -182,8 +217,8 @@ export class SidenoteFactory {
 				this.utils.getTextLine(range.start)
 			)!);
 
-			return sidenote = undecorated.withDecorations(
-				this.designer.get(undecorated, ranges)
+			return sidenote = withAnchor.withDecorations(
+				this.styler.get(withAnchor, ranges)
 			).build();
 		}
 	}

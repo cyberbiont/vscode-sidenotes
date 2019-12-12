@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {
 	Anchorer,
-	Designer,
+	Styler,
 	ISidenote,
 	IStorable,
 	IStorageService,
@@ -13,7 +13,7 @@ export default class SidenoteProcessor {
 		public storageService: IStorageService,
 		public anchorer: Anchorer,
 		public pool: SidenotesDictionary,
-		public designer: Designer
+		public styler: Styler
 	) {}
 
 	async delete(sidenote: ISidenote, { deleteContentFile = true }: { deleteContentFile?: boolean } = {}): Promise<ISidenote> {
@@ -44,7 +44,7 @@ export default class SidenoteProcessor {
 		const ranges = Array.from(new Set(
 			sidenote.decorations.map(decoration => decoration.options.range)
 		));
-		sidenote.decorations = this.designer.get(sidenote, ranges);
+		sidenote.decorations = this.styler.get(sidenote, ranges);
 		return sidenote;
 	}
 

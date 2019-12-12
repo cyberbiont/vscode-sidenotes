@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {
 	EditorUtils,
-	IStylableDecoration,
+	IDecorableDecoration,
 	MarkerUtils,
 	Scanner,
 } from './types';
@@ -73,7 +73,7 @@ export default class Anchorer {
 		);
 	};
 
-	async delete(anchored: IAnchorable & { decorations: IStylableDecoration[] }, internalize?: false): Promise<void> {
+	async delete(anchored: IAnchorable & { decorations: IDecorableDecoration[] }, internalize?: false): Promise<void> {
 		const ranges = Array.from(new Set(
 			anchored.decorations.map(decoration => decoration.options.range)
 		));

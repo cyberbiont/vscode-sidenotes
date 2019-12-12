@@ -9,14 +9,14 @@ This extension provides you an inobtrusive way to annotate your code with extern
 - create, edit and delete sidenotes, anchored to certain line in your code;
 - preview their contents in tooltips;
 - tooltips automatically update as you edit and save your note;
-- you can annotate any text file format that supports comments;
+- annotate any text file format that supports comments;
 - edit notes in VScode or open them right away in your favourite Markdown editor;
-- you can create notes with any custom extension, and open them with default system application (docx, mind maps...)
-- you can use multiple anchors for the same note;
-- automatically transfer selected fragment to the note being created (see [Externalizing content](#Externalizing content));
+- create notes with any custom extension, and open them with default system application (docx, mind maps...)
+- use multiple anchors for the same note;
+- automatically transfer selected fragment to the note being created (see [Externalizing content](#Externalizing-content));
 - automatically enclose moved fragment in appropriate code fence;
-- keep your notes under VCS along with the code they annotate or exclude them (see [VCS considerations](#VCS considerations));
-- notes are workspace/project based, but you can migrate them to new project (see [Housekeeping](#VCS considerations));
+- keep your notes under VCS along with the code they annotate or exclude them (see [VCS considerations](#VCS-considerations));
+- notes are workspace/project based, but you can migrate them to new project (see [Housekeeping](#Housekeeping));
 
 ## Motivation
 
@@ -42,7 +42,26 @@ Nevertheless, it is recommended to set some restrictions as to what kind of file
 
 Usually Markdown is the best choice for a simple sidenote, since it allows for simple editing and useful features such as code fences and syntax highliting.  So `.md` file is what is created on default when you add new sidenote. You can set exact extension for file in defautContentFileExtension setting.
 
+### images
+
 If you want to display an image or some other type of html-supported content, you can do so by stuffing it inside markdown file.
+For local files, you should place the files you are attaching into '${filename}.assets' subdirectory in your notes subfolder.
+
+Doing so will exclude these files so they won't appear as 'stray' when cleaning-up your content directory.
+
+You can do it manually or there is an option to do exactly that in Typora. `Preferences - images - copy image to ./${filename}.assets`
+
+Take care thought, that if you happen to just move image link from one sidenote to another without changing .assets folder where it resides, you'll loose correct files association.
+
+Simple absolute paths do not work for markdown images in Vscode. You have several options:
+
+- To be able to preview image in VScode (in Markdown preview window or by opening on Alt-Click) you have to use relative path. There an option for this in Typora. But image inserted in this way will not show up in hover tooltip.
+
+- Your second option is to use URI. Uncheck "relative path" option and enable "auto escape image URL".  You'll also have to manually add file:/// at the beginning of the uri. Note that this will break some of Typora functionality (you won't be able to open file's directory, for example).
+This method will allow the image to show up in the tooltip, but unfortunately it won't be visible in preview. You can still use Alt-Click to open it.
+
+Linking images with URL works fine.
+<!-- 🕮 <YL> 1574a389-2783-4446-bebf-c92589dd05f6.md -->
 
 ## Commands
 
@@ -68,7 +87,7 @@ Same as annotate, but when creating new note, presents you with an input field w
 
 #### Annotate (Input Extension)
 
-Same as annotate, but when creating new note, presents you with a dropdown list of extensions so you can select the one you need. List options can be edited in [configuration](#storage.files.extensionsQuickPick)
+Same as annotate, but when creating new note, presents you with a dropdown list of extensions so you can select the one you need. List options can be edited in [configuration](#extensionsQuickPick)
 
 #### Delete
 
@@ -106,7 +125,7 @@ Toggles visibility of markers. If you set full markers visisble by default in co
 
 ## Configuration options
 
-All configutarion settings must be prepended with 'sidenotes.' in your settings.json, ex. 'sidenotes.hoverToolbar'.
+All configuration settings must be prepended with 'sidenotes.' in your settings.json, ex. 'sidenotes.hoverToolbar'.
 
 <!-- 🕮 9c424c17-95db-4d86-83f2-8441a487868e -->
 
@@ -174,6 +193,12 @@ if the File Storage is used (which is by default) defines a subfolder inside you
 
 Default extension for content files. You can change it to whatever you like, but Markdown is recommended.
 
+#### extensionsQuickPick
+
+*default: []*
+
+List of extensions available for quick pick when using Annotate (Pick) command.
+
 <!-- 🕮 8533ec55-0f8d-4531-a1c4-b7d754f55eae -->
 
 ### Anchor configuration
@@ -224,7 +249,7 @@ Adds the string that you specify here at the beginning of the inserted marker an
 
 It will be written in your document but will not affect Regex search.
 
-Useful if you want to hook your sidenotes to some comment-styling extension (see [styling](#Prefixing and additional styling sidenotes : tips)).
+Useful if you want to hook your sidenotes to some comment-styling extension (see [styling](#Prefixing-and-additional-styling-your-sidenotes)).
 
 #### design.before
 
@@ -243,7 +268,7 @@ If you aim for true minimalism, you can use simple Unicode symbol and turn off g
 
 #### design.gutterIcon
 
-Whether to show icons in gutter. If you don't like them or use other extension which shows gutter icons (see [styling](#Prefixing and additional styling your sidenotes)) you can turn this off.
+Whether to show icons in gutter. If you don't like them or use other extension which shows gutter icons (see [styling](#Prefixing-and-additional-styling-your-sidenotes)) you can turn this off.
 
 #### design.ruler
 
@@ -313,11 +338,11 @@ You can can have more than one anchor for content file, if you manually copy anc
 
 Repeating anchors in the same document will be highlighted with colored dotted border for easier discerning (its color is randomly generated for each group).
 
-When you delete sidenote with `delete` command, all repetitive anchors in current document with the same ID are also deleted. Note that after this if there are other relevant anchors left elsewhere in your project, they will receive 'broken' status as their content file will be deleted. You can then deal with them as you like (see [Housekeeping](#Managing your sidenotes / Housekeeping)).
+When you delete sidenote with `delete` command, all repetitive anchors in current document with the same ID are also deleted. Note that after this if there are other relevant anchors left elsewhere in your project, they will receive 'broken' status as their content file will be deleted. You can then deal with them as you like (see [Housekeeping](#Housekeeping)).
 
 To delete only one of anchors use `wipe` command.
 
-## Managing your sidenotes / Housekeeping
+## Housekeeping
 
 By default, local directory inside your workspace folder is used to store notes. This lets you put your sidenotes under VCS control and commit them with the rest of your project (see VCS). However, because storage is workspace-bound,  this imposes some difficulties, one of them is the need to migrate your notes, if you want to move/copy your source document to another project/workspace.
 

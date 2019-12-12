@@ -7,10 +7,10 @@ import {
 	IChangeTracker,
 	IEditorService,
 	IStorageService,
-	OStyler,
+	ODecorator,
 	SidenotesDictionary,
 	SidenotesRepository,
-	SidenotesStyler,
+	SidenotesDecorator,
 } from './types';
 
 import {
@@ -32,12 +32,12 @@ import {
 
 import Anchorer from './anchorer';
 import Actions from './actions';
-import Designer from './designer';
+import Styler from './styler';
 import FileSystem from './fileSystem';
 import Pruner from './pruner';
 import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
-import Styler from './styler';
+import Decorator from './decorator';
 import UuidMaker from './idMaker';
 import { EventEmitter } from 'events';
 import { FileStorage } from './storageService';
@@ -133,17 +133,17 @@ export default class App {
 			return altCfg;
 		}
 
-		const stylersCollection = {
-			default: new Styler(pool, this.cfg),
-			alternative: new Styler(pool, getAlternativeStylesCfg.call(this))
+		const decoratorsCollection = {
+			default: new Decorator(pool, this.cfg),
+			alternative: new Decorator(pool, getAlternativeStylesCfg.call(this))
 		};
 
-		const stylerController = await new ReferenceController(
+		const decoratorController = await new ReferenceController(
 			ReferenceContainer,
-			(key: string): SidenotesStyler => stylersCollection[key],
+			(key: string): SidenotesDecorator => decoratorsCollection[key],
 		).update('default');
 
-		const styler: SidenotesStyler = await stylerController.getReference();
+		const decorator: SidenotesDecorator = await decoratorController.getReference();
 
 		const editorUtils = new EditorUtils(editor, this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
@@ -201,13 +201,13 @@ export default class App {
 		);
 
 		const inspector = new Inspector();
-		const designer = new Designer(inspector, this.cfg);
+		const styler = new Styler(inspector, this.cfg);
 
 		const sidenoteProcessor = new SidenoteProcessor(
 			storageService,
 			anchorer,
 			pool,
-			designer
+			styler
 		);
 
 		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
@@ -216,17 +216,18 @@ export default class App {
 			uuidMaker,
 			anchorer,
 			storageService,
-			designer,
+			styler,
 			utils,
 			scanner,
 			SidenoteBuilder,
+			inspector,
 			this.cfg
 		);
 
 		const sidenotesRepository: SidenotesRepository = new DictionaryRepository(sidenoteFactory, pool);
 
 		const actions = new Actions(
-			designer,
+			styler,
 			inspector,
 			pool,
 			poolController,
@@ -234,8 +235,8 @@ export default class App {
 			scanner,
 			sidenoteProcessor,
 			sidenotesRepository,
-			styler,
-			stylerController,
+			decorator,
+			decoratorController,
 			utils,
 			this.cfg
 		);
@@ -247,7 +248,7 @@ export default class App {
 			pool,
 			scanner,
 			sidenoteProcessor,
-			styler,
+			decorator,
 			utils,
 			editorController,
 			poolController,

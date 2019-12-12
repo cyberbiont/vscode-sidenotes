@@ -1,205 +1,105 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-
 import {
-	Constructor,
-	IAnchor,
-	ISidenote,
-	ReferenceContainer,
-	SidenotesDictionary,
-	MapRepository,
+	IDecorableDecoration,
+	Inspector,
+	ODecorator,
 } from './types';
 
-export interface IStylableDecoration {
-	category: string
-	options: vscode.DecorationOptions
-}
-
 export interface IStylable {
-	decorations: IStylableDecoration[]
-	// anchor: {
-	// 	editor: vscode.TextEditor
-	// }
+	content?: string;
+	color?: string;
+	mime?: string | false;
+	extension?: string;
 }
 
-interface IDecorations {
-		[category: string]: IConfigForSetDecorationFn
-}
-
-interface IConfigForSetDecorationFn {
-	type: vscode.TextEditorDecorationType,
-	options: vscode.DecorationOptions[],
-}
-
-interface ICategoryConfig {
-	style: vscode.DecorationRenderOptions
-	color: string | {
-		dark: string,
-		light: string
-	}
-	icon: string
-	message: string
-	condition?: (sidenote: ISidenote) => boolean
-}
-
-type categories = 'active'|'broken'|'empty';
-type colorIndication = 'text'|'after'|'before'|'ruler'
-
-export type OStyler = {
+export type OStyler = ODecorator & {
 	anchor: {
 		styles: {
-			settings: {
-				before: string | false
-				after: string | false
-				hideMarkers: boolean
-				gutterIcon: boolean
-				ruler: boolean
-				colorIndication: Array<colorIndication>|false
-			},
-			categories: {
-				common: ICategoryConfig,
-			} & {
-				[category in categories]: Partial<ICategoryConfig>
-			}
+			instanceRenderOptions: (color: string) => vscode.DecorationInstanceRenderOptions
 		}
 	}
 }
 
-export default class Styler<T extends IStylable> {
-	private decorations: IDecorations  = this.initDecorationConfig();
+export default class Styler {
+
 	constructor(
-		private pool: SidenotesDictionary,
-		private cfg: OStyler
+		public inspector: Inspector,
+		public cfg: OStyler
 	) {}
 
-	initDecorationConfig(): IDecorations  {
-		const { settings: o, categories } = JSON.parse(JSON.stringify(this.cfg.anchor.styles));
+	get(
+		stylable: IStylable,
+		ranges: vscode.Range[]
+	): IDecorableDecoration[] {
 
-		if (!categories.common || !categories.common.style) throw new Error(
-			`sidenotes: cannot build decoration types.
-			the "common" section is not found inside styles configuration. It should contain `
-		);
+		const decorations: IDecorableDecoration[] = Array.prototype.concat(
+			...ranges.map(range => this.getRangeDecorations(range, stylable))
+		); // TODO change to flat()
 
-		let result = Object.create(null);
-
-		for (const category in categories) {
-			if (category === 'common') continue;
-
-			// merge categories cfg over common cfg
-			const c: ICategoryConfig = Object.assign(
-				categories.common,
-				categories[category]
-			);
-
-			// set optional properties for sidenote categories:
-			if (o.hideMarkers) {
-				c.style.opacity = '0';
-				c.style.letterSpacing = '-1rem';
-			}
-			if (o.gutterIcon)	c.style.gutterIconPath = this.getIconPath(c.icon);
-			if (o.before) this.addNestedProperty(c.style, 'before.contentText', o.before);
-			if (o.after) this.addNestedProperty(c.style, 'after.contentText', o.after);
-			if (o.ruler) c.style.overviewRulerLane =	vscode.OverviewRulerLane.Right;
-			if (o.colorIndication && c.color) o.colorIndication.forEach(prop => {
-				switch (prop) {
-					case 'text':
-						this.setColor(c.color, c.style, 'color'); break;
-					case 'ruler':
-						this.setColor(c.color, c.style, 'overviewRulerColor'); break;
-					case 'after':
-					case 'before':
-						this.setColor(c.color, c.style, `${prop}.color`); break;
-				}
-			})
-
-			result[category] = {
-				type: vscode.window.createTextEditorDecorationType(c.style),
-				options: []
-			};
+		if (ranges.length > 1) {
+			const color = stylable.color ? stylable.color : stylable.color = this.getRandomHSLColor();
+			// TODO decrease color lightness for dark themes
+			decorations.map(decoration => this.markAsDuplicated(decoration, color));
 		}
-		return result;
-	};
-
-	private getIconPath(fileName: string): string {
-		return path.join(__dirname, '..', '..', 'images', fileName);
+		return decorations;
 	}
 
-	private setColor(color: string | {	dark: string,	light: string	}, style, prop: string) {
-		// 🕮 <YL> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
-		this.addNestedProperty(style,prop, typeof color === 'string' ? color : color.dark);
-		this.addNestedProperty(style,`light.${prop}`, typeof color === 'string' ? color : color.light);
+	private markAsDuplicated(decoration: IDecorableDecoration, color: string) {
+		decoration.options.renderOptions = this.cfg.anchor.styles.instanceRenderOptions(color);
 	}
 
-	private addNestedProperty(base, propsString, value) {
-		// 🕮 <YL> c5745bee-a5b1-4b45-966e-839fec3db57a.md
-		const props = propsString.split('.');
-		const lastProp = arguments.length === 3 ? props.pop() : false;
+	getRandomHSLColor(lightness: string = '75%') {
+		// 🕮 <YL> 16762ea0-4553-4aee-8dd2-508e37ca0adb.md
+		const color = 'hsl(' + Math.random() * 360 + `, 100%, ${lightness})`;
+		return color;
+	}
 
-		let lastBase = props.reduce((base, prop) => {
-			let value = base[prop] ? base[prop] : {};
-			base[prop] = value;
-			base = value;
-			return base;
-		}, base)
+	getRangeDecorations(
+		range: vscode.Range,
+		stylable: IStylable
+	): IDecorableDecoration[] {
+		const categories = this.getDecorationCategories(stylable);
+		return categories.map(category =>
+			this.getCategoryDecoration(category, range, stylable)
+		);
+	}
 
-		if (lastProp) lastBase = lastBase[lastProp] = value;
-		return lastBase;
-	};
+	getDecorationCategories(stylable: IStylable): string[] {
+		const categories: string[] = [];
+		if (this.inspector.isBroken(stylable)) categories.push('broken');
+		else if (this.inspector.isEmpty(stylable)) categories.push('empty');
+		else categories.push('active');
+		return categories;
+	}
 
-	updateDecorations({ pool = this.pool, reset = false }: { pool ?: SidenotesDictionary, reset?: boolean } = {}): void {
-		// const editorsToUpdate: Set<vscode.TextEditor> = new Set();
+	getCategoryDecoration(
+		category: string,
+		range: vscode.Range,
+		stylable: IStylable
+	): IDecorableDecoration {
+		const { extension, mime, content } = stylable;
+		const isTextFile = this.inspector.isText(stylable);
 
-		pool.each(getStylableDecorationOptions.bind(this));
+		let hoverMessage: string[] = [(this.cfg.anchor.styles.categories[category].message)
+			? this.cfg.anchor.styles.categories[category].message
+			: (isTextFile) ? content: ''
+		];
 
-		function getStylableDecorationOptions(stylable: IStylable) {
-			if (stylable.decorations)	{
-				stylable.decorations.forEach(decoration => {
-					this.decorations[decoration.category].options.push(decoration.options);
-					// editorsToUpdate.add(stylable.anchor.editor);
-				})
-			}
+		if (!isTextFile) hoverMessage.push(`⮜ NOT TEXT FILE TYPE ⮞
+			This content type cannot be displayed in tooltip.
+			Extension: ${extension} MIME type: ${mime}`);
+
+		// 🕮 <YL> 7d0274da-2eba-4948-93d6-993af5e1bcf5.md
+		//? TODO how to prepend?
+
+		const decoration: IDecorableDecoration = {
+			options: {
+				range,
+				hoverMessage
+			},
+			category
 		};
 
-		// if we have deleted last note
-		// if (editorsToUpdate.size === 0) editorsToUpdate.add(vscode.window.activeTextEditor!);
-
-		// const resetCategoryDecorations = (editor, category) => editor.setDecorations(this.decorations[category].type, []);
-		// const applyCategoryDecorations = (editor, category) => {
-		// 	editor.setDecorations(
-		// 		this.decorations[category].type,
-		// 		this.decorations[category].options
-		// 	);
-		// };
-
-		for (let category in this.decorations) {
-			// if (reset) editorsToUpdate.forEach(editor => this.resetCategoryDecorations(editor, category));
-			// else editorsToUpdate.forEach(editor => this.applyCategoryDecorations(editor, category));
-			if (reset) this.resetCategoryDecorations(pool.editor, category);
-			else this.applyCategoryDecorations(pool.editor, category);
-
-			this.decorations[category].options.length = 0 // clear array
-		}
-		// return editorsToUpdate;
-	}
-
-	resetCategoryDecorations(editor, category) {
-		editor.setDecorations(this.decorations[category].type, []);
-	}
-
-	applyCategoryDecorations(editor, category) {
-		editor.setDecorations(
-			this.decorations[category].type,
-			this.decorations[category].options
-		);
-	};
-
-	resetDecorations(): void {
-		return this.updateDecorations({ reset: true });
-	}
-
-	disposeDecorationTypes(): void {
-		for (const category in this.decorations) {
-			this.decorations[category].type.dispose();
-		}
+		return decoration;
 	}
 }

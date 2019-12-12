@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {
-	Designer,
+	Styler,
 	EditorUtils,
 	IScanData,
 	ISidenote,
@@ -10,7 +10,7 @@ import {
 	SidenoteProcessor,
 	SidenotesDictionary,
 	SidenotesRepository,
-	SidenotesStyler,
+	SidenotesDecorator,
 	ReferenceController
 } from './types';
 
@@ -22,16 +22,11 @@ export type OActions = {
 			extensionsQuickPick: string[]
 		}
 	},
-	anchor: {
-		comments: {
-			affectNewlineSymbols: boolean
-		}
-	}
 }
 
 export default class Actions {
 	constructor(
-		public designer: Designer,
+		public styler: Styler,
 		public inspector: Inspector,
 		public pool: SidenotesDictionary,
 		public poolController,
@@ -39,8 +34,8 @@ export default class Actions {
 		public scanner: Scanner,
 		public sidenoteProcessor: SidenoteProcessor,
 		public sidenotesRepository: SidenotesRepository,
-		public styler: SidenotesStyler,
-		public stylerController: ReferenceController<SidenotesStyler, string>,
+		public decorator: SidenotesDecorator,
+		public decoratorController: ReferenceController<SidenotesDecorator, string>,
 		public utils: EditorUtils,
 		public cfg: OActions
 	) {}
@@ -53,7 +48,7 @@ export default class Actions {
 		else await this.updateDocumentSidenotesPool(scanResults);
 		// 🕮 <YL> 70b9807e-7739-4e0f-bfb5-7f1603cb4377.md
 
-		this.styler.updateDecorations();
+		this.decorator.updateDecorations();
 	}
 
 	async getHover(document: vscode.TextDocument, position: vscode.Position) {
@@ -82,7 +77,7 @@ export default class Actions {
 	async updateDocumentSidenotesPool(scanResults: IScanData[]) {
 		const updateDecorationRange = async (scanData: IScanData): Promise<ISidenote> => {
 			const sidenote = await this.sidenotesRepository.obtain(scanData);
-			sidenote.decorations = this.designer.get(sidenote, scanData.ranges);
+			sidenote.decorations = this.styler.get(sidenote, scanData.ranges);
 			return sidenote;
 		}
 		return Promise.all(scanResults.map(updateDecorationRange));
@@ -113,12 +108,15 @@ export default class Actions {
 					sidenote = await this.sidenoteProcessor.handleBroken(obtainedSidenote);
 				}
 				else sidenote = obtainedSidenote;
-			}	else {
-				const extension = selectExtensionBy ? `.${await this.promptExtension(selectExtensionBy)}` : undefined;
 
-				if (this.cfg.anchor.comments.affectNewlineSymbols && this.utils.editor.selection.isEmpty) {
-					await vscode.commands.executeCommand('editor.action.insertLineBefore');
-				}
+			}	else {
+				let extension: string | undefined;
+
+				if (selectExtensionBy) {
+					const promptResult = await this.promptExtension(selectExtensionBy);
+					if (promptResult)	extension = `.${promptResult}`;
+					else return;
+				} else extension = undefined;
 
 				sidenote = await this.sidenotesRepository.create({
 					marker: {	extension	}
@@ -127,7 +125,7 @@ export default class Actions {
 
 			if (sidenote) await this.sidenoteProcessor.open(sidenote);
 
-			this.styler.updateDecorations();
+			this.decorator.updateDecorations();
 
 			if (process.env.SIDENOTES_USE_CODE_FENCE) delete process.env.SIDENOTES_USE_CODE_FENCE;
 
@@ -136,7 +134,7 @@ export default class Actions {
 		}
 	}
 	// TODO extract to User Interactions
-	async promptExtension(dialogType: ExtensionSelectionDialogTypes = 'input'): Promise<string|undefined> {
+	async promptExtension(dialogType: ExtensionSelectionDialogTypes = 'input'): Promise<string | undefined> {
 		let extension: string|undefined;
 
 		if (dialogType === 'pick') {
@@ -144,7 +142,7 @@ export default class Actions {
 				this.cfg.storage.files.extensionsQuickPick.map(ext => ({
 					label: ext
 				})), {
-					placeHolder: `choose extension to the content file to be created`
+					placeHolder: `choose extension of the content file to be created`
 				}
 			);
 			extension = action ? action.label : undefined;
@@ -177,7 +175,7 @@ export default class Actions {
 		};
 		const sidenote = await this.sidenotesRepository.obtain(scanData);
 		await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
-		this.styler.updateDecorations();
+		this.decorator.updateDecorations();
 	}
 
 	async wipeAnchor({ onHoverScanData }: { onHoverScanData?: IScanData	} = {}): Promise<void> {
@@ -215,11 +213,11 @@ export default class Actions {
 			default: await this.pruner.pruneAll();
 		}
 
-		this.styler.updateDecorations();
+		this.decorator.updateDecorations();
 	}
 
 	reset() {
-		this.styler.resetDecorations();
+		this.decorator.resetDecorations();
 		this.pool.clear();
 		this.pool.isInitialized = false;
 	}
@@ -230,8 +228,8 @@ export default class Actions {
 	}
 
 	switchStylesCfg() {
-		const key = this.stylerController.key === 'default' ? 'alternative' : 'default';
-		this.stylerController.update(key);
+		const key = this.decoratorController.key === 'default' ? 'alternative' : 'default';
+		this.decoratorController.update(key);
 		this.refresh();
 	}
 }

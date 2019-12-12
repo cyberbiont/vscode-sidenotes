@@ -31,8 +31,9 @@ export default class editorServiceController {
 		switch(extension) {
 			case '.md':
 			case '.mdown':
-			case '.markdown':
 				this.markdownEditor.open(path); break;
+			case '.markdown':
+				this.typora.open(path); break;
 			default:
 				this.systemDefault.open(path);
 		}

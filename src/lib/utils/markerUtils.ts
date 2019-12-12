@@ -60,7 +60,7 @@ export default class MarkerUtils {
 		return `${id}${extension ?  extension : ''}`;
 	}
 
-	getIdFromString(string: string): string|null {
+	getIdFromString(string: string): string | null {
 		const match = string.match(this.idMaker.ID_REGEX)
 		if (match) return match[0];
 		return null;

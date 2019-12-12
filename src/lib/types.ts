@@ -16,10 +16,10 @@ export {
 } from './dictionary';
 
 export {
-	IDesignable,
-	ODesigner,
-	default as Designer,
-} from './designer';
+	IStylable,
+	OStyler,
+	default as Styler,
+} from './styler';
 
 export {
 	IAnchor,
@@ -55,11 +55,11 @@ export {
 } from './scanner';
 
 export {
-	IStylable,
-	IStylableDecoration,
-	OStyler,
-	default as Styler,
-} from './styler';
+	IDecorable,
+	IDecorableDecoration,
+	ODecorator,
+	default as Decorator,
+} from './decorator';
 
 export {
 	default as Pruner,
@@ -116,7 +116,7 @@ import {
 	DictionaryRepository,
 	MapRepository,
 } from './repository';
-import Styler from './styler';
+import Decorator from './decorator';
 import { IScanData } from './scanner';
 import { ISidenote, SidenoteFactoryOptions } from './sidenote';
 
@@ -126,7 +126,7 @@ export type SidenotesDictionary
 export type DocumentInitializableSidenotesRepository
 	=	MapRepository<vscode.TextDocument,	SidenotesDictionary>;
 
-export type SidenotesStyler = Styler<ISidenote>;
+export type SidenotesDecorator = Decorator<ISidenote>;
 
 export type SidenotesRepository
 	= DictionaryRepository<SidenoteFactoryOptions, ISidenote>;

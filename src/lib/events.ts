@@ -12,7 +12,7 @@ import {
 	Scanner,
 	SidenoteProcessor,
 	SidenotesDictionary,
-	SidenotesStyler,
+	SidenotesDecorator,
 } from './types';
 
 export default class Events {
@@ -23,7 +23,7 @@ export default class Events {
 		private pool: SidenotesDictionary,
 		private scanner: Scanner,
 		private sidenoteProcessor: SidenoteProcessor,
-		private styler: SidenotesStyler,
+		private decorator: SidenotesDecorator,
 		private utils: MarkerUtils,
 		private editorController: ReferenceController<vscode.TextEditor>,
 		private poolController: ReferenceController<Promise<SidenotesDictionary>, vscode.TextDocument>,
@@ -60,7 +60,7 @@ export default class Events {
 
 		if (sidenotes.length === 0) throw new Error('Update sidenote failed: no corresponding sidenotes were found in pool');
 		sidenotes.map(sidenote => this.sidenoteProcessor.updateContent(sidenote));
-		pools.map(pool => this.styler.updateDecorations({ pool }));
+		pools.map(pool => this.decorator.updateDecorations({ pool }));
 	};
 
 	async onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
@@ -83,7 +83,7 @@ export default class Events {
 
 		await this.actions.updateDocumentSidenotesPool(scanResults);
 
-		this.styler.updateDecorations();
+		this.decorator.updateDecorations();
 	};
 
 }

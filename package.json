@@ -75,6 +75,13 @@
 						},
 						"description": "Defines what part of comment anchor will change color, indicating sidenote status."
 					},
+					"sidenotes.extensionsQuickPick": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "List of extensions available for quick pick when using Annotate (Pick) command"
+					},
 					"sidenotes.includeFilter": {
 						"type": "string",
 						"description": "Glob pattern for files that will be enabled for annotation."

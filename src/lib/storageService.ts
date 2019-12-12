@@ -7,15 +7,11 @@ import {
 	FileSystem,
 	ICfg,
 	MarkerUtils,
-	// IEditorService,
 	Scanner
 } from './types';
-import { throws } from 'assert';
 
 export interface IStorable {
-	// id: string;
 	content: string;
-	// extension?: string;
 }
 
 export type OStorageService = {
@@ -51,7 +47,8 @@ export interface IFileStorage extends IStorageService {
 	): Promise<string | boolean>;
 }
 
-type DefaultContentFileExtension = '.md'|'.markdown'|'.mdown'|'.txt';
+type DefaultContentFileExtension = '.md'|'.markdown';
+// 🕮 <YL> 6abe46d6-116f-44c7-9e0f-4e2b81b64513.md
 
 export type OFileStorage = {
 	storage: {
@@ -137,10 +134,14 @@ export class FileStorage implements IFileStorage {
 	}
 
 	async delete(key: FileStorageKey): Promise<boolean> {
+		const path = this.getContentFilePath({id: key.id, extension: '.assets'});
 		try {
+			// const path = this.getContentFilePath({id: key.id, extension: 'assets'});
 			await this.fs.delete(this.getContentFilePath(key));
+			await this.fs.delete(this.getContentFilePath({ id: key.id, extension: '.assets' })); // delete assets subfolder if such exists
 			return true;
 		} catch (e) {
+			console.log(e);
 			return false;
 			// if file is not present, continue
 		}
@@ -380,19 +381,21 @@ export class FileStorage implements IFileStorage {
 
 		for (const [name, type] of await vscode.workspace.fs.readDirectory(folder.with({ path: notesSubfolderPath }))) {
 			const filePath = path.join(notesSubfolderPath, name);
-			if (type === vscode.FileType.File) {
-				const id = this.utils.getIdFromString(filePath);
-				if (!id) strayEntries.push(filePath);
- 				else {
-					const key = this.getContentFileName({
-						id,
-						extension: path.extname(filePath)
-					});
-					fileIds[key] = filePath;
-				}
-			} else {
-				strayEntries.push(filePath);
+
+			const id = this.utils.getIdFromString(filePath);
+			// if (type === vscode.FileType.File) {
+
+			if (!id) strayEntries.push(filePath);
+			else {
+				const key = this.getContentFileName({
+					id,
+					extension: path.extname(filePath)
+				});
+				fileIds[key] = filePath;
 			}
+			// } else if (type === vscode.FileType.Directory) {
+			// 	strayEntries.push(filePath);
+			// }
 		}
 
 		return {
