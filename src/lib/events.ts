@@ -64,14 +64,14 @@ export default class Events {
 	};
 
 	async onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
+		if (process.env.SIDENOTES_LOCK_EVENTS) return;
 		if (!event.contentChanges.some(
 			change => {
 				// 🕮 <YL> aef6cc81-45c3-43bc-8f49-97c7f6ded1c7.md
 				const condition = (
-					(change.rangeLength &&
-						change.rangeLength >= this.utils.BARE_MARKER_SYMBOLS_COUNT) ||
-					(this.utils.BARE_MARKER_SYMBOLS_COUNT &&
-						change.text.includes(this.cfg.anchor.marker.salt))
+					(change.rangeLength && change.rangeLength >= this.utils.BARE_MARKER_SYMBOLS_COUNT) // handle deletion
+					|| (change.text.length > this.utils.BARE_MARKER_SYMBOLS_COUNT
+						&& change.text.includes(this.cfg.anchor.marker.salt))
 				);
 				return condition;
 			}

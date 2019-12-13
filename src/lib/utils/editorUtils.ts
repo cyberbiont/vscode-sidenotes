@@ -112,7 +112,7 @@ export default class EditorUtils {
 	async toggleComment(
 		range: vscode.Range,
 		editor: vscode.TextEditor = this.editor,
-		{ useBlockComments = false}: { useBlockComments?: boolean } = {}
+		{ useBlockComments = false }: { useBlockComments?: boolean } = {}
 	): Promise<boolean> {
 		try {
 			const selection = new vscode.Selection(range.start, range.end);

@@ -4,7 +4,7 @@
 	"description": "annotate your code with external notes, stored separately and shown on hover",
 	"publisher": "Yaroslav Larin",
 	"version": "1.0.0",
-	"license": "MIT",
+	"license": "ISC",
 	"engines": {
 		"vscode": "^1.38.0",
 		"node": "^10.16.0"

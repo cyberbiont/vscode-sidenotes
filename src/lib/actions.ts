@@ -122,10 +122,9 @@ export default class Actions {
 					marker: {	extension	}
 				});
 			}
-
+			this.scan();
+			// 🕮 <YL> d296063a-56ff-4667-8a50-b2120c93158e.md
 			if (sidenote) await this.sidenoteProcessor.open(sidenote);
-
-			this.decorator.updateDecorations();
 
 			if (process.env.SIDENOTES_USE_CODE_FENCE) delete process.env.SIDENOTES_USE_CODE_FENCE;
 

@@ -73,7 +73,7 @@ export default class SidenoteProcessor {
 			});
 
 			const chosen = await vscode.window.showQuickPick(actions, {
-				placeHolder: 'No corresponding file is found in workspace sidenotes folder. What do you want to do?'
+				placeHolder: 'No corresponding content file is found in workspace sidenotes folder. What do you want to do?'
 			});
 
 			return chosen;

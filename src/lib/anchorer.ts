@@ -43,24 +43,24 @@ export default class Anchorer {
 
 	// 🕮 <YL> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: IAnchorable, ranges: vscode.Range[]): Promise<void> {
+		// 🕮 <YL> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
+		process.env.SIDENOTES_LOCK_EVENTS = 'true';
 		const iterator = this.editsChainer(
 			ranges,
 			// this.writeRange.bind(this, anchorable)
-			async (range: vscode.Range, i: number) => {
-				// if (i > 0) {
-				// 	// range = this.editor.getText().match(...)
-				// }
+			(range: vscode.Range, i: number) => {
 				return this.writeRange.call(this, anchorable, range)
 			}
 		);
 		for await(let range of iterator);
+
+		delete process.env.SIDENOTES_LOCK_EVENTS;
 	}
 
 	/**
 	* writes anchor comment to document at current cursor position
 	*/
 	private async writeRange(anchorable: IAnchorable, range: vscode.Range, editor = this.editor) {
-		// const selection = editor.selection;
 
 		await editor.edit(
 			edit => edit.insert(range.start, anchorable.anchor.marker),
@@ -74,13 +74,14 @@ export default class Anchorer {
 	};
 
 	async delete(anchored: IAnchorable & { decorations: IDecorableDecoration[] }, internalize?: false): Promise<void> {
+		// process.env.SIDENOTES_LOCK_EVENTS = 'true';
 		const ranges = Array.from(new Set(
 			anchored.decorations.map(decoration => decoration.options.range)
 		));
 
 		const iterator = this.editsChainer(
 			ranges,
-			async (range: vscode.Range, i: number) => {
+			(range: vscode.Range, i: number) => {
 				if (i != 0) {
 					const regexp = new RegExp(this.utils.getBareMarkerRegexString(anchored.id));
 					const nextRange = this.scanner.rescanForRange(regexp);
@@ -95,6 +96,14 @@ export default class Anchorer {
 		);
 
 		for await(let range of iterator);
+
+		// delete process.env.SIDENOTES_LOCK_EVENTS;
+	}
+
+	private rescanLine(range: vscode.Range): vscode.Range {
+		return this.scanner.scanLine(
+			this.utils.getTextLine(range.start)
+		)!.ranges[0];
 	}
 
 	private async deleteRange(anchored: IAnchorable, range: vscode.Range, editor = this.editor) {
@@ -112,11 +121,7 @@ export default class Anchorer {
 			);
 
 			// we have to re-calculate range after comment toggle
-			const [ commentedRange ] = this.scanner.scanLine(
-				this.utils.getTextLine(range.start)
-			)!.ranges;
-
-			rangeToDelete = commentedRange;
+			rangeToDelete = this.rescanLine(range);
 		}
 
 		await editor.edit(
@@ -129,7 +134,7 @@ export default class Anchorer {
 	}
 
 	private async *editsChainer(iterable: vscode.Range[], cb) {
-		for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
-		// for (let item of iterable) yield cb.call(this, item);
+		// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
+		for (let item of iterable) yield cb.call(this, item);
 	}
 }

@@ -16,7 +16,6 @@ export interface IStorable {
 
 export type OStorageService = {
 }
-
 type StorageKey = FileStorageKey // & ...
 
 export interface IStorageService {
