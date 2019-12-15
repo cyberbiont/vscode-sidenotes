@@ -1,6 +1,6 @@
 export * from './changeTracker';
 export * from './fileChangeTracker';
-export * from './chokidarFileChangeTracker';
+// export * from './chokidarFileChangeTracker';
 
 export { default as FileChangeTracker } from './fileChangeTracker';
 // export { default as ChokidarChangeTracker } from './chokidarFileChangeTracker';

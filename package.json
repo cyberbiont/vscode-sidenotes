@@ -1,10 +1,11 @@
 {
 	"name": "vscode-sidenotes",
 	"displayName": "Sidenotes",
-	"description": "annotate your code with external notes, stored separately and shown on hover",
+	"description": "Annotate your code with external notes, stored separately and shown on hover",
 	"publisher": "Yaroslav Larin",
 	"version": "1.0.0",
 	"license": "ISC",
+	"icon": "images/extensionIcon.png",
 	"engines": {
 		"vscode": "^1.38.0",
 		"node": "^10.16.0"
@@ -226,18 +227,18 @@
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^10.12.21",
-		"@types/uuid": "^3.4.5",
-		"@types/vscode": "^1.38.0",
-		"glob": "^7.1.4",
-		"mocha": "^6.1.4",
-		"tslint": "^5.12.1",
-		"typescript": "^3.3.1",
-		"vscode-test": "^1.2.0"
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^12.12.17",
+		"@types/uuid": "^3.4.6",
+		"@types/vscode": "^1.41.0",
+		"glob": "^7.1.6",
+		"mocha": "^6.2.2",
+		"tslint": "^5.20.1",
+		"typescript": "^3.7.3",
+		"vscode-test": "^1.3.0"
 	},
 	"dependencies": {
-		"chokidar": "^3.2.2",
+		"chokidar": "^3.3.0",
 		"mime-types": "^2.1.25",
 		"open": "^7.0.0",
 		"uuid": "^3.3.3"

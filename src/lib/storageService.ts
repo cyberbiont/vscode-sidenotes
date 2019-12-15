@@ -24,7 +24,7 @@ export interface IStorageService {
 	get(key: StorageKey): Promise<IStorable | undefined>;
 	open(key: StorageKey);
 	checkStartupRequirements?(): void;
-	lookup(
+	lookup?(
 		key: FileStorageKey,
 		lookupFolderUri?: vscode.Uri,
 		workspace?: string,

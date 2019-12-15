@@ -111,7 +111,7 @@ export default class SidenoteProcessor {
 
 		if (result) {
 			const [ lookupUri ] = result;
-			const success = await this.storageService.lookup(sidenote, lookupUri);
+			const success = await this.storageService.lookup!(sidenote, lookupUri);
 			if (success) {
 				sidenote = await this.updateContent(sidenote);
 				return sidenote;
