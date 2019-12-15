@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as nodeFs from 'fs';
+import vscode from 'vscode';
+import path from 'path';
+import nodeFs from 'fs';
 import { TextEncoder, TextDecoder } from 'util';
 
 import {

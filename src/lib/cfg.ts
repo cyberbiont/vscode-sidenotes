@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as os from 'os';
-import * as path from 'path';
+import vscode from 'vscode';
+import os from 'os';
+import path from 'path';
 
 import {
 	OActions,

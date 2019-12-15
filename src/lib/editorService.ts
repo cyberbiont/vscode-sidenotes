@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as open from 'open';
+import vscode from 'vscode';
+import open from 'open';
 
 import {
 	FileChangeTracker,

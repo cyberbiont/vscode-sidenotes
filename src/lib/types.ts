@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 
 export { EventEmitter } from 'events';
 export { ICfg } from './cfg';

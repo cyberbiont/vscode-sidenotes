@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import ChangeTracker from './changeTracker';
 import {
 	IIdMaker,

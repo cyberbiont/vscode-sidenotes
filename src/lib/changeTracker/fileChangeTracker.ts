@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import ChangeTracker from './changeTracker';
-import * as path from 'path';
+import path from 'path';
 import {
 	EventEmitter,
 	ICfg,

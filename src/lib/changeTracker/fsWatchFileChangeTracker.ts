@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as nodeFs from 'fs';
+import vscode from 'vscode';
+import nodeFs from 'fs';
 import {
 	EventEmitter,
 	IChangeData,

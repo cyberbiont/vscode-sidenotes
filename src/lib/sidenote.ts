@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as mimeTypes from 'mime-types';
+import vscode from 'vscode';
+import mimeTypes from 'mime-types';
 import {
 	Anchorer,
 	Constructor,

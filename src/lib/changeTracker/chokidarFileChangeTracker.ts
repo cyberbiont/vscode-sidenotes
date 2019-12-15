@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as chokidar from 'chokidar';
+import vscode from 'vscode';
+import chokidar from 'chokidar';
 import FileChangeTracker from './fileChangeTracker';
 
 import {
