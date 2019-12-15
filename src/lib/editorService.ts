@@ -53,7 +53,7 @@ export class SystemDefaultEditor implements IEditorService {
 }
 
 export class TyporaEditor implements IEditorService {
-	private terminal: vscode.Terminal = vscode.window.createTerminal('Sidenotes');
+	private terminal: vscode.Terminal;
 
 	constructor(
 		public changeTracker: FileChangeTracker,
@@ -64,6 +64,7 @@ export class TyporaEditor implements IEditorService {
 
 	// 🕮 <YL> 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4.md
 	open(path: string): vscode.Terminal | false {
+		if (!this.terminal) this.terminal = vscode.window.createTerminal('Sidenotes');
 		try {
 			this.terminal.sendText(`typora "${path}"`);
 		} catch (e) {
