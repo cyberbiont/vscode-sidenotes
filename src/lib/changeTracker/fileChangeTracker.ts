@@ -4,8 +4,10 @@ import {
 	WorkspaceFoldersChangeEvent,
 } from 'vscode';
 import path from 'path';
+import { EventEmitter } from 'events';
 import ChangeTracker from './changeTracker';
-import { EventEmitter, IdProvider, MarkerUtils } from '../types';
+import { IdProvider } from '../idProvider';
+import { MarkerUtils } from '../utils';
 
 export type OFileChangeTracker = {
 	storage: {

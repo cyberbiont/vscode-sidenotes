@@ -1,5 +1,6 @@
 import { DecorationInstanceRenderOptions, Range } from 'vscode';
-import { DecorableDecoration, Inspector, ODecorator } from './types';
+import { DecorableDecoration, ODecorator } from './decorator';
+import { Inspector } from './sidenote';
 
 // TODO make categories enum
 export interface Stylable {

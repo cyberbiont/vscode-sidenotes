@@ -1,6 +1,8 @@
 import { workspace, TextDocument, ExtensionContext } from 'vscode';
+import { EventEmitter } from 'events';
 import ChangeTracker from './changeTracker';
-import { IdProvider, EventEmitter, MarkerUtils } from '../types';
+import { IdProvider } from '../idProvider';
+import { MarkerUtils } from '../utils';
 
 export type OVscodeChangeTracker = {};
 

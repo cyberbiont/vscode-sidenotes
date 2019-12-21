@@ -8,20 +8,18 @@ import {
 	window,
 } from 'vscode';
 
+import Styler from './styler';
+import { Inspector, Sidenote } from './sidenote';
 import {
-	EditorUtils,
-	ScanData,
-	Sidenote,
-	Inspector,
-	Pruner,
-	ReferenceController,
-	Scanner,
-	SidenoteProcessor,
-	SidenotesDecorator,
 	SidenotesDictionary,
 	SidenotesRepository,
-	Styler,
+	SidenotesDecorator,
 } from './types';
+import { ReferenceController } from './referenceContainer';
+import Pruner from './pruner';
+import Scanner, { ScanData } from './scanner';
+import SidenoteProcessor from './sidenoteProcessor';
+import { EditorUtils } from './utils';
 
 type ExtensionSelectionDialogTypes = 'input' | 'pick';
 

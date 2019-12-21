@@ -1,9 +1,6 @@
-import {
-	Inspector,
-	Sidenote,
-	SidenoteProcessor,
-	SidenotesDictionary,
-} from './types';
+import { Sidenote, Inspector } from './sidenote';
+import { SidenotesDictionary } from './types';
+import SidenoteProcessor from './sidenoteProcessor';
 
 export default class Pruner {
 	constructor(

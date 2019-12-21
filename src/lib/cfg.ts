@@ -3,30 +3,27 @@ import {
 	DecorationRangeBehavior,
 	workspace,
 } from 'vscode';
+
 import os from 'os';
 import path from 'path';
-
-import {
-	OActions,
-	OAnchorer,
-	OApp,
-	OChangeTracker,
-	OStyler,
-	OEditorUtils,
-	OFileChangeTracker,
-	OFileStorage,
-	OFileSystem,
-	OMarkerUtils,
-	OScanner,
-	OSidenoteFactory,
-	OStorageService,
-	ODecorator,
-	OEditorServiceController,
-} from './types';
+import { OEditorUtils, OMarkerUtils } from './utils';
+import { OSnEvents } from './events';
+import { OSnFileSystem } from './fileSystem';
+import { OAnchorer } from './anchorer';
+import { OApp } from './app';
+import { OChangeTracker, OFileChangeTracker } from './changeTracker';
+import { OStyler } from './styler';
+import { ODecorator } from './decorator';
+import { OStorageService, OFileStorage } from './storageService';
+import { OScanner } from './scanner';
+import { OSidenoteFactory } from './sidenote';
+import { OEditorServiceController } from './editorServiceController';
+import { OActions } from './actions';
 
 export type Cfg = OEditorUtils &
+	OSnEvents &
 	OMarkerUtils &
-	OFileSystem &
+	OSnFileSystem &
 	OAnchorer &
 	OApp &
 	OChangeTracker &

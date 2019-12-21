@@ -15,47 +15,39 @@ import {
 
 import { EventEmitter } from 'events';
 import {
-	DocumentInitializableSidenotesRepository,
-	Cfg,
-	StorageService,
-	SidenotesDictionary,
-	SidenotesRepository,
-	SidenotesDecorator,
-} from './types';
-
-import {
 	SystemDefaultEditorService,
 	ShellEditorService,
 	VscodeEditorService,
 } from './editorService';
-
 import {
 	// ChokidarChangeTracker,
 	VSCodeFileSystemWatcher,
 } from './changeTracker';
-
 import { Inspector, SidenoteBuilder, SidenoteFactory } from './sidenote';
-
 import Anchorer from './anchorer';
 import Actions from './actions';
 import Styler from './styler';
-import FileSystem from './fileSystem';
+import SnFileSystem from './fileSystem';
 import Pruner from './pruner';
 import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
 import Decorator from './decorator';
 import UuidProvider from './idProvider';
-import { FileStorage } from './storageService';
+import { FileStorage, StorageService } from './storageService';
 import { MapDictionary } from './dictionary';
 import { ReferenceContainer, ReferenceController } from './referenceContainer';
 import { MapRepository, DictionaryRepository } from './repository';
-
 import { Initializable, HasEditorReference } from './mixins';
-
 import { MarkerUtils, EditorUtils } from './utils';
-import Events from './events';
-
+import SnEvents from './events';
 import EditorServiceController from './editorServiceController';
+import { Cfg } from './cfg';
+import {
+	DocumentInitializableSidenotesRepository,
+	SidenotesDictionary,
+	SidenotesDecorator,
+	SidenotesRepository,
+} from './types';
 
 export type OApp = {
 	app: {
@@ -65,7 +57,7 @@ export type OApp = {
 
 export default class App {
 	public actions: Actions;
-	private events: Events;
+	private events: SnEvents;
 	private eventEmitter: EventEmitter;
 	private storageService: StorageService;
 
@@ -165,7 +157,7 @@ export default class App {
 
 		const scanner = new Scanner(editor, utils);
 
-		const fileSystem = new FileSystem(scanner, utils, this.cfg);
+		const fileSystem = new SnFileSystem(scanner, utils, this.cfg);
 
 		const changeTracker = new VSCodeFileSystemWatcher(
 			uuidMaker,
@@ -238,7 +230,7 @@ export default class App {
 			this.cfg,
 		);
 
-		const events = new Events(
+		const events = new SnEvents(
 			actions,
 			this.cfg,
 			pool,

@@ -1,4 +1,4 @@
-import { Dictionary, HasKeyProperty } from './types';
+import { HasKeyProperty, Dictionary } from './dictionary';
 
 export interface HasFactoryMethod<V> {
 	create: (key: unknown) => V | Promise<V>;

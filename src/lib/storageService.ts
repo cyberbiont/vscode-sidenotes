@@ -7,13 +7,9 @@ import {
 	WorkspaceFolder,
 } from 'vscode';
 import path from 'path';
-
-import {
-	EditorServiceController,
-	EditorUtils,
-	FileSystem,
-	MarkerUtils,
-} from './types';
+import SnFileSystem from './fileSystem';
+import EditorServiceController from './editorServiceController';
+import { EditorUtils, MarkerUtils } from './utils';
 
 export interface Storable {
 	content: string;
@@ -73,7 +69,7 @@ export class FileStorage implements StorageService {
 	constructor(
 		public editorServiceController: EditorServiceController,
 		public utils: EditorUtils & MarkerUtils,
-		public fs: FileSystem,
+		public fs: SnFileSystem,
 		cfg: OFileStorage,
 		private commands,
 	) {

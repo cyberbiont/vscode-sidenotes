@@ -7,8 +7,8 @@ import {
 	window,
 } from 'vscode';
 import path from 'path';
-
-import { Sidenote, SidenotesDictionary } from './types';
+import { Sidenote } from './sidenote';
+import { SidenotesDictionary } from './types';
 
 export interface DecorableDecoration {
 	category: string;

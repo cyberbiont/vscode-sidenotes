@@ -1,10 +1,7 @@
 import { TextEditor, Range } from 'vscode';
-import {
-	EditorUtils,
-	DecorableDecoration,
-	MarkerUtils,
-	Scanner,
-} from './types';
+import { EditorUtils, MarkerUtils } from './utils';
+import Scanner from './scanner';
+import { DecorableDecoration } from './decorator';
 
 // 🕮 <YL> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface Anchor {

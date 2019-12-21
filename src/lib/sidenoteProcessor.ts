@@ -1,13 +1,9 @@
 import { window, QuickPickItem, Range, TextEditor } from 'vscode';
-import {
-	Anchorer,
-	Styler,
-	Inspector,
-	Sidenote,
-	Storable,
-	StorageService,
-	SidenotesDictionary,
-} from './types';
+import { StorageService, Storable } from './storageService';
+import Anchorer from './anchorer';
+import { SidenotesDictionary } from './types';
+import Styler from './styler';
+import { Inspector, Sidenote } from './sidenote';
 
 export default class SidenoteProcessor {
 	constructor(

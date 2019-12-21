@@ -1,6 +1,5 @@
 import { TextEditor, Range, TextLine } from 'vscode';
-
-import { EditorUtils, MarkerUtils } from './types';
+import { EditorUtils, MarkerUtils } from './utils';
 
 export type OScanner = {};
 

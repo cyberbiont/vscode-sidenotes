@@ -2,10 +2,10 @@
 import { workspace, RelativePattern, Uri } from 'vscode';
 import nodeFs from 'fs';
 import { TextEncoder, TextDecoder } from 'util';
+import Scanner, { ScanData } from './scanner';
+import { EditorUtils } from './utils';
 
-import { ScanData, EditorUtils, Scanner } from './types';
-
-export type OFileSystem = {
+export type OSnFileSystem = {
 	// 🕮 <YL> e4f5fe76-3db2-4c20-a796-1300f779ff6f.md
 	worskspaceFilter: {
 		include: string;
@@ -13,7 +13,7 @@ export type OFileSystem = {
 	};
 };
 
-export default class FileSystem
+export default class SnFileSystem
 // implements vscode.FileSystem
 {
 	private textEncoder: TextEncoder = new TextEncoder();
@@ -23,7 +23,7 @@ export default class FileSystem
 	constructor(
 		private scanner: Scanner,
 		public utils: EditorUtils,
-		private cfg: OFileSystem,
+		private cfg: OSnFileSystem,
 		private fs = workspace.fs,
 		private nfs = nodeFs,
 	) {}

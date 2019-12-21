@@ -1,5 +1,5 @@
 import { Position, Range } from 'vscode';
-import { IdProvider } from '../types';
+import { IdProvider } from '../idProvider';
 
 export type OMarkerUtils = {
 	anchor: {

@@ -1,4 +1,6 @@
-import { EventEmitter, IdProvider, MarkerUtils } from '../types';
+import { EventEmitter } from 'events';
+import { IdProvider } from '../idProvider';
+import { MarkerUtils } from '../utils';
 
 export type OChangeTracker = {};
 

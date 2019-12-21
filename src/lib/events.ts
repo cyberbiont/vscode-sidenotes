@@ -5,24 +5,31 @@ import {
 	workspace,
 } from 'vscode';
 import path from 'path';
+import Actions from './actions';
 import {
-	Actions,
-	DocumentInitializableSidenotesRepository,
-	Cfg,
-	ChangeData,
-	Sidenote,
-	MarkerUtils,
-	ReferenceController,
-	Scanner,
-	SidenoteProcessor,
 	SidenotesDictionary,
 	SidenotesDecorator,
+	DocumentInitializableSidenotesRepository,
 } from './types';
+import Scanner from './scanner';
+import SidenoteProcessor from './sidenoteProcessor';
+import { MarkerUtils } from './utils';
+import { ReferenceController } from './referenceContainer';
+import { ChangeData } from './changeTracker';
+import { Sidenote } from './sidenote';
 
-export default class Events {
+export type OSnEvents = {
+	anchor: {
+		marker: {
+			salt: string;
+		};
+	};
+};
+
+export default class SnEvents {
 	constructor(
 		private actions: Actions,
-		private cfg: Cfg,
+		private cfg: OSnEvents,
 		private pool: SidenotesDictionary,
 		private scanner: Scanner,
 		private sidenoteProcessor: SidenoteProcessor,

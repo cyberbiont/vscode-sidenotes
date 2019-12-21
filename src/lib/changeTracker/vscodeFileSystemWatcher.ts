@@ -7,14 +7,10 @@ import {
 	Uri,
 	workspace,
 } from 'vscode';
-
-import {
-	EventEmitter,
-	IdProvider,
-	OFileChangeTracker,
-	FileChangeTracker,
-	MarkerUtils,
-} from '../types';
+import { EventEmitter } from 'events';
+import { FileChangeTracker, OFileChangeTracker } from '.';
+import { IdProvider } from '../idProvider';
+import { MarkerUtils } from '../utils';
 
 export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 	protected watcherService: Map<GlobPattern, FileSystemWatcher> = new Map();

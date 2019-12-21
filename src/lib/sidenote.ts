@@ -1,20 +1,13 @@
 /* eslint-disable max-classes-per-file */
 import { Selection, commands, Range } from 'vscode';
 import mimeTypes from 'mime-types';
-import {
-	Anchorer,
-	Styler,
-	EditorUtils,
-	Anchor,
-	Anchorable,
-	Stylable,
-	IdProvider,
-	StorageService,
-	Decorable,
-	DecorableDecoration,
-	MarkerUtils,
-	Scanner,
-} from './types';
+import Styler, { Stylable } from './styler';
+import { Decorable, DecorableDecoration } from './decorator';
+import Anchorer, { Anchorable, Anchor } from './anchorer';
+import { IdProvider } from './idProvider';
+import { StorageService } from './storageService';
+import { EditorUtils, MarkerUtils } from './utils';
+import Scanner from './scanner';
 
 export class Sidenote implements Stylable, Decorable, Anchorable {
 	id: string;

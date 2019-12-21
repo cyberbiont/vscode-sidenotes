@@ -1,13 +1,9 @@
 import { ExtensionContext, workspace } from 'vscode';
+import { EventEmitter } from 'events';
 import chokidar from 'chokidar';
-import FileChangeTracker from './fileChangeTracker';
-
-import {
-	EventEmitter,
-	IdProvider,
-	MarkerUtils,
-	OFileChangeTracker,
-} from '../types';
+import FileChangeTracker, { OFileChangeTracker } from './fileChangeTracker';
+import { IdProvider } from '../idProvider';
+import { MarkerUtils } from '../utils';
 
 export default class ChokidarChangeTracker extends FileChangeTracker {
 	public watcher;

@@ -7,7 +7,7 @@ import {
 	workspace,
 } from 'vscode';
 import open from 'open';
-import { FileChangeTracker, ChangeTracker } from './types';
+import { ChangeTracker, FileChangeTracker } from './changeTracker';
 
 export interface EditorService {
 	changeTracker: ChangeTracker;

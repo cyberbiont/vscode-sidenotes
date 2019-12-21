@@ -1,17 +1,11 @@
 import { ExtensionContext, workspace } from 'vscode';
 import nodeFs from 'fs';
-import {
-	EventEmitter,
-	ChangeData,
-	Dictionary,
-	IdProvider,
-	MarkerUtils,
-	OFileChangeTracker,
-	// FSWatcher
-} from '../types';
-
-import FileChangeTracker from './fileChangeTracker';
-import { MapDictionary } from '../dictionary';
+import { EventEmitter } from 'events';
+import FileChangeTracker, { OFileChangeTracker } from './fileChangeTracker';
+import { MapDictionary, Dictionary } from '../dictionary';
+import { IdProvider } from '../idProvider';
+import { MarkerUtils } from '../utils';
+import { ChangeData } from '.';
 
 export default class FsWatchChangeTracker extends FileChangeTracker {
 	constructor(

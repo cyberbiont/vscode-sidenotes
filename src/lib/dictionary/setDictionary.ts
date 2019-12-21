@@ -1,5 +1,5 @@
+import { HasKeyProperty, Dictionary } from '.';
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { Dictionary, HasKeyProperty } from '../types';
 
 export default class SetDictionary<T extends HasKeyProperty>
 	implements
