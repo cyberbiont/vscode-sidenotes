@@ -1,12 +1,12 @@
-import vscode from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import nodeFs from 'fs';
 import {
 	EventEmitter,
-	IChangeData,
-	IDictionary,
-	IIdMaker,
+	ChangeData,
+	Dictionary,
+	IdProvider,
 	MarkerUtils,
-	OFileChangeTracker
+	OFileChangeTracker,
 	// FSWatcher
 } from '../types';
 
@@ -15,51 +15,51 @@ import { MapDictionary } from '../dictionary';
 
 export default class FsWatchChangeTracker extends FileChangeTracker {
 	constructor(
-		idMaker: IIdMaker,
+		idProvider: IdProvider,
 		eventEmitter: EventEmitter,
 		cfg: OFileChangeTracker,
 		utils: MarkerUtils,
-		context: vscode.ExtensionContext,
-		public pool: IDictionary<IWatch> = new MapDictionary(),
-		public watcherService = nodeFs
+		context: ExtensionContext,
+		public pool: Dictionary<Watch> = new MapDictionary(),
+		public watcherService = nodeFs,
 	) {
-		super(idMaker, eventEmitter, utils, cfg, context);
+		super(idProvider, eventEmitter, utils, cfg, context);
 	}
-	init(targetPath?: string) {
+
+	init(targetPath?: string): void {
 		if (targetPath) {
 			this.setWatch(targetPath);
-		}
-		else if (vscode.workspace.workspaceFolders) {
-			vscode.workspace.workspaceFolders.forEach(workspace => this.setWatch(this.getFullPathToSubfolder(workspace)));
+		} else if (workspace.workspaceFolders) {
+			workspace.workspaceFolders.forEach(workspaceFolder =>
+				this.setWatch(this.getFullPathToSubfolder(workspaceFolder)),
+			);
 			this.initListeners();
-		}
-		else {
+		} else {
 			// console.log('no files or folders to watch');
 		}
 	}
-	setWatch(path: string) {
+
+	setWatch(path: string): void {
 		const watch = this.watcherService.watch(path, this.onChange.bind(this));
 		this.pool.add({ key: path, watch });
 	}
 
-	stopWatch(path: string) {
+	stopWatch(path: string): void {
 		this.pool.get(path)!.watch.close();
 	}
 
-	onChange = this.debounce(function (event, fileName: string) {
+	onChange = this.debounce(function(event, fileName: string) {
 		this.generateCustomEvent(fileName, event); // change args order to conform with chokidar
-	})
+	});
 
-
-	processEventData(eventData): IChangeData | undefined {
+	processEventData(eventData): ChangeData | undefined {
 		if (eventData.event === 'rename' || ~eventData.fileName.indexOf('~'))
-			return;
+			return undefined;
 		return super.processEventData(eventData);
 	}
 }
 
-
-export interface IWatch {
+export interface Watch {
 	key: string;
 	watch: nodeFs.FSWatcher;
 }

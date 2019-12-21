@@ -1,30 +1,28 @@
-import vscode from 'vscode';
+import { workspace, TextDocument, ExtensionContext } from 'vscode';
 import ChangeTracker from './changeTracker';
-import {
-	IIdMaker,
-	EventEmitter,
-	IChangeData,
-	MarkerUtils
-} from '../types';
+import { IdProvider, EventEmitter, MarkerUtils } from '../types';
 
-export type OVscodeChangeTracker = {
-}
+export type OVscodeChangeTracker = {};
 
 export default class VscodeChangeTracker extends ChangeTracker {
 	constructor(
-		idMaker: IIdMaker,
+		idProvider: IdProvider,
 		eventEmitter: EventEmitter,
 		utils: MarkerUtils,
-		public context: vscode.ExtensionContext
+		public context: ExtensionContext,
 	) {
-		super(idMaker, eventEmitter, utils);
+		super(idProvider, eventEmitter, utils);
 	}
 
-	init() {
-		vscode.workspace.onDidSaveTextDocument(this.onChange, this, this.context.subscriptions);
+	init(): void {
+		workspace.onDidSaveTextDocument(
+			this.onChange,
+			this,
+			this.context.subscriptions,
+		);
 	}
 
-	onChange(document: vscode.TextDocument) {
+	onChange(document: TextDocument): void {
 		this.generateCustomEvent(document.fileName, 'change');
 	}
 }

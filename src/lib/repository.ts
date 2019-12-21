@@ -1,29 +1,22 @@
-import vscode from 'vscode';
-
-import {
-	Constructor,
-	IDictionary,
-	HasKeyProperty,
-} from './types';
+import { Dictionary, HasKeyProperty } from './types';
 
 export interface HasFactoryMethod<V> {
-	create: (key: any) => V | Promise<V>
+	create: (key: unknown) => V | Promise<V>;
 }
 
 /**
-* keeps the registry of I class instances,
-* created by object constructor with certain config, with config as key
-* stores one of them as active(actual) instance
-* and returns it for global use by other modules in application
-*/
+ * keeps the registry of I class instances,
+ * created by object constructor with certain config, with config as key
+ * stores one of them as active(actual) instance
+ * and returns it for global use by other modules in application
+ */
 export class MapRepository<K extends object, V> {
-
 	constructor(
 		private Factory: HasFactoryMethod<V>,
-		protected map: Map<K, V> | WeakMap<K, V>
+		protected map: Map<K, V> | WeakMap<K, V>,
 	) {}
 
-	async obtain(key: K, create: boolean = true): Promise<V> {
+	async obtain(key: K, create = true): Promise<V> {
 		let item: V;
 
 		const queryResult = this.map.get(key);
@@ -41,7 +34,7 @@ export class MapRepository<K extends object, V> {
 	 * adds instance to pool
 	 * can have different implementations depending on used collection type
 	 */
-	set(key: K, item: V) {
+	set(key: K, item: V): V {
 		this.map.set(key, item);
 		return item;
 	}
@@ -53,13 +46,13 @@ export class MapRepository<K extends object, V> {
 
 // 🕮 <YL> 7f52e358-d011-44ac-9073-83738f5abb44.md
 export interface HasBuildFactoryMethod<V> {
-	build: (key: any) => V | Promise<V>
+	build: (key: unknown) => V | Promise<V>;
 }
 
 export class DictionaryRepository<C, V extends HasKeyProperty> {
 	constructor(
 		private Factory: HasBuildFactoryMethod<V>,
-		private dictionary: IDictionary<V>
+		private dictionary: Dictionary<V>,
 	) {}
 
 	public async get(key: string): Promise<V | undefined> {
@@ -72,15 +65,12 @@ export class DictionaryRepository<C, V extends HasKeyProperty> {
 		return value;
 	}
 
-	public async obtain(keyedCfg: C & HasKeyProperty): Promise<V>	{
+	public async obtain(keyedCfg: C & HasKeyProperty): Promise<V> {
 		let value: V;
 
-		// if (cfg) {
-			let queryResult: V | undefined = this.dictionary.get(keyedCfg.key);
-			if (queryResult) value = queryResult;
-			else value = await this.create(keyedCfg);
-		// }
-		// else value = await this.create(); // new sidenote
+		const queryResult: V | undefined = this.dictionary.get(keyedCfg.key);
+		if (queryResult) value = queryResult;
+		else value = await this.create(keyedCfg);
 
 		return value;
 	}

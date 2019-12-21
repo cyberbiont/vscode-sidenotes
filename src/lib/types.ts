@@ -1,132 +1,88 @@
-import vscode from 'vscode';
+import { TextDocument } from 'vscode';
+
+import { Initializable, HasEditorReference } from './mixins';
+import { MapDictionary } from './dictionary';
+import { DictionaryRepository, MapRepository } from './repository';
+import Decorator from './decorator';
+import { Sidenote, SidenoteFactoryOptions } from './sidenote';
 
 export { EventEmitter } from 'events';
-export { ICfg } from './cfg';
-export { IEditorService } from './editorService';
-export { IIdMaker } from './idMaker';
+export { Cfg } from './cfg';
+export { EditorService as IEditorService } from './editorService';
+export { IdProvider } from './idProvider';
 export { OApp } from './app';
-export {
-	OActions,
-	default as Actions
-} from './actions';
+export { OActions, default as Actions } from './actions';
+
+export { Dictionary, HasKeyProperty } from './dictionary';
+
+export { Stylable, OStyler, default as Styler } from './styler';
+
+export { Anchor, Anchorable, OAnchorer, default as Anchorer } from './anchorer';
+
+export { EditorUtils, MarkerUtils, OEditorUtils, OMarkerUtils } from './utils';
+
+export { OFileSystem, default as FileSystem } from './fileSystem';
 
 export {
-	IDictionary,
-	HasKeyProperty
-} from './dictionary';
-
-export {
-	IStylable,
-	OStyler,
-	default as Styler,
-} from './styler';
-
-export {
-	IAnchor,
-	IAnchorable,
-	OAnchorer,
-	default as Anchorer,
-} from './anchorer';
-
-export {
-	EditorUtils,
-	MarkerUtils,
-	OEditorUtils,
-	OMarkerUtils,
-} from './utils';
-
-export {
-	OFileSystem,
-	default as FileSystem,
-} from './fileSystem';
-
-export {
-	IFileStorage,
-	IStorable,
-	IStorageService,
+	FileStorage,
+	Storable,
+	StorageService,
 	OFileStorage,
 	OStorageService,
 } from './storageService';
 
-export {
-	IScanData,
-	OScanner,
-	default as Scanner,
-} from './scanner';
+export { ScanData, OScanner, default as Scanner } from './scanner';
 
 export {
-	IDecorable,
-	IDecorableDecoration,
+	Decorable,
+	DecorableDecoration,
 	ODecorator,
 	default as Decorator,
 } from './decorator';
 
 export {
-	default as Pruner,
-	// Prunable
+	default as Pruner, // Prunable
 } from './pruner';
 
-export {
-	MapRepository,
-	DictionaryRepository
-} from './repository';
+export { MapRepository, DictionaryRepository } from './repository';
 
-export {
-	ReferenceContainer,
-	ReferenceController
-} from './referenceContainer';
+export { ReferenceContainer, ReferenceController } from './referenceContainer';
 
 export { default as SidenoteProcessor } from './sidenoteProcessor';
 
 export {
-	ISidenote,
+	Sidenote,
 	Inspector,
 	OSidenoteFactory,
 	SidenoteFactory,
-	SidenoteFactoryOptions
+	SidenoteFactoryOptions,
 } from './sidenote';
 
 export {
 	OEditorServiceController,
-	default as EditorServiceController
-} from './editorServiceController'
+	default as EditorServiceController,
+} from './editorServiceController';
 
 export {
 	FileChangeTracker,
-	IChangeData,
-	IChangeTracker,
+	ChangeData,
 	OChangeTracker,
-	OFileChangeTracker,
-	// OVscodeChangeTracker,
-	// VscodeChangeTracker,
+	OFileChangeTracker, // OVscodeChangeTracker, // VscodeChangeTracker,
+	ChangeTracker,
 } from './changeTracker';
 
-export type Constructor<T = {}> = new (...args: any[]) => T;
-export type AnyFunction<T = any> = (...input: any[]) => T
-export type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>
-export type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
+export type SidenotesDictionary = MapDictionary<Sidenote> &
+	Initializable &
+	HasEditorReference;
 
-import {	Initializable, HasEditorReference } from './mixins';
-import {
-	HasKeyProperty,
-	IDictionary,
-	MapDictionary,
-} from './dictionary';
-import {
-	DictionaryRepository,
-	MapRepository,
-} from './repository';
-import Decorator from './decorator';
-import { IScanData } from './scanner';
-import { ISidenote, SidenoteFactoryOptions } from './sidenote';
+export type DocumentInitializableSidenotesRepository = MapRepository<
+	TextDocument,
+	SidenotesDictionary
+>;
 
-export type SidenotesDictionary
-	= MapDictionary<ISidenote> & Initializable & HasEditorReference
+export type SidenotesDecorator = Decorator<Sidenote>;
 
-export type DocumentInitializableSidenotesRepository
-	=	MapRepository<vscode.TextDocument,	SidenotesDictionary>;
-
-export type SidenotesDecorator = Decorator<ISidenote>;
-
-export type SidenotesRepository
-	= DictionaryRepository<SidenoteFactoryOptions, ISidenote>;
+export type SidenotesRepository = DictionaryRepository<
+	SidenoteFactoryOptions,
+	Sidenote
+>;

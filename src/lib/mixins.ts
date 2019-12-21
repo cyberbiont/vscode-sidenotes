@@ -1,54 +1,28 @@
-import vscode from 'vscode';
-import {
-	Constructor,
-	Mixin,
-	IDictionary,
-	ISidenote
-} from './types';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { TextEditor } from 'vscode';
 
 export interface HasState {
-	state: boolean
-	setState(value: boolean): boolean
-	getState(): boolean
-	toggleState(): boolean
+	state: boolean;
+	setState(value: boolean): boolean;
+	getState(): boolean;
+	toggleState(): boolean;
 }
 
-export function HasState<T extends Constructor>(Base: T) {
-	return class extends Base {
-		private state: boolean = false;
+// 🕮 <YL> d42128f8-3012-4679-9bf2-6c7a3f65a5cc.md
 
-		setState(value: boolean): boolean {
-			return this.state = value;
-		}
-		getState(): boolean {
-			return this.state;
-		}
-		toggleState(): boolean {
-			return this.state = !this.state;
-		}
-	};
-}
-
-export type Initializable = Mixin<typeof Initializable>
 export function Initializable<T extends Constructor>(Base: T) {
 	return class Initializable extends Base {
-		public isInitialized: boolean = false;
+		public isInitialized = false;
 	};
 }
+export type Initializable = Mixin<typeof Initializable>;
 
-export type HasEditorReference = Mixin<typeof HasEditorReference>
 export function HasEditorReference<T extends Constructor>(Base: T) {
 	return class HasEditorReference extends Base {
-		// public parent?: vscode.TextDocument;
-		// getParent() {
-		// 	return this.parent;
-		// }
-		public editor: vscode.TextEditor;
-		// parentGet() {
-		// 	super.get()
-		// }
+		public editor: TextEditor;
 	};
 }
+export type HasEditorReference = Mixin<typeof HasEditorReference>;
 
 // 🕮 <YL> 2ffa7b8f-a350-4353-a5ee-18eb39c9e82b.md
 // mixins 🕮 <YL> 53cf7583-bd25-4fe2-9d6d-c81ddbf9e321.md

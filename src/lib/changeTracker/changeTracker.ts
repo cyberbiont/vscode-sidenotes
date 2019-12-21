@@ -1,33 +1,21 @@
-import {
-	EventEmitter,
-	IIdMaker,
-	MarkerUtils
-} from '../types';
+import { EventEmitter, IdProvider, MarkerUtils } from '../types';
 
-import * as path from 'path';
+export type OChangeTracker = {};
 
-export type OChangeTracker = {
+export type ChangeData = {
+	id: string;
+	path: string;
+};
 
+interface ChangeTracker {
+	init(path?: string): void;
 }
 
-export type IChangeData = {
-	id: string,
-	path: string
-}
-
-export interface IChangeTracker {
-	eventEmitter: EventEmitter
-	generateCustomEvent(fileName: string, event: string): void
-	dispatch(changeData: IChangeData): void
-	init(path?: String): void
-	getIdFromFileName(fileName: string): string|null
-}
-
-export default abstract class ChangeTracker {
+abstract class ChangeTracker {
 	constructor(
-		public idMaker: IIdMaker,
+		public idProvider: IdProvider,
 		public eventEmitter: EventEmitter,
-		public utils: MarkerUtils
+		public utils: MarkerUtils,
 	) {}
 
 	generateCustomEvent(fileName: string, event: string): void {
@@ -35,22 +23,25 @@ export default abstract class ChangeTracker {
 		if (changeData) this.dispatch(changeData);
 	}
 
-	dispatch(changeData: IChangeData): void {
+	dispatch(changeData: ChangeData): void {
 		this.eventEmitter.emit('sidenoteDocumentChange', changeData);
 	}
 
-	processEventData(eventData): IChangeData|undefined {
+	processEventData(eventData): ChangeData | undefined {
 		const id = this.getIdFromFileName(eventData.fileName);
 		if (id) {
 			const changeData = {
 				id,
-				path: eventData.fileName
+				path: eventData.fileName,
 			};
 			return changeData;
 		}
+		return undefined;
 	}
 
-	getIdFromFileName(fileName: string): string|null {
+	getIdFromFileName(fileName: string): string | null {
 		return this.utils.getIdFromString(fileName);
 	}
 }
+
+export default ChangeTracker;

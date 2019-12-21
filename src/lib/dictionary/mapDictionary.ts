@@ -1,15 +1,15 @@
-// import Dictionary from './dictionary';
-import { IDictionary, HasKeyProperty } from '../types';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { Dictionary, HasKeyProperty } from '../types';
 
 export default class MapDictionary<T extends HasKeyProperty>
-	// extends Dictionary<T>
-	implements IDictionary<T> {
-
+	implements
+		// extends Dictionary<T>
+		Dictionary<T> {
 	list: Map<string, T> = new Map();
 
 	add(item: T) {
 		this.list.set(item.key, item);
-		return this
+		return this;
 	}
 
 	get(key: string) {
@@ -41,7 +41,7 @@ export default class MapDictionary<T extends HasKeyProperty>
 	}
 
 	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
-		for(const item of this.list.values()) {
+		for (const item of this.list.values()) {
 			yield cb(item);
 		}
 	}

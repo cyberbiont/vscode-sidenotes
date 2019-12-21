@@ -3,16 +3,15 @@ export interface HasKeyProperty {
 	key: string;
 }
 
-export interface IDictionary<T> {
+export interface Dictionary<T> {
 	list: Map<string, T> | Set<T> | { [key: string]: T } | Array<T>;
 	add(item: T): this;
-	get(key: string): T|undefined;
+	get(key: string): T | undefined;
 	delete(key: string): this;
 	each(cb: (T) => void): void;
 	clear(): this;
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>;
 }
-
 
 // 🕮 <YL> 7387d8d0-b7ae-4b35-85ee-35e83d632586.md
 

@@ -1,76 +1,88 @@
-import vscode from 'vscode';
-import open from 'open';
-
 import {
-	FileChangeTracker,
-	IChangeTracker,
-} from  './types';
+	Terminal,
+	TextEditor,
+	Uri,
+	ViewColumn,
+	window,
+	workspace,
+} from 'vscode';
+import open from 'open';
+import { FileChangeTracker, ChangeTracker } from './types';
 
-export interface IEditorService {
-	changeTracker: IChangeTracker;
-	open(path: string | vscode.Uri);
+export interface EditorService {
+	changeTracker: ChangeTracker;
+	open(path: string | Uri, extension?: string);
 }
 
-export class VscodeEditor implements IEditorService {
-	constructor(
-		public changeTracker: FileChangeTracker,
-		private parentContainer
-	) {
+export class VscodeEditorService implements EditorService {
+	constructor(public changeTracker: FileChangeTracker) {
 		this.changeTracker.init();
 	}
-	/**
-	* opens sidenote document, associated with comment anchor in current line, creating comment and document if they don't exits
-	* in new editor window
-	*/
-	async open(uri: vscode.Uri): Promise<vscode.TextEditor> {
-		//@old 🕮 <YL> ea2901bc-16b1-4153-8753-1daa685ca125.md
 
-		return vscode.workspace.openTextDocument(uri).then(
+	/**
+	 * opens sidenote document, associated with comment anchor in current line, creating comment and document if they don't exits
+	 * in new editor window
+	 */
+	async open(uri: Uri): Promise<TextEditor> {
+		// @old 🕮 <YL> ea2901bc-16b1-4153-8753-1daa685ca125.md
+
+		return workspace.openTextDocument(uri).then(
 			async doc => {
-				return await vscode.window.showTextDocument(doc, {
-					viewColumn: vscode.ViewColumn.Beside,
+				return window.showTextDocument(doc, {
+					viewColumn: ViewColumn.Beside,
 					// 🕮 <YL> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
 				});
 			},
 			error => {
-				vscode.window.showErrorMessage(`<Failed to open file>. ${error.message}`);
-			}
-		)
-
+				window.showErrorMessage(`<Failed to open file>. ${error.message}`);
+			},
+		);
 	}
 }
 
-export class SystemDefaultEditor implements IEditorService {
-	constructor(
-		public changeTracker: FileChangeTracker,
-		private opn = open
-	) {
+export class SystemDefaultEditorService implements EditorService {
+	constructor(public changeTracker: FileChangeTracker, public opn = open) {
 		this.changeTracker.init();
 	}
+
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	async open(path: string) {
-		return await this.opn(path);
+		return this.opn(path);
 	}
 }
 
-export class TyporaEditor implements IEditorService {
-	private terminal: vscode.Terminal;
+export class ShellEditorService implements EditorService {
+	private terminal: Terminal;
+	// 🕮 <YL> ed1e948e-8c99-4b59-adba-fef501653dda.md
 
-	constructor(
-		public changeTracker: FileChangeTracker,
-		private editor: vscode.TextEditor
-	) {
+	constructor(public changeTracker: FileChangeTracker) {
 		this.changeTracker.init();
+	}
+
+	private getExecutableName(extension: string): string {
+		switch (extension) {
+			case '.cson':
+				// return 'boostnote';
+				return 'C:/Users/larin/AppData/Local/boost/Boostnote.exe';
+			case '.md':
+			case '.markdown':
+			default:
+				return 'typora';
+		}
 	}
 
 	// 🕮 <YL> 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4.md
-	open(path: string): vscode.Terminal | false {
-		if (!this.terminal) this.terminal = vscode.window.createTerminal('Sidenotes');
+	open(path: string, extension: string): Terminal | false {
+		const executableName = this.getExecutableName(extension);
+
+		if (!this.terminal) this.terminal = window.createTerminal('Sidenotes');
+
 		try {
-			this.terminal.sendText(`typora "${path}"`);
+			this.terminal.sendText(`${executableName} "${path}"`);
 		} catch (e) {
 			console.log(e);
-			vscode.window.showErrorMessage(
-				`Failed to open file ${path} in Typora`
+			window.showErrorMessage(
+				`Failed to open file ${path} in ${executableName}. Make sure that application executable is in your PATH`,
 			);
 		}
 		return this.terminal;

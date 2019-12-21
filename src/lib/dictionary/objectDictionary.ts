@@ -1,12 +1,12 @@
-// import Dictionary from './dictionary';
-import { IDictionary, HasKeyProperty } from '../types';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { Dictionary, HasKeyProperty } from '../types';
 
-// TODO декоратор к add, который проверяет, содержит ли добавляемый элемент такое же id, и если что не добавляет его
+// TODO 🕮 <YL> ee5d5d6e-f19c-447e-8d7b-96d16f241125.md
 export default class ObjectDictionary<T extends HasKeyProperty>
-	// extends Dictionary<T>
-	implements IDictionary<T> {
-
-	list: {	[key: string]: any	} = Object.create(null);
+	implements
+		// extends Dictionary<T>
+		Dictionary<T> {
+	list: { [key: string]: T } = Object.create(null);
 
 	add(item) {
 		this.list[item.key] = item;
@@ -23,27 +23,28 @@ export default class ObjectDictionary<T extends HasKeyProperty>
 	}
 
 	each(cb) {
-		for (let prop in this.list) {
-			cb(prop);
-		}
+		for (const [key, value] of Object.entries(this.list)) cb(key, value);
+		// for (const prop in this.list) {
+		// 	cb(prop);
+		// }
 	}
 
 	prune(cb) {
-		for (let prop in this.list) {
-			if (cb(prop)) delete this.list[prop];
+		for (const key of Object.keys(this.list)) {
+			if (cb(key)) delete this.list[key];
 		}
 		return this.list;
 	}
 
 	clear() {
-		for (let key in this.list) {
+		for (const key of Object.keys(this.list)) {
 			delete this.list[key];
 		}
 		return this;
 	}
 
 	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
-		for(const key in this.list) {
+		for (const key of Object.keys(this.list)) {
 			yield cb(this.list[key]);
 		}
 	}

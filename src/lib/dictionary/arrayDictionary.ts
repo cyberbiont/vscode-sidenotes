@@ -1,10 +1,10 @@
-// import Dictionary from './dictionary';
-import { IDictionary, HasKeyProperty } from '../types';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { Dictionary, HasKeyProperty } from '../types';
 
 export default class ArrayDictionary<T extends HasKeyProperty>
-	// extends Dictionary<T>
-	implements IDictionary<T> {
-
+	implements
+		// extends Dictionary<T>
+		Dictionary<T> {
 	list: Array<T> = [];
 
 	add(item) {
@@ -17,7 +17,10 @@ export default class ArrayDictionary<T extends HasKeyProperty>
 	}
 
 	delete(key) {
-		this.list.splice(this.list.findIndex(el => el.key === key), 1);
+		this.list.splice(
+			this.list.findIndex(el => el.key === key),
+			1,
+		);
 		return this;
 	}
 
@@ -33,7 +36,7 @@ export default class ArrayDictionary<T extends HasKeyProperty>
 	}
 
 	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
-		for(const item of this.list) {
+		for (const item of this.list) {
 			yield cb(item);
 		}
 	}

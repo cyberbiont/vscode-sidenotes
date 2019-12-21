@@ -1,23 +1,20 @@
-import vscode from 'vscode';
-import ChangeTracker from './changeTracker';
-import path from 'path';
 import {
-	EventEmitter,
-	ICfg,
-	IChangeData,
-	IIdMaker,
-	MarkerUtils
-} from '../types';
-import { FileStorage } from '../storageService';
+	ExtensionContext,
+	workspace,
+	WorkspaceFoldersChangeEvent,
+} from 'vscode';
+import path from 'path';
+import ChangeTracker from './changeTracker';
+import { EventEmitter, IdProvider, MarkerUtils } from '../types';
 
 export type OFileChangeTracker = {
 	storage: {
 		files: {
-			notesSubfolder: string,
-			defaultContentFileExtension: string
-		}
-	}
-}
+			notesSubfolder: string;
+			defaultContentFileExtension: string;
+		};
+	};
+};
 
 // 🕮 <YL> 39bcba93-982b-44c1-8fa7-4eb99e3acab0.md
 export default abstract class FileChangeTracker extends ChangeTracker {
@@ -25,43 +22,54 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 	protected wait: NodeJS.Timeout | boolean = false;
 
 	protected o: {
-		notesSubfolder: string,
-		defaultContentFileExtension: string
+		notesSubfolder: string;
+		defaultContentFileExtension: string;
 	};
 
 	constructor(
-		idMaker: IIdMaker,
+		idProvider: IdProvider,
 		eventEmitter: EventEmitter,
 		utils: MarkerUtils,
 		public cfg: OFileChangeTracker,
-		public context: vscode.ExtensionContext
+		public context: ExtensionContext,
 	) {
-		super(idMaker, eventEmitter, utils);
+		super(idProvider, eventEmitter, utils);
 		this.o = cfg.storage.files;
 	}
 
-	getFullPathToSubfolder(workspace) {
+	getFullPathToSubfolder(workspace): string {
 		return path.join(workspace.uri.fsPath, this.o.notesSubfolder);
 	}
 
-	onWorkspaceChange(event: vscode.WorkspaceFoldersChangeEvent) {
-		if (event.added) event.added.forEach(workspace => this.setWatch(this.getFullPathToSubfolder(workspace)))
-		if (event.removed) event.removed.forEach(workspace => this.stopWatch(this.getFullPathToSubfolder(workspace)))
+	onWorkspaceChange(event: WorkspaceFoldersChangeEvent): void {
+		if (event.added)
+			event.added.forEach(workspaceFolder =>
+				this.setWatch(this.getFullPathToSubfolder(workspaceFolder)),
+			);
+		if (event.removed)
+			event.removed.forEach(workspaceFolder =>
+				this.stopWatch(this.getFullPathToSubfolder(workspaceFolder)),
+			);
 	}
 
-	initListeners() {
-		vscode.workspace.onDidChangeWorkspaceFolders(this.onWorkspaceChange.bind(this), this.context.subscriptions);
+	initListeners(): void {
+		workspace.onDidChangeWorkspaceFolders(
+			this.onWorkspaceChange.bind(this),
+			this.context.subscriptions,
+		);
 	}
 
 	debounce(cb) {
-		return function(...args) {
-			if (this.wait)	return;
-			this.wait = setTimeout(() => { this.wait = false; }, 500);
-			cb.call(this,...args);
-		}
+		return function(...args): void {
+			if (this.wait) return;
+			this.wait = setTimeout(() => {
+				this.wait = false;
+			}, 500);
+			cb.call(this, ...args);
+		};
 	}
 
-	abstract init(targetPath?: string): void
-	abstract setWatch(path: any): void
-	abstract stopWatch(path: any): void
+	abstract init(targetPath?: string): void;
+	abstract setWatch(path: string): void;
+	abstract stopWatch(path: string): void;
 }

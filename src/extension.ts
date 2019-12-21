@@ -1,18 +1,18 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import cfg from './lib/cfg';
 import App from './lib/app';
 
 let app: App;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
 	try {
 		app = new App(cfg, context);
-	} catch(e) {
+	} catch (e) {
 		console.log(e);
 	}
 }
 
-export function deactivate() {
+export function deactivate(): void {
 	this._subscriptions.dispose();
 	app.actions.decorator.disposeDecorationTypes();
 	app.actions.pool.clear();

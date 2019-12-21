@@ -1,140 +1,143 @@
-import vscode from 'vscode';
+import { TextEditor, Range } from 'vscode';
 import {
 	EditorUtils,
-	IDecorableDecoration,
+	DecorableDecoration,
 	MarkerUtils,
 	Scanner,
 } from './types';
 
 // 🕮 <YL> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
-export interface IAnchor {
+export interface Anchor {
 	marker: string;
 }
-export interface IAnchorable {
-	id: string,
-	anchor: IAnchor;
+export interface Anchorable {
+	id: string;
+	anchor: Anchor;
 	content?: string;
 }
 
 export type OAnchorer = {
 	anchor: {
 		comments: {
-			useBlockComments ?: boolean
-			cleanWholeLine: boolean,
+			useBlockComments?: boolean;
+			cleanWholeLine: boolean;
 			// affectNewlineSymbols: boolean
-		}
-	}
+		};
+	};
 };
 
 export default class Anchorer {
-
 	constructor(
-		private editor: vscode.TextEditor,
+		private editor: TextEditor,
 		private utils: EditorUtils & MarkerUtils,
 		public scanner: Scanner,
-		public cfg: OAnchorer
+		public cfg: OAnchorer,
 	) {}
 
-	getAnchor(uuid: string, extension?: string): IAnchor {
+	getAnchor(uuid: string, extension?: string): Anchor {
 		return {
 			marker: this.utils.getMarker(uuid, extension),
 		};
 	}
 
 	// 🕮 <YL> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
-	async write(anchorable: IAnchorable, ranges: vscode.Range[]): Promise<void> {
+	async write(anchorable: Anchorable, ranges: Range[]): Promise<void> {
 		// 🕮 <YL> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
 		process.env.SIDENOTES_LOCK_EVENTS = 'true';
 		const iterator = this.editsChainer(
 			ranges,
 			// this.writeRange.bind(this, anchorable)
-			(range: vscode.Range, i: number) => {
-				return this.writeRange.call(this, anchorable, range)
-			}
+			(range: Range, i: number) => {
+				return this.writeRange.call(this, anchorable, range);
+			},
 		);
-		for await(let range of iterator);
+		for await (const range of iterator);
 
 		delete process.env.SIDENOTES_LOCK_EVENTS;
 	}
 
 	/**
-	* writes anchor comment to document at current cursor position
-	*/
-	private async writeRange(anchorable: IAnchorable, range: vscode.Range, editor = this.editor) {
-
+	 * writes anchor comment to document at current cursor position
+	 */
+	private async writeRange(
+		anchorable: Anchorable,
+		range: Range,
+		editor = this.editor,
+	): Promise<void> {
 		await editor.edit(
 			edit => edit.insert(range.start, anchorable.anchor.marker),
-			{ undoStopAfter: false, undoStopBefore: false }
+			{ undoStopAfter: false, undoStopBefore: false },
 		);
-		await this.utils.toggleComment(
-			range,
-			editor,
-			{ useBlockComments: this.cfg.anchor.comments.useBlockComments }
-		);
-	};
+		await this.utils.toggleComment(range, editor, {
+			useBlockComments: this.cfg.anchor.comments.useBlockComments,
+		});
+	}
 
-	async delete(anchored: IAnchorable & { decorations: IDecorableDecoration[] }, internalize?: false): Promise<void> {
+	async delete(
+		anchored: Anchorable & { decorations: DecorableDecoration[] },
+		internalize?: false,
+	): Promise<void> {
 		// process.env.SIDENOTES_LOCK_EVENTS = 'true';
-		const ranges = Array.from(new Set(
-			anchored.decorations.map(decoration => decoration.options.range)
-		));
-
-		const iterator = this.editsChainer(
-			ranges,
-			(range: vscode.Range, i: number) => {
-				if (i != 0) {
-					const regexp = new RegExp(this.utils.getBareMarkerRegexString(anchored.id));
-					const nextRange = this.scanner.rescanForRange(regexp);
-
-					if (!nextRange) return;
-					else {
-						range = this.utils.extendRangeToFullLine(nextRange);
-					}
-				}
-				return this.deleteRange.call(this, anchored, range, internalize)
-			}
+		const ranges = Array.from(
+			new Set(anchored.decorations.map(decoration => decoration.options.range)),
 		);
 
-		for await(let range of iterator);
+		const iterator = this.editsChainer(ranges, (range: Range, i: number) => {
+			if (i !== 0) {
+				const regexp = new RegExp(
+					this.utils.getBareMarkerRegexString(anchored.id),
+				);
+				const nextRange = this.scanner.rescanForRange(regexp);
+
+				if (!nextRange) return;
+
+				range = this.utils.extendRangeToFullLine(nextRange);
+			}
+			this.deleteRange.call(this, anchored, range, internalize);
+		});
+
+		for await (const range of iterator);
 
 		// delete process.env.SIDENOTES_LOCK_EVENTS;
 	}
 
-	private rescanLine(range: vscode.Range): vscode.Range {
-		return this.scanner.scanLine(
-			this.utils.getTextLine(range.start)
-		)!.ranges[0];
+	private rescanLine(range: Range): Range {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		return this.scanner.scanLine(this.utils.getTextLine(range.start))!
+			.ranges[0];
 	}
 
-	private async deleteRange(anchored: IAnchorable, range: vscode.Range, editor = this.editor) {
-		let rangeToDelete: vscode.Range;
+	private async deleteRange(
+		anchored: Anchorable,
+		range: Range,
+		editor = this.editor,
+	): Promise<void> {
+		let rangeToDelete: Range;
 
 		if (!this.cfg.anchor.comments.useBlockComments) {
 			// just delete the whole line
 			rangeToDelete = this.utils.extendRangeToFullLine(range);
 			// 🕮 <YL> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
 		} else {
-			await this.utils.toggleComment(
-				range,
-				editor,
-				{ useBlockComments: this.cfg.anchor.comments.useBlockComments }
-			);
+			await this.utils.toggleComment(range, editor, {
+				useBlockComments: this.cfg.anchor.comments.useBlockComments,
+			});
 
 			// we have to re-calculate range after comment toggle
 			rangeToDelete = this.rescanLine(range);
 		}
 
-		await editor.edit(
-			edit => { edit.delete(rangeToDelete); },
-			{ undoStopAfter: false, undoStopBefore: false }
+		editor.edit(
+			edit => {
+				edit.delete(rangeToDelete);
+			},
+			{ undoStopAfter: false, undoStopBefore: false },
 		);
 		// internalization 🕮 <YL> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
-
-		return;
 	}
 
-	private async *editsChainer(iterable: vscode.Range[], cb) {
+	private async *editsChainer(iterable: Range[], cb: Function): AsyncGenerator {
 		// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
-		for (let item of iterable) yield cb.call(this, item);
+		for (const item of iterable) yield cb.call(this, item);
 	}
 }

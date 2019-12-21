@@ -1,110 +1,102 @@
-import vscode from 'vscode';
+import { TextEditor, Range, TextLine } from 'vscode';
 
-import {
-	EditorUtils,
-	IAnchor,
-	ICfg,
-	MarkerUtils,
-} from './types';
-import { log } from 'util';
+import { EditorUtils, MarkerUtils } from './types';
 
-export type OScanner = {}
+export type OScanner = {};
 
-export interface IScanData {
+export interface ScanData {
 	marker: {
 		fullMatch: string;
 		signature?: string;
 		id: string;
 		extension?: string;
 	};
-	ranges: vscode.Range[];
+	ranges: Range[];
 	key: string;
 }
 
 export default class Scanner {
 	constructor(
-		private editor: vscode.TextEditor, //TODO narrow class to ActualEditor
+		private editor: TextEditor, // TODO narrow class to active Editor
 		private utils: EditorUtils & MarkerUtils,
-		// private cfg: OScanner
 	) {}
 
 	scanText(
-		text: string = this.editor.document.getText()
-	): IScanData[]|undefined {
-
+		text: string = this.editor.document.getText(),
+	): ScanData[] | undefined {
 		const result: {
-			[key: string]:
-				Pick<IScanData, 'marker'>
-				& {
-				positions: Set<number|undefined>;
-			}
+			[key: string]: Pick<ScanData, 'marker'> & {
+				positions: Set<number | undefined>;
+			};
 		} = Object.create(null);
 
-		let match: RegExpMatchArray|null;
+		let match: RegExpMatchArray | null;
 		const regex = this.utils.bareMarkerRegex;
 
+		// eslint-disable-next-line no-cond-assign
 		while ((match = regex.exec(text)) !== null) {
+			const [fullMatch, signature, id, extension] = match;
+			const { index } = match;
+			const key = this.utils.getKey(id, extension);
 
-			let [ fullMatch, signature, id, extension ] = match;
-			let { index } = match;
-			let key = this.utils.getKey(id, extension);
-
-			if (result[key]) result[key].positions.add(index); // если уже есть такой маркер, добавляем индекс
-			else result[key] = {
-				marker: {
-					signature,
-					id,
-					extension,
-					fullMatch,
-				},
-				positions: new Set([index]),
-			};
+			if (result[key]) result[key].positions.add(index);
+			else
+				result[key] = {
+					marker: {
+						signature,
+						id,
+						extension,
+						fullMatch,
+					},
+					positions: new Set([index]),
+				};
 		}
 
 		const entries = Object.entries(result);
 		if (entries.length === 0) return undefined;
-		else return entries.map(entry => {
-			const [key, { marker, positions } ] = entry;
-			const { fullMatch, id, extension } = marker;
+
+		return entries.map(entry => {
+			const [key, { marker, positions }] = entry;
+			const { fullMatch } = marker;
 			return {
 				key,
 				marker,
 				ranges: Array.from(positions, index => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const position = this.editor.document.positionAt(index!);
-					const range = this.utils.getMarkerRange(
-						fullMatch,
-						position
-					);
+					const range = this.utils.getMarkerRange(fullMatch, position);
 					return range;
-				})
-			}
-
+				}),
+			};
 		});
 	}
 
-	rescanForRange(regex: RegExp, text: string = this.editor.document.getText()): vscode.Range|undefined {
+	rescanForRange(
+		regex: RegExp,
+		text: string = this.editor.document.getText(),
+	): Range | undefined {
 		const match = text.match(regex);
-		if (match) {
-			let [ fullMatch, signature, id, extension ] = match;
-			let { index } = match;
-			const position = this.editor.document.positionAt(index!);
+		if (match?.index) {
+			const [fullMatch] = match;
+			const { index } = match;
+			const position = this.editor.document.positionAt(index);
 			const range = this.utils.getMarkerRange(fullMatch, position);
 			return range;
 		}
 		return undefined;
 	}
 
-	scanLine(line: vscode.TextLine = this.utils.getTextLine()): IScanData|undefined {
-		if (line.isEmptyOrWhitespace) return;
+	scanLine(line: TextLine = this.utils.getTextLine()): ScanData | undefined {
+		if (line.isEmptyOrWhitespace) return undefined;
 
 		const match = line.text.match(this.utils.bareMarkerRegexNonG);
 
 		if (match) {
-			let [ fullMatch, signature, id, extension ] = match;
-			let { index } = match;
+			const [fullMatch, signature, id, extension] = match;
+			const { index } = match;
 			const key = this.utils.getKey(id, extension);
 
-			const position = line.range.start.translate({ characterDelta:index });
+			const position = line.range.start.translate({ characterDelta: index });
 			const range = this.utils.getMarkerRange(fullMatch, position);
 
 			return {
@@ -115,10 +107,9 @@ export default class Scanner {
 					extension,
 					fullMatch,
 				},
-				ranges: [range]
-			}
-		} else {
-			return undefined;
+				ranges: [range],
+			};
 		}
+		return undefined;
 	}
 }

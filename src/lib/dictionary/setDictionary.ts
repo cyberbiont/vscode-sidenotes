@@ -1,10 +1,10 @@
-// import Dictionary from './dictionary';
-import { IDictionary, HasKeyProperty } from '../types';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { Dictionary, HasKeyProperty } from '../types';
 
 export default class SetDictionary<T extends HasKeyProperty>
-	// extends Dictionary<T>
-	implements IDictionary<T>{
-
+	implements
+		// extends Dictionary<T>
+		Dictionary<T> {
 	list: Set<T> = new Set();
 
 	add(item: T) {
@@ -13,9 +13,10 @@ export default class SetDictionary<T extends HasKeyProperty>
 	}
 
 	get(key) {
-		for (let el of this.list) {
+		for (const el of this.list) {
 			if (key === el.key) return el;
 		}
+		return undefined;
 	}
 
 	delete(key): this {
@@ -50,7 +51,7 @@ export default class SetDictionary<T extends HasKeyProperty>
 	}
 
 	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
-		for(const item of this.list) {
+		for (const item of this.list) {
 			yield cb(item);
 		}
 	}

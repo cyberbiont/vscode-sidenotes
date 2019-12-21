@@ -1,6 +1,8 @@
 module.exports = {
-	"prettier.endOfLine": "lf",
-	"prettier.singleQuote": true,
-	"prettier.tabWidth": 4,
-	"prettier.useTabs": true,
-}
+	endOfLine: 'lf',
+	singleQuote: true,
+	useTabs: true,
+	trailingComma: 'all',
+	quoteProps: 'consistent',
+	// semi: false,
+};

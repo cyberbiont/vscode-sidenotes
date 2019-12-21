@@ -1,42 +1,50 @@
-import vscode from 'vscode';
+import { Uri } from 'vscode';
 import {
-	IEditorService,
-	SystemDefaultEditor,
-	TyporaEditor,
-	VscodeEditor,
+	EditorService,
+	SystemDefaultEditorService,
+	ShellEditorService,
+	VscodeEditorService,
 } from './editorService';
 
 export type OEditorServiceController = {
 	app: {
-		defaultMarkdownEditor: 'typora'|'vscode'|'system default',
-	}
-}
+		defaultMarkdownEditor: 'typora' | 'vscode' | 'system default';
+	};
+};
 
-export default class editorServiceController {
-	// public markdownEditor: VscodeEditor | TyporaEditor | SystemDefaultEditor ;
-	public markdownEditor: IEditorService;
+export default class EditorServiceController {
+	public markdownEditor: EditorService;
 
 	constructor(
-		private typora: TyporaEditor,
-		private systemDefault: SystemDefaultEditor,
-		private vscode: VscodeEditor,
-		private cfg: OEditorServiceController
+		private shell: ShellEditorService,
+		private systemDefault: SystemDefaultEditorService,
+		private vscode: VscodeEditorService,
+		private cfg: OEditorServiceController,
 	) {
 		switch (this.cfg.app.defaultMarkdownEditor) {
-			case 'typora': this.markdownEditor = this.typora;	break;
-			case 'system default': this.markdownEditor = this.systemDefault;	break;
+			case 'typora':
+				this.markdownEditor = this.shell;
+				break;
+			case 'system default':
+				this.markdownEditor = this.systemDefault;
+				break;
 			case 'vscode':
-			default: this.markdownEditor = this.vscode;
+			default:
+				this.markdownEditor = this.vscode;
 		}
 	}
+
 	// 🕮 <YL> 114e29b0-8288-4b64-9fde-060bbb889c90.md
-	open(uri: vscode.Uri, extension: string) {
-		switch(extension) {
+	open(uri: Uri, extension: string): void {
+		switch (extension) {
 			case '.md':
 			case '.mdown':
-				this.markdownEditor.open(uri); break;
+				this.markdownEditor.open(uri);
+				break;
+			case '.cson':
 			case '.markdown':
-				this.typora.open(uri.fsPath); break;
+				this.shell.open(uri.fsPath, extension);
+				break;
 			default:
 				this.systemDefault.open(uri.fsPath);
 		}

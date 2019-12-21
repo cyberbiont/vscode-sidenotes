@@ -1,6 +1,6 @@
 import {
-	ISidenote,
 	Inspector,
+	Sidenote,
 	SidenoteProcessor,
 	SidenotesDictionary,
 } from './types';
@@ -9,7 +9,7 @@ export default class Pruner {
 	constructor(
 		public pool: SidenotesDictionary,
 		public sidenoteProcessor: SidenoteProcessor,
-		public inspector: Inspector
+		public inspector: Inspector,
 	) {}
 
 	async pruneAll(): Promise<void> {
@@ -18,25 +18,27 @@ export default class Pruner {
 	}
 
 	async pruneBroken(): Promise<void> {
-		return this.prune(
-			(sidenote: ISidenote) => this.inspector.isBroken(sidenote)
+		return this.prune((sidenote: Sidenote) =>
+			this.inspector.isBroken(sidenote),
 		);
 	}
 
 	async pruneEmpty(): Promise<void> {
-		return this.prune(
-			(sidenote: ISidenote) => this.inspector.isEmpty(sidenote)
-		);
+		return this.prune((sidenote: Sidenote) => this.inspector.isEmpty(sidenote));
 	}
 
-	private async prune(getCondition: (sidenote: ISidenote) => boolean): Promise<void> {
-		const processSidenote = async (sidenote: ISidenote): Promise<boolean> => {
+	private async prune(
+		getCondition: (sidenote: Sidenote) => boolean,
+	): Promise<void> {
+		const processSidenote = async (sidenote: Sidenote): Promise<boolean> => {
 			const condition = getCondition(sidenote);
 			if (condition) await this.sidenoteProcessor.delete(sidenote);
 			return condition;
-		}
+		};
 
-		for await (let sidenote of this.pool[Symbol.asyncIterator](processSidenote)) {
+		for await (const sidenote of this.pool[Symbol.asyncIterator](
+			processSidenote,
+		)) {
 			// processSidenote(sidenote);
 		}
 	}

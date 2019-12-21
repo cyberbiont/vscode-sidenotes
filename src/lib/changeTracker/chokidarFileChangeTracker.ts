@@ -1,10 +1,10 @@
-import vscode from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import chokidar from 'chokidar';
 import FileChangeTracker from './fileChangeTracker';
 
 import {
 	EventEmitter,
-	IIdMaker,
+	IdProvider,
 	MarkerUtils,
 	OFileChangeTracker,
 } from '../types';
@@ -12,43 +12,45 @@ import {
 export default class ChokidarChangeTracker extends FileChangeTracker {
 	public watcher;
 	constructor(
-		idMaker: IIdMaker,
+		idProvider: IdProvider,
 		eventEmitter: EventEmitter,
 		utils: MarkerUtils,
 		cfg: OFileChangeTracker,
-		context: vscode.ExtensionContext,
-		public watcherService = chokidar
+		context: ExtensionContext,
+		public watcherService = chokidar,
 	) {
-		super(idMaker, eventEmitter, utils, cfg, context);
+		super(idProvider, eventEmitter, utils, cfg, context);
 	}
 
-	init(targetPath?: string) {
-		let target =
-			(targetPath)
-				? targetPath
-				:	(vscode.workspace.workspaceFolders)
-					? vscode.workspace.workspaceFolders.map(workspace => this.getFullPathToSubfolder(workspace))
-					:	undefined
+	init(targetPath?: string): void {
+		const target =
+			targetPath ||
+			(workspace.workspaceFolders
+				? workspace.workspaceFolders.map(workspaceFolder =>
+						this.getFullPathToSubfolder(workspaceFolder),
+				  )
+				: undefined);
 		if (!target) return;
 
-		this.watcher = this.watcherService.watch(target, {
-			// ignored: /(^|[\/\\])\../, // ignore dotfiles
-			persistent: true,
-		})
-		.on('change', this.onChange.bind(this));
+		this.watcher = this.watcherService
+			.watch(target, {
+				// ignored: /(^|[\/\\])\../, // ignore dotfiles
+				persistent: true,
+			})
+			.on('change', this.onChange.bind(this));
 
 		this.initListeners();
 	}
 
-	onChange = this.debounce(function (path, stats) {
+	onChange = this.debounce(function(path: string, stats) {
 		this.generateCustomEvent(path, 'change');
-	})
+	});
 
-	setWatch(path: string) {
+	setWatch(path: string): void {
 		this.watcher.add(path);
 	}
 
-	stopWatch(path: string) {
+	stopWatch(path: string): void {
 		this.watcher.unwatch(path);
 	}
 }

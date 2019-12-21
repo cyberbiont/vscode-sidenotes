@@ -1,24 +1,30 @@
-import vscode from 'vscode';
-import path from 'path';
+import {
+	GlobPattern,
+	FileSystemWatcher,
+	ExtensionContext,
+	RelativePattern,
+	WorkspaceFolder,
+	Uri,
+	workspace,
+} from 'vscode';
 
 import {
 	EventEmitter,
-	IIdMaker,
+	IdProvider,
 	OFileChangeTracker,
 	FileChangeTracker,
-	MarkerUtils
+	MarkerUtils,
 } from '../types';
 
 export default class VSCodeFileSystemWatcher extends FileChangeTracker {
-
-	protected watcherService: Map<vscode.GlobPattern, vscode.FileSystemWatcher> = new Map();
+	protected watcherService: Map<GlobPattern, FileSystemWatcher> = new Map();
 
 	constructor(
-		idMaker: IIdMaker,
+		idMaker: IdProvider,
 		eventEmitter: EventEmitter,
 		utils: MarkerUtils,
 		public cfg: OFileChangeTracker,
-		public context: vscode.ExtensionContext
+		public context: ExtensionContext,
 	) {
 		super(idMaker, eventEmitter, utils, cfg, context);
 		this.o = cfg.storage.files;
@@ -26,25 +32,28 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 
 	init(targetPath?: string): void {
 		if (targetPath) this.setWatch(targetPath);
-		else vscode.workspace.workspaceFolders!.forEach(workspace =>
-			this.setWatch(this.getWorkspaceFolderRelativePattern(workspace))
-		);
+		else
+			workspace.workspaceFolders!.forEach(workspaceFolder =>
+				this.setWatch(this.getWorkspaceFolderRelativePattern(workspaceFolder)),
+			);
 	}
 
-	getWorkspaceFolderRelativePattern(workspace: vscode.WorkspaceFolder): vscode.RelativePattern {
-		return new vscode.RelativePattern(
+	getWorkspaceFolderRelativePattern(
+		workspace: WorkspaceFolder,
+	): RelativePattern {
+		return new RelativePattern(
 			this.getFullPathToSubfolder(workspace),
 			// `*${this.cfg.storage.files.defaultContentFileExtension}`
-			'*.*'
+			'*.*',
 		);
 	}
 
-	getWatcherInstance(pattern: vscode.GlobPattern) {
-		const watcher = vscode.workspace.createFileSystemWatcher(
+	getWatcherInstance(pattern: GlobPattern): FileSystemWatcher {
+		const watcher = workspace.createFileSystemWatcher(
 			pattern,
 			true,
 			false,
-			true
+			true,
 		);
 		watcher.onDidChange(this.onChange, this);
 		return watcher;
@@ -54,16 +63,16 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 	// 	this.generateCustomEvent(uri.fsPath, 'change');
 	// })
 
-	onChange(uri: vscode.Uri) {
+	onChange(uri: Uri): void {
 		// this.debounce(() => this.generateCustomEvent(uri.fsPath, 'change'));
 		this.generateCustomEvent(uri.fsPath, 'change');
 	}
 
-	setWatch(pattern: vscode.GlobPattern): void {
+	setWatch(pattern: GlobPattern): void {
 		this.watcherService.set(pattern, this.getWatcherInstance(pattern));
 	}
 
-	stopWatch(pattern: vscode.GlobPattern): void {
+	stopWatch(pattern: GlobPattern): void {
 		for (const watcher of this.watcherService.values()) {
 			watcher.dispose();
 		}

@@ -1,47 +1,44 @@
-import vscode from 'vscode';
-import {
-	IAnchor,
-	IIdMaker
-} from '../types';
+import { Position, Range } from 'vscode';
+import { IdProvider } from '../types';
 
 export type OMarkerUtils = {
 	anchor: {
 		marker: {
-			salt: string,
-			prefix?: string,
-			signature: string,
-			signatureFilter?: string[]
-			readUnsigned?: boolean
-			// template?: string,
-		}
-	}
-}
+			salt: string;
+			prefix?: string;
+			signature: string;
+			signatureFilter?: string[];
+			readUnsigned?: boolean;
+		};
+	};
+};
 
 export default class MarkerUtils {
-	constructor(
-		public idMaker: IIdMaker,
-		public cfg: OMarkerUtils
-	) {}
+	constructor(public idProvider: IdProvider, public cfg: OMarkerUtils) {}
 
-	BARE_MARKER_SYMBOLS_COUNT: number =	this.cfg.anchor.marker.salt.length + this.idMaker.symbolsCount;
+	BARE_MARKER_SYMBOLS_COUNT: number =
+		this.cfg.anchor.marker.salt.length + this.idProvider.symbolsCount;
 
 	bareMarkerRegexString: string = this.getBareMarkerRegexString();
 
-	bareMarkerRegex: RegExp = new RegExp(this.bareMarkerRegexString,	'g');
+	bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
 
-	bareMarkerRegexNonG: RegExp = new RegExp(this.bareMarkerRegexString);
+	bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);
 
-	getBareMarkerRegexString(idString: string = this.idMaker.ID_REGEX_STRING) {
+	getBareMarkerRegexString(
+		idString: string = this.idProvider.ID_REGEX_STRING,
+	): string {
 		const o = this.cfg.anchor.marker;
 
 		const extensionRegexString = '(.\\w+)?';
 
-		const signatures: string[] = o.signatureFilter ? o.signatureFilter: ['.*'];
+		const signatures: string[] = o.signatureFilter ? o.signatureFilter : ['.*'];
 		if (o.signature) signatures.push(o.signature);
-		const readSignaturesRegexString =
-		 `(?:<(${signatures.join('|')})> )${o.readUnsigned ? '?' : ''}`
+		const readSignaturesRegexString = `(?:<(${signatures.join('|')})> )${
+			o.readUnsigned ? '?' : ''
+		}`;
 
-	 // 🕮 <YL> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
+		// 🕮 <YL> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
 		return `(?:${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
 	}
 
@@ -53,15 +50,17 @@ export default class MarkerUtils {
 	getMarker(id: string, extension?: string): string {
 		// template 🕮 <YL> 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c.md
 		const o = this.cfg.anchor.marker;
-		return `${o.prefix ? o.prefix+' ':''}${o.salt} <${o.signature}> ${id}${extension}`;
+		return `${o.prefix ? `${o.prefix} ` : ''}${o.salt} <${
+			o.signature
+		}> ${id}${extension}`;
 	}
 
 	getKey(id: string, extension?: string): string {
-		return `${id}${extension ?  extension : ''}`;
+		return `${id}${extension || ''}`;
 	}
 
 	getIdFromString(string: string): string | null {
-		const match = string.match(this.idMaker.ID_REGEX)
+		const match = string.match(this.idProvider.ID_REGEX);
 		if (match) return match[0];
 		return null;
 	}
@@ -74,14 +73,8 @@ export default class MarkerUtils {
 	 * @returns {vscode.Range} range of marker
 	 * @memberof MarkerUtils
 	 */
-	getMarkerRange(
-		str: string,
-		start: vscode.Position
-	): vscode.Range {
-		return new vscode.Range(
-			start,
-			start.translate({ characterDelta: str.length })
-		);
+	getMarkerRange(str: string, start: Position): Range {
+		return new Range(start, start.translate({ characterDelta: str.length }));
 	}
 }
 
