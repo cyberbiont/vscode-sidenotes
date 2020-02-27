@@ -21,7 +21,7 @@ type StorageKey = FileStorageKey;
 export interface StorageService {
 	delete(key: StorageKey): Promise<void | void[]>;
 	write(key: StorageKey, data: Storable): Promise<void>;
-	get(key: StorageKey): Promise<Storable | undefined>;
+	read(key: StorageKey): Promise<Storable | undefined>;
 	open(key: StorageKey);
 	checkStartupRequirements?(): void;
 	lookup?(
@@ -35,6 +35,7 @@ export interface StorageService {
 interface FileStorageKey {
 	id: string;
 	extension?: string;
+	signature?: string;
 }
 
 interface FileAnalisysData {
@@ -49,6 +50,7 @@ export type OFileStorage = {
 	storage: {
 		files: {
 			notesSubfolder: string;
+			signatureSubfolder: string;
 			defaultContentFileExtension: DefaultContentFileExtension;
 		};
 	};
@@ -61,6 +63,7 @@ export class FileStorage implements StorageService {
 
 	private o: {
 		notesSubfolder: string;
+		signatureSubfolder: string;
 		defaultContentFileExtension: DefaultContentFileExtension;
 	};
 
@@ -85,7 +88,7 @@ export class FileStorage implements StorageService {
 		);
 	}
 
-	async get(key: FileStorageKey): Promise<Storable | undefined> {
+	async read(key: FileStorageKey): Promise<Storable | undefined> {
 		try {
 			const uri = this.getContentFileUri(key);
 			const content = await this.fs.read(uri);
@@ -106,20 +109,25 @@ export class FileStorage implements StorageService {
 	}
 
 	private getContentFileName(key: FileStorageKey): string {
-		// 🕮 2190628a-b268-44c2-a81a-939ce26dd7a4.md
+		// 🕮 <YL> 2190628a-b268-44c2-a81a-939ce26dd7a4.md
 		const { id, extension = this.o.defaultContentFileExtension } = key;
 		return `${id}${extension}`;
 	}
 
-	private getContentFileUri(key: FileStorageKey): Uri {
+	private getContentFileUri(key: FileStorageKey, ownSignature?: boolean): Uri {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		if (this.uriCache.has(key)) return this.uriCache.get(key)!;
 		// by default we look in the current document's workspace folder
-		const filePath = path.join(
+		const pathParts: string[] = [
 			this.utils.getWorkspaceFolderPath(),
 			this.o.notesSubfolder,
 			this.getContentFileName(key),
-		);
+		];
+		if (ownSignature) pathParts.splice(2, 0, this.o.signatureSubfolder);
+		else if (key.signature) pathParts.splice(2, 0, key.signature);
+
+		const filePath = path.join.apply(null, pathParts);
+		// 🕮 <cyberbiont> 88f3b639-a288-408e-b926-046d9a59b95b.md
 
 		const fileUri = this.getUri(filePath);
 

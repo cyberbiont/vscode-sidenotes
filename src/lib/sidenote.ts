@@ -156,7 +156,11 @@ export class SidenoteFactory {
 				marker: { id, signature, extension },
 			} = o);
 			mime = mimeTypes.lookup(extension);
-			const storageEntry = await this.storageService.get({ id, extension });
+			const storageEntry = await this.storageService.read({
+				id,
+				signature,
+				extension,
+			});
 			content = storageEntry ? storageEntry.content : undefined;
 			const withAnchor = new this.SidenoteBuilder()
 				.withMeta(key, id, extension, mime, signature)

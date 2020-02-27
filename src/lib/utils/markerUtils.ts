@@ -34,9 +34,9 @@ export default class MarkerUtils {
 
 		const signatures: string[] = o.signatureFilter ? o.signatureFilter : ['.*'];
 		if (o.signature) signatures.push(o.signature);
-		const readSignaturesRegexString = `(?<signature><(${signatures.join(
+		const readSignaturesRegexString = `(<(?<signature>(${signatures.join(
 			'|',
-		)})> )${o.readUnsigned ? '?' : ''}`;
+		)}))> )${o.readUnsigned ? '?' : ''}`;
 
 		// 🕮 <YL> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
 		return `(?<salt>${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;

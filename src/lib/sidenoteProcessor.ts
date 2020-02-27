@@ -40,7 +40,7 @@ export default class SidenoteProcessor {
 	}
 
 	async updateContent(sidenote: Sidenote): Promise<Sidenote> {
-		const data = await this.storageService.get(sidenote);
+		const data = await this.storageService.read(sidenote);
 		if (data) sidenote.content = data.content;
 		/* assuming that ranges hasn't change (update onEditorChange event is responsible for handling this)
 		we can extract ranges from decorations */

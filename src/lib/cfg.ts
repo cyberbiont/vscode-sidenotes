@@ -40,8 +40,8 @@ export type Cfg = OEditorUtils &
 const settings = workspace.getConfiguration('sidenotes');
 
 const signature: string = settings.get('signature') || os.userInfo().username;
-const notesSubfolder: string =
-	settings.get('notesSubfolder') || path.join('.sidenotes', signature);
+// const notesSubfolder: string =
+// 	settings.get('notesSubfolder') || path.join('.sidenotes', signature);
 
 // @bug 🕮 <YL> 389a9433-4182-43cb-b559-e567ba7dfc95.md
 const cfg: Cfg = {
@@ -52,7 +52,8 @@ const cfg: Cfg = {
 
 	storage: {
 		files: {
-			notesSubfolder,
+			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
+			signatureSubfolder: signature,
 			defaultContentFileExtension:
 				settings.get('defaultContentFileExtension') || '.md',
 			extensionsQuickPick: settings.get('extensionsQuickPick') || [],
