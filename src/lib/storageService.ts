@@ -311,7 +311,8 @@ export class FileStorage implements StorageService {
 				const results = await Promise.all(
 					// ids.map
 					broken.map(async key => {
-						const [id, extension] = key.split('.');
+						// const [id, extension] = key.split('.');
+						const { name: id, ext: extension } = path.parse(key);
 						// 🕮 <YL> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
 						return this.lookup({ id, extension }, lookupUri);
 					}),

@@ -30,16 +30,16 @@ export default class MarkerUtils {
 	): string {
 		const o = this.cfg.anchor.marker;
 
-		const extensionRegexString = '(.\\w+)?';
+		const extensionRegexString = '(?<extension>.\\w+)?';
 
 		const signatures: string[] = o.signatureFilter ? o.signatureFilter : ['.*'];
 		if (o.signature) signatures.push(o.signature);
-		const readSignaturesRegexString = `(?:<(${signatures.join('|')})> )${
-			o.readUnsigned ? '?' : ''
-		}`;
+		const readSignaturesRegexString = `(?<signature><(${signatures.join(
+			'|',
+		)})> )${o.readUnsigned ? '?' : ''}`;
 
 		// 🕮 <YL> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
-		return `(?:${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
+		return `(?<salt>${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
 	}
 
 	/**
