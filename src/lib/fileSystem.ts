@@ -51,7 +51,6 @@ export default class SnFileSystem
 				.map(content => this.scanner.scanText(content), this.scanner)
 				.filter(scanData => scanData !== undefined) as unknown) as ScanData[]; // 🕮 <YL> c02edcce-c3e0-48a5-ab51-c4d3053ec7d5.md
 			const flat = fileMatches.flat();
-			// const flat = Array.prototype.concat(...fileMatches); // return files.flat();
 			const keysOnly: string[] = flat.map(scanData => scanData.key);
 			return keysOnly;
 		};

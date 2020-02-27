@@ -2,7 +2,6 @@ import { DecorationInstanceRenderOptions, Range } from 'vscode';
 import { DecorableDecoration, ODecorator } from './decorator';
 import { Inspector } from './sidenote';
 
-// TODO make categories enum
 export interface Stylable {
 	content?: string;
 	color?: string;
@@ -22,9 +21,9 @@ export default class Styler {
 	constructor(public inspector: Inspector, public cfg: OStyler) {}
 
 	get(stylable: Stylable, ranges: Range[]): DecorableDecoration[] {
-		const decorations: DecorableDecoration[] = Array.prototype.concat(
-			...ranges.map(range => this.getRangeDecorations(range, stylable)),
-		); // TODO change to flat()
+		const decorations: DecorableDecoration[] = ranges
+			.map(range => this.getRangeDecorations(range, stylable))
+			.flat();
 
 		if (ranges.length > 1) {
 			const color = stylable.color

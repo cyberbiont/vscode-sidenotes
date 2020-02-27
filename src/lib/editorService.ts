@@ -62,8 +62,7 @@ export class ShellEditorService implements EditorService {
 	private getExecutableName(extension: string): string {
 		switch (extension) {
 			case '.cson':
-				// return 'boostnote';
-				return 'C:/Users/larin/AppData/Local/boost/Boostnote.exe';
+				return 'Boost note';
 			case '.md':
 			case '.markdown':
 			default:
@@ -78,7 +77,7 @@ export class ShellEditorService implements EditorService {
 		if (!this.terminal) this.terminal = window.createTerminal('Sidenotes');
 
 		try {
-			this.terminal.sendText(`${executableName} "${path}"`);
+			this.terminal.sendText(`& "${executableName}" "${path}"`);
 		} catch (e) {
 			console.log(e);
 			window.showErrorMessage(

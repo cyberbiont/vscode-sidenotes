@@ -14,9 +14,7 @@
 				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
-			],
+			"outFiles": ["${workspaceFolder}/out/**/*.js"],
 			"skipFiles": [
 				"<node_internals>/**/*.js",
 				"${workspaceFolder}/node_modules/**/*.js"
@@ -33,9 +31,7 @@
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
 			],
-			"outFiles": [
-				"${workspaceFolder}/out/test/**/*.js"
-			],
+			"outFiles": ["${workspaceFolder}/out/test/**/*.js"],
 			"preLaunchTask": "npm: watch"
 		}
 	]

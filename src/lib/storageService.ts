@@ -106,7 +106,7 @@ export class FileStorage implements StorageService {
 	}
 
 	private getContentFileName(key: FileStorageKey): string {
-		// 🖉 2190628a-b268-44c2-a81a-939ce26dd7a4
+		// 🕮 2190628a-b268-44c2-a81a-939ce26dd7a4.md
 		const { id, extension = this.o.defaultContentFileExtension } = key;
 		return `${id}${extension}`;
 	}
@@ -291,8 +291,8 @@ export class FileStorage implements StorageService {
 					},
 				],
 				{
-					placeHolder: `Sidenotes: ${broken.length} broken anchors was found in ${folder.uri.fsPath} workspace folder. &nbsp
-					Do you want to look for content files?`,
+					placeHolder: `Sidenotes: ${broken.length} broken anchors was found.	Do you want to look for content files?`,
+					// in ${folder.uri.fsPath} workspace folder
 				},
 			);
 
