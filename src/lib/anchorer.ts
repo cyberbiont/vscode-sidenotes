@@ -3,7 +3,7 @@ import { EditorUtils, MarkerUtils } from './utils';
 import Scanner from './scanner';
 import { DecorableDecoration } from './decorator';
 
-// 🕮 <YL> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
+// 🕮 <cyberbiont> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface Anchor {
 	marker: string;
 }
@@ -37,9 +37,9 @@ export default class Anchorer {
 		};
 	}
 
-	// 🕮 <YL> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
+	// 🕮 <cyberbiont> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: Anchorable, ranges: Range[]): Promise<void> {
-		// 🕮 <YL> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
+		// 🕮 <cyberbiont> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
 		process.env.SIDENOTES_LOCK_EVENTS = 'true';
 		const iterator = this.editsChainer(
 			ranges,
@@ -114,7 +114,7 @@ export default class Anchorer {
 		if (!this.cfg.anchor.comments.useBlockComments) {
 			// just delete the whole line
 			rangeToDelete = this.utils.extendRangeToFullLine(range);
-			// 🕮 <YL> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
+			// 🕮 <cyberbiont> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
 		} else {
 			await this.utils.toggleComment(range, editor, {
 				useBlockComments: this.cfg.anchor.comments.useBlockComments,
@@ -130,7 +130,7 @@ export default class Anchorer {
 			},
 			{ undoStopAfter: false, undoStopBefore: false },
 		);
-		// internalization 🕮 <YL> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
+		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 	}
 
 	private async *editsChainer(iterable: Range[], cb: Function): AsyncGenerator {

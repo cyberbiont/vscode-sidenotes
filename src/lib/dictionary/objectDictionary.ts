@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { HasKeyProperty, Dictionary } from '.';
 
-// TODO 🕮 <YL> ee5d5d6e-f19c-447e-8d7b-96d16f241125.md
+// TODO 🕮 <cyberbiont> ee5d5d6e-f19c-447e-8d7b-96d16f241125.md
 export default class ObjectDictionary<T extends HasKeyProperty>
 	implements
 		// extends Dictionary<T>

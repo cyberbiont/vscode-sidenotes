@@ -34,7 +34,7 @@ export default class EditorServiceController {
 		}
 	}
 
-	// 🕮 <YL> 114e29b0-8288-4b64-9fde-060bbb889c90.md
+	// 🕮 <cyberbiont> 114e29b0-8288-4b64-9fde-060bbb889c90.md
 	open(uri: Uri, extension: string): void {
 		switch (extension) {
 			case '.md':

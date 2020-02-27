@@ -5,7 +5,6 @@ import {
 } from 'vscode';
 
 import os from 'os';
-import path from 'path';
 import { OEditorUtils, OMarkerUtils } from './utils';
 import { OSnEvents } from './events';
 import { OSnFileSystem } from './fileSystem';
@@ -40,10 +39,8 @@ export type Cfg = OEditorUtils &
 const settings = workspace.getConfiguration('sidenotes');
 
 const signature: string = settings.get('signature') || os.userInfo().username;
-// const notesSubfolder: string =
-// 	settings.get('notesSubfolder') || path.join('.sidenotes', signature);
 
-// @bug 🕮 <YL> 389a9433-4182-43cb-b559-e567ba7dfc95.md
+// @bug 🕮 <cyberbiont> 389a9433-4182-43cb-b559-e567ba7dfc95.md
 const cfg: Cfg = {
 	app: {
 		defaultMarkdownEditor: settings.get('defaultMarkdownEditor') || 'vscode',
@@ -61,14 +58,14 @@ const cfg: Cfg = {
 	},
 
 	worskspaceFilter: {
-		// 🕮 <YL> 7372242a-1c7a-4342-8de9-9a45539d2f39.md
+		// 🕮 <cyberbiont> 7372242a-1c7a-4342-8de9-9a45539d2f39.md
 		include: settings.get('filter.include') || '**/*',
 		exclude:
 			settings.get('filter.exclude') ||
 			`**/{node_modules,.git,.idea,target,out,build,vendor}/**/*`,
 	},
 
-	// 🕮 <YL> 7995614f-ef55-42c0-a9f6-e372ba94e93b.md
+	// 🕮 <cyberbiont> 7995614f-ef55-42c0-a9f6-e372ba94e93b.md
 	anchor: {
 		comments: {
 			useBlockComments: false,
@@ -77,7 +74,7 @@ const cfg: Cfg = {
 		},
 
 		marker: {
-			// 🕮 <YL> f7cc1c04-8751-4431-af02-a912c375750c.md
+			// 🕮 <cyberbiont> f7cc1c04-8751-4431-af02-a912c375750c.md
 			prefix: settings.get('prefix') || '',
 			salt: '🕮',
 			signature,

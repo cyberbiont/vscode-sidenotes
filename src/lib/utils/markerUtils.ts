@@ -38,7 +38,7 @@ export default class MarkerUtils {
 			'|',
 		)}))> )${o.readUnsigned ? '?' : ''}`;
 
-		// 🕮 <YL> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
+		// 🕮 <cyberbiont> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
 		return `(?<salt>${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
 	}
 
@@ -48,7 +48,7 @@ export default class MarkerUtils {
 	 * @memberof MarkerUtils
 	 */
 	getMarker(id: string, extension?: string): string {
-		// template 🕮 <YL> 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c.md
+		// template 🕮 <cyberbiont> 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c.md
 		const o = this.cfg.anchor.marker;
 		return `${o.prefix ? `${o.prefix} ` : ''}${o.salt} <${
 			o.signature
@@ -78,4 +78,4 @@ export default class MarkerUtils {
 	}
 }
 
-// @outdated 🕮 <YL> a96faaf1-b199-43b1-a8f1-aa66cd669e27.md
+// @outdated 🕮 <cyberbiont> a96faaf1-b199-43b1-a8f1-aa66cd669e27.md

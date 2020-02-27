@@ -44,7 +44,7 @@ interface FileAnalisysData {
 }
 
 type DefaultContentFileExtension = '.md' | '.markdown';
-// 🕮 <YL> 6abe46d6-116f-44c7-9e0f-4e2b81b64513.md
+// 🕮 <cyberbiont> 6abe46d6-116f-44c7-9e0f-4e2b81b64513.md
 
 export type OFileStorage = {
 	storage: {
@@ -56,10 +56,10 @@ export type OFileStorage = {
 	};
 };
 
-// TODO 🕮 <YL> 1744f795-4133-4688-97d3-e8f02b26c886.md
+// TODO 🕮 <cyberbiont> 1744f795-4133-4688-97d3-e8f02b26c886.md
 export class FileStorage implements StorageService {
 	private uriCache: WeakMap<FileStorageKey, Uri> = new WeakMap();
-	// 🕮 <YL> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
+	// 🕮 <cyberbiont> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
 		notesSubfolder: string;
@@ -109,7 +109,7 @@ export class FileStorage implements StorageService {
 	}
 
 	private getContentFileName(key: FileStorageKey): string {
-		// 🕮 <YL> 2190628a-b268-44c2-a81a-939ce26dd7a4.md
+		// 🕮 <cyberbiont> 2190628a-b268-44c2-a81a-939ce26dd7a4.md
 		const { id, extension = this.o.defaultContentFileExtension } = key;
 		return `${id}${extension}`;
 	}
@@ -155,7 +155,7 @@ export class FileStorage implements StorageService {
 	}
 
 	async ensureNotesFolderExists(): Promise<void> {
-		// 🕮 <YL> 5a7d9cf7-71ee-4a84-abbe-ea320afe220f.md
+		// 🕮 <cyberbiont> 5a7d9cf7-71ee-4a84-abbe-ea320afe220f.md
 		if (!this.fs.exists(this.notesFolder.fsPath)) {
 			try {
 				await this.fs.createDirectory(this.notesFolder);
@@ -172,7 +172,7 @@ export class FileStorage implements StorageService {
 		const uri = this.getContentFileUri(key);
 
 		try {
-			// 🕮 <YL> 40e7f83a-036c-4944-9af1-c63be09f369d.md
+			// 🕮 <cyberbiont> 40e7f83a-036c-4944-9af1-c63be09f369d.md
 			if (!this.fs.exists(uri.fsPath)) {
 				await this.fs.write(uri, data.content);
 			} else
@@ -321,7 +321,7 @@ export class FileStorage implements StorageService {
 					broken.map(async key => {
 						// const [id, extension] = key.split('.');
 						const { name: id, ext: extension } = path.parse(key);
-						// 🕮 <YL> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
+						// 🕮 <cyberbiont> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
 						return this.lookup({ id, extension }, lookupUri);
 					}),
 				);
@@ -425,7 +425,7 @@ export class FileStorage implements StorageService {
 		detectedKeys: string[];
 		files: FileAnalisysData;
 	}> {
-		// 🕮 <YL> 577caec8-36d6-4f29-93ba-d8e357563aef.md
+		// 🕮 <cyberbiont> 577caec8-36d6-4f29-93ba-d8e357563aef.md
 		const attachDefaultExtension = (key: string): string => {
 			if (!path.extname(key))
 				key = `${key}${this.o.defaultContentFileExtension}`;
@@ -448,7 +448,7 @@ export class FileStorage implements StorageService {
 	}
 
 	async analyzeFolderContentFiles(folder: Uri): Promise<FileAnalisysData> {
-		// 🕮 <YL> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
+		// 🕮 <cyberbiont> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
 		const notesSubfolderPath = path.join(folder.fsPath, this.o.notesSubfolder);
 
 		const fileUrisByFilenames: {

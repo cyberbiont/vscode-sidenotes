@@ -6,7 +6,7 @@ import Scanner, { ScanData } from './scanner';
 import { EditorUtils } from './utils';
 
 export type OSnFileSystem = {
-	// 🕮 <YL> e4f5fe76-3db2-4c20-a796-1300f779ff6f.md
+	// 🕮 <cyberbiont> e4f5fe76-3db2-4c20-a796-1300f779ff6f.md
 	worskspaceFilter: {
 		include: string;
 		exclude: string;
@@ -18,7 +18,7 @@ export default class SnFileSystem
 {
 	private textEncoder: TextEncoder = new TextEncoder();
 	private textDecoder: TextDecoder = new TextDecoder();
-	// 🕮 <YL> 9753d71e-a4e4-4778-af8c-181e62776254.md
+	// 🕮 <cyberbiont> 9753d71e-a4e4-4778-af8c-181e62776254.md
 
 	constructor(
 		private scanner: Scanner,
@@ -29,7 +29,7 @@ export default class SnFileSystem
 	) {}
 
 	async scanDirectoryFilesContentsForKeys(folder: Uri): Promise<Set<string>> {
-		// 🕮 <YL> 9a3ca084-350c-49c3-8fa8-631dbc63a254.md
+		// 🕮 <cyberbiont> 9a3ca084-350c-49c3-8fa8-631dbc63a254.md
 		const getFiles = async (folder: Uri): Promise<Uri[]> => {
 			return workspace.findFiles(
 				new RelativePattern(folder.fsPath, this.cfg.worskspaceFilter.include),
@@ -49,7 +49,7 @@ export default class SnFileSystem
 		const scanContents = (contents: string[]): string[] => {
 			const fileMatches = (contents
 				.map(content => this.scanner.scanText(content), this.scanner)
-				.filter(scanData => scanData !== undefined) as unknown) as ScanData[]; // 🕮 <YL> c02edcce-c3e0-48a5-ab51-c4d3053ec7d5.md
+				.filter(scanData => scanData !== undefined) as unknown) as ScanData[]; // 🕮 <cyberbiont> c02edcce-c3e0-48a5-ab51-c4d3053ec7d5.md
 			const flat = fileMatches.flat();
 			const keysOnly: string[] = flat.map(scanData => scanData.key);
 			return keysOnly;

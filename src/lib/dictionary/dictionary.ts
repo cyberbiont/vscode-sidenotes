@@ -13,9 +13,9 @@ export interface Dictionary<T> {
 	[Symbol.asyncIterator](cb): AsyncGenerator<T>;
 }
 
-// 🕮 <YL> 7387d8d0-b7ae-4b35-85ee-35e83d632586.md
+// 🕮 <cyberbiont> 7387d8d0-b7ae-4b35-85ee-35e83d632586.md
 
-// universal asyncGenerator 🕮 <YL> ae3f4100-1e07-464d-9dd8-5312ae6ca3bf.md
+// universal asyncGenerator 🕮 <cyberbiont> ae3f4100-1e07-464d-9dd8-5312ae6ca3bf.md
 
 // если делать key property динамическим interface IDictionary<K, T extends K> то мы не можем жестко прописывать id в коде,
 // имя св-ва должно передаваться в конструктор - не лучший вариант

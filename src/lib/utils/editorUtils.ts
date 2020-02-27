@@ -21,8 +21,8 @@ export type OEditorUtils = {
 	};
 };
 
-// @bug 🕮 <YL> 72ef1c23-5ee7-4109-82ea-7d6b411bfff3.md
-// 🕮 <YL> 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0.md
+// @bug 🕮 <cyberbiont> 72ef1c23-5ee7-4109-82ea-7d6b411bfff3.md
+// 🕮 <cyberbiont> 6defb427-8d46-4c9b-af42-ccc4ffa4f6a0.md
 export default class EditorUtils {
 	private includePattern: IMinimatch;
 	private excludePattern: IMinimatch;
@@ -38,7 +38,7 @@ export default class EditorUtils {
 	}
 
 	getWorkspaceFolderPath(): string {
-		// @bug 🕮 <YL> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
+		// @bug 🕮 <cyberbiont> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
 		if (!workspace.workspaceFolders)
 			throw new Error('Adding notes requires an open folder.');
 		const currentWorkspaceFolder = workspace.workspaceFolders.find(folder =>

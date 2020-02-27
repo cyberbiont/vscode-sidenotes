@@ -20,7 +20,7 @@ This extension provides you an inobtrusive way to annotate your code with extern
 
 ## Motivation
 
-Many times we all heard a saying that good code documents itself. To a certain extent it's true, but sometimes you need to make some extended notes regarding to particular part of your code, that it just can't say for itself. A common case is describing *why* your wrote your code in such a way to remember later and don't make the same mistake twice.  There also could be some ideas, detailed 'todos', issue analysis, conclusions, alternative code variants or something alike that you what to recall later when revising your code . How should you manage this information?
+Many times we all heard a saying that good code documents itself. To a certain extent it's true, but sometimes you need to make some extended notes regarding to particular part of your code, that it just can't say for itself. A common case is describing _why_ your wrote your code in such a way to remember later and don't make the same mistake twice. There also could be some ideas, detailed 'todos', issue analysis, conclusions, alternative code variants or something alike that you what to recall later when revising your code . How should you manage this information?
 
 Comments are usually the poor tool for this job. Too many / too large comments clutter your code and make it hard to concentrate on the code itself. But delete them - and you may miss some important point later. Unfortunately, VSCode has no way to hide/fold all comments.
 
@@ -28,7 +28,7 @@ The other consideration is privacy. There may be notes that are private in natur
 
 ## How it works
 
-Sidenotes content are stored in separate files ('*content files*'), that are linked to the source document via the special comments in your code(*anchor* comments). 'Content' side and 'source' document side are linked via the common unique id that is read from anchor comment and is used to fetch associated content from content file.
+Sidenotes content are stored in separate files ('_content files_'), that are linked to the source document via the special comments in your code(_anchor_ comments). 'Content' side and 'source' document side are linked via the common unique id that is read from anchor comment and is used to fetch associated content from content file.
 
 ## Supported extensions and languages
 
@@ -40,12 +40,12 @@ Nevertheless, it is recommended to set some restrictions as to what kind of file
 
 ### content files
 
-Usually Markdown is the best choice for a simple sidenote, since it allows for simple editing and useful features such as code fences and syntax highliting.  So `.md` file is what is created on default when you add new sidenote. You can set exact extension for file in defautContentFileExtension setting.
+Usually Markdown is the best choice for a simple sidenote, since it allows for simple editing and useful features such as code fences and syntax highliting. So `.md` file is what is created on default when you add new sidenote. You can set exact extension for file in defautContentFileExtension setting.
 
 ### images
 
 If you want to display an image or some other type of html-supported content, you can do so by stuffing it inside markdown file.
-For local files, you should place the files you are attaching into '${filename}.assets' subdirectory in your notes subfolder.
+For local files, you should place the files you are attaching into '\${filename}.assets' subdirectory in your notes subfolder.
 
 Doing so will exclude these files so they won't appear as 'stray' when cleaning-up your content directory.
 
@@ -57,11 +57,12 @@ Simple absolute paths do not work for markdown images in Vscode. You have severa
 
 - To be able to preview image in VScode (in Markdown preview window or by opening on Alt-Click) you have to use relative path. There an option for this in Typora. But image inserted in this way will not show up in hover tooltip.
 
-- Your second option is to use URI. Uncheck "relative path" option and enable "auto escape image URL".  You'll also have to manually add file:/// at the beginning of the uri. Note that this will break some of Typora functionality (you won't be able to open file's directory, for example).
-This method will allow the image to show up in the tooltip, but unfortunately it won't be visible in preview. You can still use Alt-Click to open it.
+- Your second option is to use URI. Uncheck "relative path" option and enable "auto escape image URL". You'll also have to manually add file:/// at the beginning of the uri. Note that this will break some of Typora functionality (you won't be able to open file's directory, for example).
+  This method will allow the image to show up in the tooltip, but unfortunately it won't be visible in preview. You can still use Alt-Click to open it.
 
 Linking images with URL works fine.
-<!-- 🕮 <YL> 1574a389-2783-4446-bebf-c92589dd05f6.md -->
+
+<!-- 🕮 <cyberbiont> 1574a389-2783-4446-bebf-c92589dd05f6.md -->
 
 ## Commands
 
@@ -73,9 +74,9 @@ When creating new note, if no text is selected, a new line is created above curr
 
 If resource is not found, running this command displays a dialog window, where you can choose from several options:
 
-- *delete sidenote* - deletes orphaned anchor comment
-- *re-create* - creates new file for this anchor comment keeping id;
-- *look-up* - opens file browser for you to select directory where file is contained (See [Migrating notes](#Migrating-notes-to-new-project)).
+- _delete sidenote_ - deletes orphaned anchor comment
+- _re-create_ - creates new file for this anchor comment keeping id;
+- _look-up_ - opens file browser for you to select directory where file is contained (See [Migrating notes](#Migrating-notes-to-new-project)).
 
 #### Annotate (Code)
 
@@ -133,18 +134,18 @@ All configuration settings must be prepended with 'sidenotes.' in your settings.
 
 #### hoverToolbar
 
-*default: true*
+_default: true_
 
 The extension uses vscode.hoverProvider to show convinience button links at the bottom of the tooltip.
 This (probably) can slow thing down a little so if you don't need it you can turn this off.
 
 Note that due to no negation support in VSCode glob patterns and namely document selectors, your [filter](#filter) settings will not have effect here, so hover butoons toolbar will be working in all files.
 
-<!-- 🕮 <YL> 007d8c93-429b-4927-a89e-5cd9a972d20c.md -->
+<!-- 🕮 <cyberbiont> 007d8c93-429b-4927-a89e-5cd9a972d20c.md -->
 
 #### defaultMarkdownEditor
 
-*default: "vscode"*
+_default: "vscode"_
 
 The default editor that will be used to open your sidenotes that use markdown file formats. The available options are:
 
@@ -160,22 +161,22 @@ The sidenote will open in whatever program is specified in your OS as default fo
 
 To use this option, you must have Typora installed in your system and 'typora' executable in the system PATH.
 
-Typora is a special case due to some problems that don't allow to open it from Vscode as system default editor (at least on Windows).  So I wrote special extension to let you do this.
+Typora is a special case due to some problems that don't allow to open it from Vscode as system default editor (at least on Windows). So I wrote special extension to let you do this.
 Generally, I recommend you use to leave VScode as default and resort to Typora when you need extensive editing, using open-in-typora extension.
 
 ### Workspace Filter
 
-vscode GlobPattern (relative to your workspace folder) to specify files and directories which your want to be available for annotation. Files excluded by filter are not scanned for anchors and cannot be annotated.  See [vscode.GlobPattern](https://code.visualstudio.com/api/references/vscode-api#GlobPattern) for syntax details.
+vscode GlobPattern (relative to your workspace folder) to specify files and directories which your want to be available for annotation. Files excluded by filter are not scanned for anchors and cannot be annotated. See [vscode.GlobPattern](https://code.visualstudio.com/api/references/vscode-api#GlobPattern) for syntax details.
 
 #### filter.include
 
-*default: "**/\*"*
+_default: "\*\*/\*"_
 
 vscode GlobPattern to specify files and directories which your want to be available for annotation.
 
 #### filter.exclude
 
-*default: "\*\*/{node_modules,.git,.idea,target,out,build,vendor}/\*\*/\*"*
+_default: "\*\*/{node_modules,.git,.idea,target,out,build,vendor}/\*\*/\*"_
 
 vscode GlobPattern to exclude files and directories which your don't want to be annotated. Glob is inverted automatically so you don't have to prepend ! here.
 
@@ -183,19 +184,19 @@ vscode GlobPattern to exclude files and directories which your don't want to be 
 
 #### notesSubfolder
 
-*default: ".sidenotes"*
+_default: ".sidenotes"_
 
 if the File Storage is used (which is by default) defines a subfolder inside your workspace, where content files will be stored. Note that inside this directory another subdirectory is created, named after your signature setting. This is done to separate notes by different authors.
 
 #### defaultContentFileExtension
 
-*default: ".md"*
+_default: ".md"_
 
 Default extension for content files. You can change it to whatever you like, but Markdown is recommended.
 
 #### extensionsQuickPick
 
-*default: []*
+_default: []_
 
 List of extensions available for quick pick when using Annotate (Pick) command.
 
@@ -211,10 +212,11 @@ The extension uses certain Regex, based on unique id, to identify sidenote ancho
 
 ### Signature
 
-If you collaborate with your colleague, who also uses Sidenotes, your files may contain sidenotes markers from both you and your colleague (*'foreign'* markers). Without signature setting, they all will be handled by extension. This has disadvantages:
-* you may want to distinguish your own notes only;
-* if your colleague decided to make his notes private and did not commit them to VCS, his sidenotes will appear to have 'broken' status, and, actions like 'prune broken' will potentially delete your colleague's sidenote markers.
-Specifying your signature guarantees that extension will only process your 'signatured' sidenote markersand leave alone all others.
+If you collaborate with your colleague, who also uses Sidenotes, your files may contain sidenotes markers from both you and your colleague (_'foreign'_ markers). Without signature setting, they all will be handled by extension. This has disadvantages:
+
+- you may want to distinguish your own notes only;
+- if your colleague decided to make his notes private and did not commit them to VCS, his sidenotes will appear to have 'broken' status, and, actions like 'prune broken' will potentially delete your colleague's sidenote markers.
+  Specifying your signature guarantees that extension will only process your 'signatured' sidenote markersand leave alone all others.
 
 It is uaually sensible to use as your signature you Guthub login, to prevent conflicts.
 
@@ -224,7 +226,7 @@ If you want to change signature, you can manully edit signature of marker in doc
 
 #### signatureFilter
 
-*default: false*
+_default: false_
 
 This is an array of signatures that you want to be processed when looking for sidenote markers in document. If this setting is not set, all signatures are processed.
 
@@ -232,20 +234,20 @@ Youtr own signature is automatically added to filter so that it is always corres
 
 #### readUnsigned
 
-*default: true*
+_default: true_
 
 Whether to process markers that have no signature.
 
 #### signature
 
-*default:  your username (defined in OS)*
+_default: your username (defined in OS)_
 
-This will be your signature that will be written down with every comment. Specifired string is added to the beginning of the marker, that will be included in search RegExp.  Signature helps in understanding to whom the sidenote belongs to, even when extension is inactive.
+This will be your signature that will be written down with every comment. Specifired string is added to the beginning of the marker, that will be included in search RegExp. Signature helps in understanding to whom the sidenote belongs to, even when extension is inactive.
 Your signature, if specified, is automatically added to signatureFilter array.
 
 #### prefix
 
-*default: undefined*
+_default: undefined_
 
 Adds the string that you specify here at the beginning of the inserted marker and removes it on sidenote deletion. Note that in constrast to 'before' setting this is the actual text that will be added, i.e. it is a part of the document and it will be visible when extension is deactivated.
 
@@ -255,17 +257,17 @@ Useful if you want to hook your sidenotes to some comment-styling extension (see
 
 #### design.before
 
-*default: undefined*
+_default: undefined_
 
 adds the string that you specify as a pseudo-element at the start of all of your markers. So it's plainly decorative and you cannot hook-up any external extensions on it.
 
 #### design.after
 
-*default: "🕮"*
+_default: "🕮"_
 
 Is shown at the end of the marker, and stays in place of it when the marker is compressed. You can change the default Unicode symbol to your own string or Unicode symbol here. Changes color to visualize sidenote's state.
 
-You can use some funky Unicode emoji here, but note that they cannot change color, so to track sidenote  status you'll need gutter icons.
+You can use some funky Unicode emoji here, but note that they cannot change color, so to track sidenote status you'll need gutter icons.
 If you aim for true minimalism, you can use simple Unicode symbol and turn off gutter icons.
 
 #### design.gutterIcon
@@ -278,26 +280,25 @@ Whether sidenotes will be shown in Overview ruler
 
 #### design.hideMarkers
 
-Effectively hides the uuid part of markers to reduce cluttering by applying a negative letter-spacing to marker decoration.  See [Hiding ids](#Hiding ids)
+Effectively hides the uuid part of markers to reduce cluttering by applying a negative letter-spacing to marker decoration. See [Hiding ids](#Hiding ids)
 
 #### design.colorIndication
 
 Array of strings that defines what elements will change color, indicating sidenote status. Available values are "after", "text", "ruler".
 
-
 <!-- 🕮 95145323-445c-4960-b3dc-c6e1a3c14fde -->
 
 ## Deleting sidenotes
 
-`delete` command deletes both content file and all associated anchors in current document without asking confirmation.  In case you regret your decision, you can restore your content file from recycle bin or via VCS (if your sidenotes are under VCS control).
+`delete` command deletes both content file and all associated anchors in current document without asking confirmation. In case you regret your decision, you can restore your content file from recycle bin or via VCS (if your sidenotes are under VCS control).
 
 There may be times that you don't want to delete the content file (for example, you have another associated anchors that point to it) and want to delete only anchor. Technically in this case you can manually delete it (easily done with Ctrl-Shift-K shortcut - delete line action), but in this way decorations will not be updated and you may end up with residual artefacts. For this reason `wipe` command exists that wipes current anchor only, leaving content file and other anchors inctact.
 
 ## Hiding ids
 
-Uuids in anchor comments are necessary, but not the most pleasant thing to see in your code. By default extension hides them (in fact, compresses) so they are not visible and 'after' pseudoelement is displayed in place of an anchor. This has a one downside, that is precise selecting marker by dragging the mouse becomes a non-trivial task. To overcome this,  use Ctrl-C - Ctrl-X commands to copy / cut the whole line containing anchor marker, since in VSCode you don't have to select the whole line in order to cut/copy/delete it.
+Uuids in anchor comments are necessary, but not the most pleasant thing to see in your code. By default extension hides them (in fact, compresses) so they are not visible and 'after' pseudoelement is displayed in place of an anchor. This has a one downside, that is precise selecting marker by dragging the mouse becomes a non-trivial task. To overcome this, use Ctrl-C - Ctrl-X commands to copy / cut the whole line containing anchor marker, since in VSCode you don't have to select the whole line in order to cut/copy/delete it.
 
-You can use `showMarkers`  command to unfold full markers.
+You can use `showMarkers` command to unfold full markers.
 
 ## Externalizing content
 
@@ -315,13 +316,13 @@ You can manually type in some short charasteristic description for your note (be
 
 `// a short description: 🕮`
 
-This can be used to make certain sidenotes stand out, if your prefix sidenote with !, ? etc. special characters and use one of comment-styling vscode extensions.  I recommend [Better comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments) or [Deco comments](https://marketplace.visualstudio.com/items?itemName=GuillaumeIsabelle.gixdeko-comments) for this purpose.
+This can be used to make certain sidenotes stand out, if your prefix sidenote with !, ? etc. special characters and use one of comment-styling vscode extensions. I recommend [Better comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments) or [Deco comments](https://marketplace.visualstudio.com/items?itemName=GuillaumeIsabelle.gixdeko-comments) for this purpose.
 
 ### Prefixing all sidenotes
 
-You can use [prefix](#anchor.marker.prefix) option to prepend some text to all of your sidenotes. It is essentially the same as above, but automatically made for all your sidenotes. This option can be useful in conjunction with [Comment anchors](https://marketplace.visualstudio.com/items?itemName=ExodiusStudios.comment-anchors)  extension to make all your sidenotes show up in comment anchors' navigation pane, if you set your prefix to one of predefined comment anchor types, such as 'NOTE '.
+You can use [prefix](#anchor.marker.prefix) option to prepend some text to all of your sidenotes. It is essentially the same as above, but automatically made for all your sidenotes. This option can be useful in conjunction with [Comment anchors](https://marketplace.visualstudio.com/items?itemName=ExodiusStudios.comment-anchors) extension to make all your sidenotes show up in comment anchors' navigation pane, if you set your prefix to one of predefined comment anchor types, such as 'NOTE '.
 
-You can also do this, making use of integrated unicode uuid prefix.  To do so, you'll have to create create custom anchor type in comment anchor settings.json like this:
+You can also do this, making use of integrated unicode uuid prefix. To do so, you'll have to create create custom anchor type in comment anchor settings.json like this:
 
 ```json
 "commentAnchors.tags.list": [
@@ -346,29 +347,29 @@ To delete only one of anchors use `wipe` command.
 
 ## Housekeeping
 
-By default, local directory inside your workspace folder is used to store notes. This lets you put your sidenotes under VCS control and commit them with the rest of your project (see VCS). However, because storage is workspace-bound,  this imposes some difficulties, one of them is the need to migrate your notes, if you want to move/copy your source document to another project/workspace.
+By default, local directory inside your workspace folder is used to store notes. This lets you put your sidenotes under VCS control and commit them with the rest of your project (see VCS). However, because storage is workspace-bound, this imposes some difficulties, one of them is the need to migrate your notes, if you want to move/copy your source document to another project/workspace.
 
 Note that in order for extension with file storage used to work, you need to have workspace open in VSCode. You cannot annotate documents that are outside of (one of) currently opened workspace folder(s) - if you try, the extension will warn you.
 
 ### Broken notes
 
-*Broken* sidenote is defined as note, for which there's a leftover comment anchor in your source document, but associated content file is missing. Extension automatically detects such notes and highlights them in red. When you are trying to open 'broken' sidenote. There' s a couple of options opened for you. You can:
+_Broken_ sidenote is defined as note, for which there's a leftover comment anchor in your source document, but associated content file is missing. Extension automatically detects such notes and highlights them in red. When you are trying to open 'broken' sidenote. There' s a couple of options opened for you. You can:
 
 - re-create missing file
 - delete broken comment
 - look for missing sidenote file
 
-In latter case you have to specify the directory when the sidenote is stored through 'open file' dialog. Make sure you select the directory that *immideately* contains the file (nested files are not detected).
+In latter case you have to specify the directory when the sidenote is stored through 'open file' dialog. Make sure you select the directory that _immideately_ contains the file (nested files are not detected).
 
 You also can use `prune broken` command, that will delete all broken sidenote anchors from current document.
 
 ### Empty sidenotes
 
-*Empty* sidenote is defined as note, which content file is empty. Those are automatically detected and highlighted in orange. You can use `prune empty` command, to delete these notes from current document together with content files.
+_Empty_ sidenote is defined as note, which content file is empty. Those are automatically detected and highlighted in orange. You can use `prune empty` command, to delete these notes from current document together with content files.
 
 ### Migrating notes to new project
 
-There will be times you'll want to move your files to another project. If you just do it without copying sidenotes directory with them, you will  left up with broken notes.  To manage this, `migrate` command exists. It:
+There will be times you'll want to move your files to another project. If you just do it without copying sidenotes directory with them, you will left up with broken notes. To manage this, `migrate` command exists. It:
 
 - scans all anchors and content files in the current workspace folder(s)
 - informs you if any 'broken' sidenotes were found
@@ -385,9 +386,9 @@ So, the proposed order of actions when migrating annotated files to new project 
 
 ### Cleaning extraneous and stray files
 
-If there are content files left in your sidenotes subfolder that are not associated with any anchors in your project folder files, those are defined as *extraneous*. You can run `clean up` command to detect and optionally delete them (extension will first report about extraneous files and then ask your confirmation to delete them).
+If there are content files left in your sidenotes subfolder that are not associated with any anchors in your project folder files, those are defined as _extraneous_. You can run `clean up` command to detect and optionally delete them (extension will first report about extraneous files and then ask your confirmation to delete them).
 
-There's also a *stray* files category which is also covered by `clean up` command in the same manner. Those are files (and folders also), which name does not contain valid id (that may accidentally end up in your sidenotes subfolder for whatever reason). Note that at this time it is prepostulated that content files are placed directly in the `.sidenotes` subfolder, so any nested folders are considered stray (so you cannot manually re-order content files in subdirectories).
+There's also a _stray_ files category which is also covered by `clean up` command in the same manner. Those are files (and folders also), which name does not contain valid id (that may accidentally end up in your sidenotes subfolder for whatever reason). Note that at this time it is prepostulated that content files are placed directly in the `.sidenotes` subfolder, so any nested folders are considered stray (so you cannot manually re-order content files in subdirectories).
 
 ### Other storage types (to be implemented)
 
@@ -395,9 +396,9 @@ Potentially, note's contents can be stored in centralized database or cloud serv
 
 ## VCS considerations
 
-It's up to you whether you want to commit your sidenotes to VCS or leave them off. Commiting has the benefit that any repositiory version you checkout with VCS will have sidenotes in accordance to this version state. It is useful if sidenote is coupled tightly with the code and you want to keep ot 'in sync' with annotated document.  Therefore, it is generally recommended. But, your notes won't be private that way (one way to help it is to use something like [node-cipher](https://www.npmjs.com/package/node-cipher) to encrypt your notes folder).
+It's up to you whether you want to commit your sidenotes to VCS or leave them off. Commiting has the benefit that any repositiory version you checkout with VCS will have sidenotes in accordance to this version state. It is useful if sidenote is coupled tightly with the code and you want to keep ot 'in sync' with annotated document. Therefore, it is generally recommended. But, your notes won't be private that way (one way to help it is to use something like [node-cipher](https://www.npmjs.com/package/node-cipher) to encrypt your notes folder).
 
-You can also exclude your sidenotes folder from VCS. In that case, you get notes privacy (they won't be commited and therefore shared with other collaborators through VCS), but you are at risk of getting 'extraneous'  or 'broken' notes if you check out the version where sidenote anchor still doesn't exist, or, otherwise, still exists though you could have deleted note and content file in one of later versions. However, if you really want the sidenote to be independent of VCS, it's the way to go.
+You can also exclude your sidenotes folder from VCS. In that case, you get notes privacy (they won't be commited and therefore shared with other collaborators through VCS), but you are at risk of getting 'extraneous' or 'broken' notes if you check out the version where sidenote anchor still doesn't exist, or, otherwise, still exists though you could have deleted note and content file in one of later versions. However, if you really want the sidenote to be independent of VCS, it's the way to go.
 
 However, if you want to exclude, it is recommended that you do it via global [git exclude](https://help.github.com/en/github/using-git/ignoring-files#explicit-repository-excludes) rather than .gitignore.
 
@@ -409,13 +410,13 @@ If you do it on 'delete-all-comments' basis, using your minifier, for example, s
 
 If you want to delete sidenote comments only, you'll probably match them with Regexp.
 
-<!-- 🕮 <YL> e800c2f1-f019-40d6-a8e7-a0dfab16a2aa.md -->
+<!-- 🕮 <cyberbiont> e800c2f1-f019-40d6-a8e7-a0dfab16a2aa.md -->
 
 ## Requirements
 
 For 'typora' setting to work, you need Typora installed on your system and typora.exe in your system PATH.
 
-## Known Issues  /  Gotchas
+## Known Issues / Gotchas
 
 ### Anchor comments will be present in your code.
 

@@ -45,7 +45,7 @@ export class Inspector {
 }
 
 export class SidenoteBuilder implements Partial<Sidenote> {
-	// 🕮 <YL> d86498f7-fcd0-4150-bcf2-bbbdbf5f4b14.md
+	// 🕮 <cyberbiont> d86498f7-fcd0-4150-bcf2-bbbdbf5f4b14.md
 	key?: string;
 	id?: string;
 	extension?: string;

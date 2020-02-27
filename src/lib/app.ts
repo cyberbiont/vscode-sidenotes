@@ -83,7 +83,7 @@ export default class App {
 		const MixinedMapDictionary = HasEditorReference(
 			Initializable(MapDictionary),
 		);
-		// 🕮 <YL> bd961532-0e0f-4b5f-bb70-a286acdfab37.md
+		// 🕮 <cyberbiont> bd961532-0e0f-4b5f-bb70-a286acdfab37.md
 
 		const parentContainer: { parent?: TextDocument } = {};
 
@@ -166,7 +166,7 @@ export default class App {
 			this.cfg,
 			this.context,
 		);
-		// 🕮 <YL> a1f2b34f-bad3-45fb-8605-c5a233e65933.md
+		// 🕮 <cyberbiont> a1f2b34f-bad3-45fb-8605-c5a233e65933.md
 
 		const editorServiceController = new EditorServiceController(
 			new ShellEditorService(changeTracker),
@@ -330,7 +330,7 @@ export default class App {
 	registerProviders(): void {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const app = this;
-		// 🕮 <YL> 59cd0823-4911-4a88-a657-88fcd4f1dcba.md
+		// 🕮 <cyberbiont> 59cd0823-4911-4a88-a657-88fcd4f1dcba.md
 		if (this.cfg.app.hoverToolbar)
 			languages.registerHoverProvider(
 				// '*',

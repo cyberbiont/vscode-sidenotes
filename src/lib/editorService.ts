@@ -24,13 +24,13 @@ export class VscodeEditorService implements EditorService {
 	 * in new editor window
 	 */
 	async open(uri: Uri): Promise<TextEditor> {
-		// @old 🕮 <YL> ea2901bc-16b1-4153-8753-1daa685ca125.md
+		// @old 🕮 <cyberbiont> ea2901bc-16b1-4153-8753-1daa685ca125.md
 
 		return workspace.openTextDocument(uri).then(
 			async doc => {
 				return window.showTextDocument(doc, {
 					viewColumn: ViewColumn.Beside,
-					// 🕮 <YL> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
+					// 🕮 <cyberbiont> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
 				});
 			},
 			error => {
@@ -53,7 +53,7 @@ export class SystemDefaultEditorService implements EditorService {
 
 export class ShellEditorService implements EditorService {
 	private terminal: Terminal;
-	// 🕮 <YL> ed1e948e-8c99-4b59-adba-fef501653dda.md
+	// 🕮 <cyberbiont> ed1e948e-8c99-4b59-adba-fef501653dda.md
 
 	constructor(public changeTracker: FileChangeTracker) {
 		this.changeTracker.init();
@@ -70,7 +70,7 @@ export class ShellEditorService implements EditorService {
 		}
 	}
 
-	// 🕮 <YL> 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4.md
+	// 🕮 <cyberbiont> 2b37aa7d-e5d4-4a4d-9cde-e8831f91e3c4.md
 	open(path: string, extension: string): Terminal | false {
 		const executableName = this.getExecutableName(extension);
 

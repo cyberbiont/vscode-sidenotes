@@ -147,7 +147,7 @@ export default class Decorator<T extends Decorable> {
 		style,
 		prop: string,
 	): void {
-		// 🕮 <YL> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
+		// 🕮 <cyberbiont> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
 		this.addNestedProperty(
 			style,
 			prop,
@@ -165,7 +165,7 @@ export default class Decorator<T extends Decorable> {
 		propsString: string,
 		value: unknown,
 	): object {
-		// 🕮 <YL> c5745bee-a5b1-4b45-966e-839fec3db57a.md
+		// 🕮 <cyberbiont> c5745bee-a5b1-4b45-966e-839fec3db57a.md
 		const props = propsString.split('.');
 		const lastProp = arguments.length === 3 ? props.pop() : undefined;
 

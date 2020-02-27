@@ -57,7 +57,7 @@ export default class Actions {
 		if (!this.pool.isInitialized)
 			await this.initializeDocumentSidenotesPool(scanResults);
 		else await this.updateDocumentSidenotesPool(scanResults);
-		// 🕮 <YL> 70b9807e-7739-4e0f-bfb5-7f1603cb4377.md
+		// 🕮 <cyberbiont> 70b9807e-7739-4e0f-bfb5-7f1603cb4377.md
 
 		this.decorator.updateDecorations();
 	}
@@ -163,7 +163,7 @@ export default class Actions {
 			}
 
 			this.scan();
-			// 🕮 <YL> d296063a-56ff-4667-8a50-b2120c93158e.md
+			// 🕮 <cyberbiont> d296063a-56ff-4667-8a50-b2120c93158e.md
 			if (sidenote) await this.sidenoteProcessor.open(sidenote);
 
 			if (process.env.SIDENOTES_USE_CODE_FENCE)
@@ -221,8 +221,8 @@ export default class Actions {
 	async wipeAnchor({
 		onHoverScanData,
 	}: { onHoverScanData?: ScanData } = {}): Promise<void> {
-		// 🕮 <YL> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
-		//! 🕮 <YL> 11f45863-9374-4824-ae21-4698c7aaf99f.md
+		// 🕮 <cyberbiont> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
+		//! 🕮 <cyberbiont> 11f45863-9374-4824-ae21-4698c7aaf99f.md
 		let range: Range;
 
 		if (onHoverScanData) {

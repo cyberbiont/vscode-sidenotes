@@ -33,9 +33,9 @@ export default class Scanner {
 		const matches = text.matchAll(regex);
 		for (const match of matches) {
 			const { index } = match;
-			// @old 🕮 <YL> 9596da3d-a8bd-40c9-9439-8bbdec915cc8.md
+			// @old 🕮 <cyberbiont> 9596da3d-a8bd-40c9-9439-8bbdec915cc8.md
 			const [fullMatch] = match;
-			// 🕮 <YL> c924fc03-6eaf-4eab-be51-7ae8428f956d.md
+			// 🕮 <cyberbiont> c924fc03-6eaf-4eab-be51-7ae8428f956d.md
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const { salt, signature, id, extension } = match.groups!;
 			const key = this.utils.getKey(id, extension);
@@ -52,7 +52,7 @@ export default class Scanner {
 					positions: new Set([index]),
 				};
 		}
-		// @old 🕮 <YL> b9d9f141-a247-4e3e-b3eb-48fbaf78d6d2.md
+		// @old 🕮 <cyberbiont> b9d9f141-a247-4e3e-b3eb-48fbaf78d6d2.md
 
 		const entries = Object.entries(result);
 		if (entries.length === 0) return undefined;

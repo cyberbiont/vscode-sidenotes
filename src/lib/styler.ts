@@ -45,7 +45,7 @@ export default class Styler {
 	}
 
 	getRandomHSLColor(lightness = '75%'): string {
-		// 🕮 <YL> 16762ea0-4553-4aee-8dd2-508e37ca0adb.md
+		// 🕮 <cyberbiont> 16762ea0-4553-4aee-8dd2-508e37ca0adb.md
 		const color = `hsl(${Math.random() * 360}, 100%, ${lightness})`;
 		return color;
 	}
@@ -87,7 +87,7 @@ export default class Styler {
 			This content type cannot be displayed in tooltip.
 			Extension: ${extension} MIME type: ${mime}`);
 
-		// 🕮 <YL> 7d0274da-2eba-4948-93d6-993af5e1bcf5.md
+		// 🕮 <cyberbiont> 7d0274da-2eba-4948-93d6-993af5e1bcf5.md
 		// ? TODO how to prepend?
 
 		const decoration: DecorableDecoration = {
