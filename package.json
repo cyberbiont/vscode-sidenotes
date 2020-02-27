@@ -2,12 +2,15 @@
 	"name": "vscode-sidenotes",
 	"displayName": "Sidenotes",
 	"description": "Annotate your code with external notes, stored separately and shown on hover",
-	"publisher": "Yaroslav Larin",
 	"version": "1.0.0",
+	"publisher": "cyberbiont",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/cyberbiont/vscode-sidenotes.git"
+	},
 	"license": "ISC",
-	"icon": "images/extensionIcon.png",
 	"engines": {
-		"vscode": "^1.38.0",
+		"vscode": "^1.41.0",
 		"node": "^10.16.0"
 	},
 	"categories": [
@@ -49,27 +52,27 @@
 						"type": "string",
 						"description": "default extension for content files"
 					},
-					"sidenotes.gutterIcon": {
+					"sidenotes.design.gutterIcon": {
 						"type": "boolean",
 						"description": "Whether to show gutter icon for each sidenote"
 					},
-					"sidenotes.ruler": {
+					"sidenotes.design.ruler": {
 						"type": "boolean",
 						"description": "Whether to show sidenotes in overviewRuler"
 					},
-					"sidenotes.before": {
+					"sidenotes.design.before": {
 						"type": "string",
 						"description": "A string to show before all your comment markers, decorative only"
 					},
-					"sidenotes.after": {
+					"sidenotes.design.after": {
 						"type": "string",
 						"description": "A string that is used as main sidenote representation marker when id is hidden"
 					},
-					"sidenotes.hideMarkers": {
+					"sidenotes.design.hideMarkers": {
 						"type": "boolean",
 						"description": "Whether to hide uuid string"
 					},
-					"sidenotes.colorIndication": {
+					"sidenotes.design.colorIndication": {
 						"type": "array",
 						"items": {
 							"type": "string"
@@ -116,65 +119,69 @@
 		"commands": [
 			{
 				"command": "sidenotes.annotate",
-				"title": "Sidenotes: Annotate",
-				"category": "Sidenotes"
+				"title": "Sidenote: Annotate"
 			},
 			{
 				"command": "sidenotes.annotateCode",
-				"title": "Sidenotes: Annotate (Code)",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Annotate (Code)"
 			},
 			{
 				"command": "sidenotes.annotatePickExt",
-				"title": "Sidenotes: Annotate (Pick Extension)",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Annotate (Pick Extension)"
 			},
 			{
 				"command": "sidenotes.annotateInputExt",
-				"title": "Sidenotes: Annotate (Input Extension)",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Annotate (Input Extension)"
 			},
 			{
 				"command": "sidenotes.delete",
-				"title": "Sidenotes: Delete",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Delete"
 			},
 			{
 				"command": "sidenotes.wipeAnchor",
-				"title": "Sidenotes: Wipe Marker",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Wipe Marker"
 			},
 			{
 				"command": "sidenotes.pruneBroken",
-				"title": "Sidenotes: Prune Broken",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Prune Broken"
 			},
 			{
 				"command": "sidenotes.pruneEmpty",
-				"title": "Sidenotes: Prune Empty",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Prune Empty"
 			},
 			{
 				"command": "sidenotes.refresh",
-				"title": "Sidenotes: Refresh",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Refresh"
 			},
 			{
 				"command": "sidenotes.migrate",
-				"title": "Sidenotes: Migrate",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Migrate"
 			},
 			{
 				"command": "sidenotes.extraneous",
-				"title": "Sidenotes: Clean Up",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Clean Up"
 			},
 			{
 				"command": "sidenotes.showMarkers",
-				"title": "Sidenotes: Toggle Markers",
-				"category": "Sidenotes"
+				"title": "Sidenotes: Toggle Markers"
 			}
 		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "sidenotes.annotate",
+					"group": "sidenotes"
+				},
+				{
+					"command": "sidenotes.delete",
+					"group": "sidenotes"
+				},
+				{
+					"command": "sidenotes.wipeAnchor",
+					"group": "sidenotes"
+				}
+			]
+		},
 		"keybindings": [
 			{
 				"command": "sidenotes.annotate",
@@ -200,23 +207,7 @@
 				"mac": "shift+cmd+W",
 				"when": "editorTextFocus"
 			}
-		],
-		"menus": {
-			"editor/context": [
-				{
-					"command": "sidenotes.annotate",
-					"group": "sidenotes"
-				},
-				{
-					"command": "sidenotes.delete",
-					"group": "sidenotes"
-				},
-				{
-					"command": "sidenotes.wipeAnchor",
-					"group": "sidenotes"
-				}
-			]
-		}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
