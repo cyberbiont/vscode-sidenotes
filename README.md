@@ -216,6 +216,8 @@ If you collaborate with your colleague, who also uses Sidenotes, your files may 
 * if your colleague decided to make his notes private and did not commit them to VCS, his sidenotes will appear to have 'broken' status, and, actions like 'prune broken' will potentially delete your colleague's sidenote markers.
 Specifying your signature guarantees that extension will only process your 'signatured' sidenote markersand leave alone all others.
 
+It is uaually sensible to use as your signature you Guthub login, to prevent conflicts.
+
 If you and your colleague want to share sidenotes, no problem: you can either use some common signature when authoring, for example, 'Shared' , or none at all. Or each can add his colleague's signature to his `anchor.marker.signature.read` settings.
 
 If you want to change signature, you can manully edit signature of marker in document.
@@ -289,7 +291,7 @@ Array of strings that defines what elements will change color, indicating sideno
 
 `delete` command deletes both content file and all associated anchors in current document without asking confirmation.  In case you regret your decision, you can restore your content file from recycle bin or via VCS (if your sidenotes are under VCS control).
 
-There may be times that you don't want to delete the content file (for example, you have another associated anchors that point to it) and want to delete only anchor. Technically in this case you can manually delete it (easily done with Ctrl-Shift-K shortcut - delete line action), but in this way decorations will not be updated and you may end up with residual artefacts. For this reason `Wipe` command exists that wipes current anchor only, leaving content file and other anchors inctact.
+There may be times that you don't want to delete the content file (for example, you have another associated anchors that point to it) and want to delete only anchor. Technically in this case you can manually delete it (easily done with Ctrl-Shift-K shortcut - delete line action), but in this way decorations will not be updated and you may end up with residual artefacts. For this reason `wipe` command exists that wipes current anchor only, leaving content file and other anchors inctact.
 
 ## Hiding ids
 
@@ -385,7 +387,7 @@ So, the proposed order of actions when migrating annotated files to new project 
 
 If there are content files left in your sidenotes subfolder that are not associated with any anchors in your project folder files, those are defined as *extraneous*. You can run `clean up` command to detect and optionally delete them (extension will first report about extraneous files and then ask your confirmation to delete them).
 
-There's also a *stray* files category which is also covered by `clean up` command in the same manner. Those are files (and folders also), which name does not contain valid id (that may accidentally end up in your sidenotes subfolder for whatever reason). Note that at this time it is prepostulated that content files are placed directly in sidenotes subfolder, so any nested folders are considered stray (so you cannot manually re-order content files in subdirectories).
+There's also a *stray* files category which is also covered by `clean up` command in the same manner. Those are files (and folders also), which name does not contain valid id (that may accidentally end up in your sidenotes subfolder for whatever reason). Note that at this time it is prepostulated that content files are placed directly in the `.sidenotes` subfolder, so any nested folders are considered stray (so you cannot manually re-order content files in subdirectories).
 
 ### Other storage types (to be implemented)
 
@@ -434,8 +436,6 @@ Also, 'undo' in vscode doesn't trigger 'editor change' event, so if after undoin
 #### Moving to document with another syntax
 
 Obviously, if you want to move your sidenote to other file, that uses different comment syntax (according to language used), you'll have to manually edit comment to match (tip: untoggle comment before moving, then toggle back after);
-
-
 
 Since sidenotes scanning is done lazily, you have to make editor active to initialize it. This can be seen on application start if you have several editors visible simultaneosly in different panes.
 

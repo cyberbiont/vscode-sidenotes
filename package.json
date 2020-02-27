@@ -98,7 +98,7 @@
 						"type": "string",
 						"description": "Signature to be added to your markers"
 					},
-					"sidenotes.signatireFilter": {
+					"sidenotes.signatureFilter": {
 						"type": "array",
 						"items": {
 							"type": "string"
