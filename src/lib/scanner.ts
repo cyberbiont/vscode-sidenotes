@@ -94,8 +94,11 @@ export default class Scanner {
 		const match = line.text.match(this.utils.bareMarkerRegexNonG);
 
 		if (match) {
-			const [fullMatch, signature, id, extension] = match;
+			// const [fullMatch, signature, id, extension] = match;
 			const { index } = match;
+			const [fullMatch] = match;
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const { salt, signature, id, extension } = match.groups!;
 			const key = this.utils.getKey(id, extension);
 
 			const position = line.range.start.translate({ characterDelta: index });
