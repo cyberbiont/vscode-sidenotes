@@ -42,7 +42,7 @@ export default class VSCodeFileSystemWatcherMaker extends FileChangeTracker {
 		return new RelativePattern(
 			this.getFullPathToSubfolder(workspace),
 			// `*${this.cfg.storage.files.defaultContentFileExtension}`
-			'*.*',
+			'**\/*.*',
 		);
 	}
 
