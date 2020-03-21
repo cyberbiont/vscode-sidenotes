@@ -21,7 +21,7 @@ import {
 } from './editorService';
 import {
 	// ChokidarChangeTracker,
-	VSCodeFileSystemWatcher,
+	VSCodeFileSystemWatcherMaker,
 } from './changeTracker';
 import { Inspector, SidenoteBuilder, SidenoteFactory } from './sidenote';
 import Anchorer from './anchorer';
@@ -159,7 +159,7 @@ export default class App {
 
 		const fileSystem = new SnFileSystem(scanner, utils, this.cfg);
 
-		const changeTracker = new VSCodeFileSystemWatcher(
+		const changeTracker = new VSCodeFileSystemWatcherMaker(
 			uuidMaker,
 			eventEmitter,
 			utils,
@@ -167,7 +167,6 @@ export default class App {
 			this.context,
 		);
 		// 🕮 <cyberbiont> a1f2b34f-bad3-45fb-8605-c5a233e65933.md
-
 		const editorServiceController = new EditorServiceController(
 			new ShellEditorService(changeTracker),
 			new SystemDefaultEditorService(changeTracker),

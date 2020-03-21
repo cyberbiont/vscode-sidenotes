@@ -15,9 +15,7 @@ export interface EditorService {
 }
 
 export class VscodeEditorService implements EditorService {
-	constructor(public changeTracker: FileChangeTracker) {
-		this.changeTracker.init();
-	}
+	constructor(public changeTracker: FileChangeTracker) { }
 
 	/**
 	 * opens sidenote document, associated with comment anchor in current line, creating comment and document if they don't exits
@@ -41,9 +39,7 @@ export class VscodeEditorService implements EditorService {
 }
 
 export class SystemDefaultEditorService implements EditorService {
-	constructor(public changeTracker: FileChangeTracker, public opn = open) {
-		this.changeTracker.init();
-	}
+	constructor(public changeTracker: FileChangeTracker, public opn = open) { }
 
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	async open(path: string) {
@@ -55,9 +51,7 @@ export class ShellEditorService implements EditorService {
 	private terminal: Terminal;
 	// 🕮 <cyberbiont> ed1e948e-8c99-4b59-adba-fef501653dda.md
 
-	constructor(public changeTracker: FileChangeTracker) {
-		this.changeTracker.init();
-	}
+	constructor(public changeTracker: FileChangeTracker) { }
 
 	private getExecutableName(extension: string): string {
 		switch (extension) {

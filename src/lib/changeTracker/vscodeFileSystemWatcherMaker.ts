@@ -12,7 +12,7 @@ import { FileChangeTracker, OFileChangeTracker } from '.';
 import { IdProvider } from '../idProvider';
 import { MarkerUtils } from '../utils';
 
-export default class VSCodeFileSystemWatcher extends FileChangeTracker {
+export default class VSCodeFileSystemWatcherMaker extends FileChangeTracker {
 	protected watcherService: Map<GlobPattern, FileSystemWatcher> = new Map();
 
 	constructor(
@@ -24,14 +24,16 @@ export default class VSCodeFileSystemWatcher extends FileChangeTracker {
 	) {
 		super(idMaker, eventEmitter, utils, cfg, context);
 		this.o = cfg.storage.files;
+		this.init();
 	}
 
-	init(targetPath?: string): void {
-		if (targetPath) this.setWatch(targetPath);
-		else
-			workspace.workspaceFolders!.forEach(workspaceFolder =>
-				this.setWatch(this.getWorkspaceFolderRelativePattern(workspaceFolder)),
-			);
+	init(): void {
+		// 🕮 <cyberbiont> 2b142ca3-c392-4812-b1c3-24bd5a9cb42b.md
+		// if (targetPath) this.setWatch(targetPath);
+		// else
+		workspace.workspaceFolders!.forEach(workspaceFolder =>
+			this.setWatch(this.getWorkspaceFolderRelativePattern(workspaceFolder)),
+		);
 	}
 
 	getWorkspaceFolderRelativePattern(

@@ -9,5 +9,22 @@
     // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
     "typescript.tsc.autoDetect": "off",
     "files.autoSave": "onFocusChange",
-    "commentAnchors.tagHighlights.enabled": true
+    "commentAnchors.tagHighlights.enabled": true,
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#13321b",
+        "activityBar.activeBackground": "#13321b",
+        "activityBar.activeBorder": "#6446b9",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#6446b9",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "titleBar.activeBackground": "#050d07",
+        "titleBar.inactiveBackground": "#050d0799",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveForeground": "#e7e7e799",
+        "statusBar.background": "#050d07",
+        "statusBarItem.hoverBackground": "#13321b",
+        "statusBar.foreground": "#e7e7e7"
+    },
+    "peacock.color": "#050d07"
 }

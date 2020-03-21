@@ -56,7 +56,6 @@ export type OFileStorage = {
 	};
 };
 
-// TODO 🕮 <cyberbiont> 1744f795-4133-4688-97d3-e8f02b26c886.md
 export class FileStorage implements StorageService {
 	private uriCache: WeakMap<FileStorageKey, Uri> = new WeakMap();
 	// 🕮 <cyberbiont> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
@@ -360,7 +359,7 @@ export class FileStorage implements StorageService {
 
 			console.log(
 				`Sidenotes: ${uris.length} ${type} files in folder ${
-					folder.uri.fsPath
+				folder.uri.fsPath
 				}:\n(${uris.join(')\n(')})`,
 			);
 			// paths.forEach(path => console.log(path));
