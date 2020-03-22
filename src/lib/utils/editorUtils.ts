@@ -41,7 +41,7 @@ export default class EditorUtils {
 		// @bug 🕮 <cyberbiont> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
 		if (!workspace.workspaceFolders)
 			throw new Error('Adding notes requires an open folder.');
-		const currentWorkspaceFolder = workspace.workspaceFolders.find(folder =>
+		const currentWorkspaceFolder = workspace.workspaceFolders.find((folder) =>
 			this.editor.document.fileName.includes(folder.uri.fsPath),
 		);
 		if (!currentWorkspaceFolder)
@@ -105,7 +105,7 @@ export default class EditorUtils {
 			content = this.editor.document.getText(this.editor.selection);
 			if (content) {
 				await this.editor.edit(
-					edit => {
+					(edit) => {
 						edit.delete(this.editor.selection);
 					},
 					{ undoStopAfter: false, undoStopBefore: false },

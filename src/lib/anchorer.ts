@@ -62,7 +62,7 @@ export default class Anchorer {
 		editor = this.editor,
 	): Promise<void> {
 		await editor.edit(
-			edit => edit.insert(range.start, anchorable.anchor.marker),
+			(edit) => edit.insert(range.start, anchorable.anchor.marker),
 			{ undoStopAfter: false, undoStopBefore: false },
 		);
 		await this.utils.toggleComment(range, editor, {
@@ -76,7 +76,9 @@ export default class Anchorer {
 	): Promise<void> {
 		// process.env.SIDENOTES_LOCK_EVENTS = 'true';
 		const ranges = Array.from(
-			new Set(anchored.decorations.map(decoration => decoration.options.range)),
+			new Set(
+				anchored.decorations.map((decoration) => decoration.options.range),
+			),
 		);
 
 		const iterator = this.editsChainer(ranges, (range: Range, i: number) => {
@@ -125,7 +127,7 @@ export default class Anchorer {
 		}
 
 		editor.edit(
-			edit => {
+			(edit) => {
 				edit.delete(rangeToDelete);
 			},
 			{ undoStopAfter: false, undoStopBefore: false },

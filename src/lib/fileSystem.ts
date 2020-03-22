@@ -39,7 +39,7 @@ export default class SnFileSystem
 
 		const readFiles = (fileUris: Uri[]): Promise<string[]> => {
 			return Promise.all(
-				fileUris.map(async uri => {
+				fileUris.map(async (uri) => {
 					const data = await workspace.fs.readFile(uri);
 					return this.textDecoder.decode(data);
 				}),
@@ -48,10 +48,10 @@ export default class SnFileSystem
 
 		const scanContents = (contents: string[]): string[] => {
 			const fileMatches = (contents
-				.map(content => this.scanner.scanText(content), this.scanner)
-				.filter(scanData => scanData !== undefined) as unknown) as ScanData[]; // 🕮 <cyberbiont> c02edcce-c3e0-48a5-ab51-c4d3053ec7d5.md
+				.map((content) => this.scanner.scanText(content), this.scanner)
+				.filter((scanData) => scanData !== undefined) as unknown) as ScanData[]; // 🕮 <cyberbiont> c02edcce-c3e0-48a5-ab51-c4d3053ec7d5.md
 			const flat = fileMatches.flat();
-			const keysOnly: string[] = flat.map(scanData => scanData.key);
+			const keysOnly: string[] = flat.map((scanData) => scanData.key);
 			return keysOnly;
 		};
 

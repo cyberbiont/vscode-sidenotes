@@ -22,7 +22,7 @@ export default class Styler {
 
 	get(stylable: Stylable, ranges: Range[]): DecorableDecoration[] {
 		const decorations: DecorableDecoration[] = ranges
-			.map(range => this.getRangeDecorations(range, stylable))
+			.map((range) => this.getRangeDecorations(range, stylable))
 			.flat();
 
 		if (ranges.length > 1) {
@@ -30,7 +30,7 @@ export default class Styler {
 				? stylable.color
 				: (stylable.color = this.getRandomHSLColor());
 			// TODO decrease color lightness for dark themes
-			decorations.map(decoration => this.markAsDuplicated(decoration, color));
+			decorations.map((decoration) => this.markAsDuplicated(decoration, color));
 		}
 		return decorations;
 	}
@@ -52,7 +52,7 @@ export default class Styler {
 
 	getRangeDecorations(range: Range, stylable: Stylable): DecorableDecoration[] {
 		const categories = this.getDecorationCategories(stylable);
-		return categories.map(category =>
+		return categories.map((category) =>
 			this.getCategoryDecoration(category, range, stylable),
 		);
 	}

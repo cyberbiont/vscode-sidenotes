@@ -114,7 +114,7 @@ export default class Decorator<T extends Decorable> {
 				this.addNestedProperty(c.style, 'after.contentText', o.after);
 			if (o.ruler) c.style.overviewRulerLane = OverviewRulerLane.Right;
 			if (o.colorIndication && c.color)
-				o.colorIndication.forEach(prop => {
+				o.colorIndication.forEach((prop) => {
 					switch (prop) {
 						case 'text':
 							this.setColor(c.color, c.style, 'color');
@@ -186,7 +186,7 @@ export default class Decorator<T extends Decorable> {
 	}: { pool?: SidenotesDictionary; reset?: boolean } = {}): void {
 		const getStylableDecorationOptions = (decorable: T): Decorations => {
 			if (decorable.decorations) {
-				decorable.decorations.forEach(decoration => {
+				decorable.decorations.forEach((decoration) => {
 					this.decorations[decoration.category].options.push(
 						decoration.options,
 					);

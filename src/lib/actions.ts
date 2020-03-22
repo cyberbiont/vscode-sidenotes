@@ -181,7 +181,7 @@ export default class Actions {
 
 		if (dialogType === 'pick') {
 			const action = await window.showQuickPick(
-				this.cfg.storage.files.extensionsQuickPick.map(ext => ({
+				this.cfg.storage.files.extensionsQuickPick.map((ext) => ({
 					label: ext,
 				})),
 				{
@@ -242,7 +242,7 @@ export default class Actions {
 		const lineRange = this.utils.extendRangeToFullLine(range);
 
 		await this.utils.editor.edit(
-			edit => {
+			(edit) => {
 				edit.delete(lineRange);
 			},
 			{ undoStopAfter: false, undoStopBefore: false },

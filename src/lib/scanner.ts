@@ -57,13 +57,13 @@ export default class Scanner {
 		const entries = Object.entries(result);
 		if (entries.length === 0) return undefined;
 
-		return entries.map(entry => {
+		return entries.map((entry) => {
 			const [key, { marker, positions }] = entry;
 			const { fullMatch } = marker;
 			return {
 				key,
 				marker,
-				ranges: Array.from(positions, index => {
+				ranges: Array.from(positions, (index) => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const position = this.editor.document.positionAt(index!);
 					const range = this.utils.getMarkerRange(fullMatch, position);

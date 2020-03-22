@@ -22,7 +22,7 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 		const target =
 			targetPath ||
 			(workspace.workspaceFolders
-				? workspace.workspaceFolders.map(workspaceFolder =>
+				? workspace.workspaceFolders.map((workspaceFolder) =>
 						this.getFullPathToSubfolder(workspaceFolder),
 				  )
 				: undefined);
@@ -38,7 +38,7 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 		this.initListeners();
 	}
 
-	onChange = this.debounce(function(path: string, stats) {
+	onChange = this.debounce(function (path: string, stats) {
 		this.generateCustomEvent(path, 'change');
 	});
 

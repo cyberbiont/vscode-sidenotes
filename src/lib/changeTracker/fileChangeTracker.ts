@@ -45,11 +45,11 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 
 	onWorkspaceChange(event: WorkspaceFoldersChangeEvent): void {
 		if (event.added)
-			event.added.forEach(workspaceFolder =>
+			event.added.forEach((workspaceFolder) =>
 				this.setWatch(this.getFullPathToSubfolder(workspaceFolder)),
 			);
 		if (event.removed)
-			event.removed.forEach(workspaceFolder =>
+			event.removed.forEach((workspaceFolder) =>
 				this.stopWatch(this.getFullPathToSubfolder(workspaceFolder)),
 			);
 	}
@@ -62,7 +62,7 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 	}
 
 	debounce(cb) {
-		return function(...args): void {
+		return function (...args): void {
 			if (this.wait) return;
 			this.wait = setTimeout(() => {
 				this.wait = false;

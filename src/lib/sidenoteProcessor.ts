@@ -45,7 +45,9 @@ export default class SidenoteProcessor {
 		/* assuming that ranges hasn't change (update onEditorChange event is responsible for handling this)
 		we can extract ranges from decorations */
 		const ranges = Array.from(
-			new Set(sidenote.decorations.map(decoration => decoration.options.range)),
+			new Set(
+				sidenote.decorations.map((decoration) => decoration.options.range),
+			),
 		);
 		sidenote.decorations = this.styler.get(sidenote, ranges);
 		return sidenote;

@@ -260,7 +260,7 @@ export class FileStorage implements StorageService {
 	async migrate(): Promise<void> {
 		const folders = this.getFolders();
 
-		folders.forEach(async folder => {
+		folders.forEach(async (folder) => {
 			const {
 				detectedKeys,
 				files: { fileUrisByFilenames: fileKeys },
@@ -268,7 +268,7 @@ export class FileStorage implements StorageService {
 
 			const broken: string[] = [];
 
-			detectedKeys.forEach(key => {
+			detectedKeys.forEach((key) => {
 				if (
 					!(
 						(key in fileKeys && typeof this.fs.read(fileKeys[key]) === 'string') // ensure that content note is readable
@@ -317,7 +317,7 @@ export class FileStorage implements StorageService {
 
 				const results = await Promise.all(
 					// ids.map
-					broken.map(async key => {
+					broken.map(async (key) => {
 						// const [id, extension] = key.split('.');
 						const { name: id, ext: extension } = path.parse(key);
 						// 🕮 <cyberbiont> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
@@ -327,7 +327,7 @@ export class FileStorage implements StorageService {
 
 				const successfulResults = results
 					.filter((result): result is Uri => !!result)
-					.map(uri => path.basename(uri.fsPath));
+					.map((uri) => path.basename(uri.fsPath));
 
 				const message =
 					successfulResults.length === 0
@@ -359,7 +359,7 @@ export class FileStorage implements StorageService {
 
 			console.log(
 				`Sidenotes: ${uris.length} ${type} files in folder ${
-				folder.uri.fsPath
+					folder.uri.fsPath
 				}:\n(${uris.join(')\n(')})`,
 			);
 			// paths.forEach(path => console.log(path));
@@ -402,7 +402,7 @@ export class FileStorage implements StorageService {
 
 		const folders = this.getFolders();
 
-		folders.forEach(async folder => {
+		folders.forEach(async (folder) => {
 			const {
 				detectedKeys,
 				files: { fileUrisByFilenames, strayEntries },

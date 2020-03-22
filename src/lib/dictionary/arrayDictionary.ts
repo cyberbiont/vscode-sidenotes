@@ -14,12 +14,12 @@ export default class ArrayDictionary<T extends HasKeyProperty>
 	}
 
 	get(key) {
-		return this.list.find(el => el.key === key);
+		return this.list.find((el) => el.key === key);
 	}
 
 	delete(key) {
 		this.list.splice(
-			this.list.findIndex(el => el.key === key),
+			this.list.findIndex((el) => el.key === key),
 			1,
 		);
 		return this;

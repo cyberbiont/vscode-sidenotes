@@ -24,7 +24,7 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		if (targetPath) {
 			this.setWatch(targetPath);
 		} else if (workspace.workspaceFolders) {
-			workspace.workspaceFolders.forEach(workspaceFolder =>
+			workspace.workspaceFolders.forEach((workspaceFolder) =>
 				this.setWatch(this.getFullPathToSubfolder(workspaceFolder)),
 			);
 			this.initListeners();
@@ -42,7 +42,7 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		this.pool.get(path)!.watch.close();
 	}
 
-	onChange = this.debounce(function(event, fileName: string) {
+	onChange = this.debounce(function (event, fileName: string) {
 		this.generateCustomEvent(fileName, event); // change args order to conform with chokidar
 	});
 

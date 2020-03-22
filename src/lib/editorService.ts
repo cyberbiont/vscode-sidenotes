@@ -15,7 +15,7 @@ export interface EditorService {
 }
 
 export class VscodeEditorService implements EditorService {
-	constructor(public changeTracker: FileChangeTracker) { }
+	constructor(public changeTracker: FileChangeTracker) {}
 
 	/**
 	 * opens sidenote document, associated with comment anchor in current line, creating comment and document if they don't exits
@@ -25,13 +25,13 @@ export class VscodeEditorService implements EditorService {
 		// @old 🕮 <cyberbiont> ea2901bc-16b1-4153-8753-1daa685ca125.md
 
 		return workspace.openTextDocument(uri).then(
-			async doc => {
+			async (doc) => {
 				return window.showTextDocument(doc, {
 					viewColumn: ViewColumn.Beside,
 					// 🕮 <cyberbiont> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
 				});
 			},
-			error => {
+			(error) => {
 				window.showErrorMessage(`<Failed to open file>. ${error.message}`);
 			},
 		);
@@ -39,7 +39,7 @@ export class VscodeEditorService implements EditorService {
 }
 
 export class SystemDefaultEditorService implements EditorService {
-	constructor(public changeTracker: FileChangeTracker, public opn = open) { }
+	constructor(public changeTracker: FileChangeTracker, public opn = open) {}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 	async open(path: string) {
@@ -51,7 +51,7 @@ export class ShellEditorService implements EditorService {
 	private terminal: Terminal;
 	// 🕮 <cyberbiont> ed1e948e-8c99-4b59-adba-fef501653dda.md
 
-	constructor(public changeTracker: FileChangeTracker) { }
+	constructor(public changeTracker: FileChangeTracker) {}
 
 	private getExecutableName(extension: string): string {
 		switch (extension) {

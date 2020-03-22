@@ -31,7 +31,7 @@ export default class VSCodeFileSystemWatcherMaker extends FileChangeTracker {
 		// 🕮 <cyberbiont> 2b142ca3-c392-4812-b1c3-24bd5a9cb42b.md
 		// if (targetPath) this.setWatch(targetPath);
 		// else
-		workspace.workspaceFolders!.forEach(workspaceFolder =>
+		workspace.workspaceFolders!.forEach((workspaceFolder) =>
 			this.setWatch(this.getWorkspaceFolderRelativePattern(workspaceFolder)),
 		);
 	}
@@ -42,7 +42,7 @@ export default class VSCodeFileSystemWatcherMaker extends FileChangeTracker {
 		return new RelativePattern(
 			this.getFullPathToSubfolder(workspace),
 			// `*${this.cfg.storage.files.defaultContentFileExtension}`
-			'**\/*.*',
+			'**/*.*',
 		);
 	}
 
