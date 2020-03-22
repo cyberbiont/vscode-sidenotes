@@ -243,7 +243,7 @@ export class FileStorage implements StorageService {
 		return false;
 	}
 
-	private getFolders(): WorkspaceFolder[] {
+	private getFolders(): readonly WorkspaceFolder[] {
 		const folders = workspace.workspaceFolders;
 		if (!folders || folders.length === 0) {
 			// const message = `You need to have at least one workspace folder open to run this command`
