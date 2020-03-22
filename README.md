@@ -294,11 +294,12 @@ Array of strings that defines what elements will change color, indicating sideno
 
 There may be times that you don't want to delete the content file (for example, you have another associated anchors that point to it) and want to delete only anchor. Technically in this case you can manually delete it (easily done with Ctrl-Shift-K shortcut - delete line action), but in this way decorations will not be updated and you may end up with residual artefacts. For this reason `wipe` command exists that wipes current anchor only, leaving content file and other anchors inctact.
 
-## Hiding ids
+## Hiding ids (markers folding)
 
 Uuids in anchor comments are necessary, but not the most pleasant thing to see in your code. By default extension hides them (in fact, compresses) so they are not visible and 'after' pseudoelement is displayed in place of an anchor. This has a one downside, that is precise selecting marker by dragging the mouse becomes a non-trivial task. To overcome this, use Ctrl-C - Ctrl-X commands to copy / cut the whole line containing anchor marker, since in VSCode you don't have to select the whole line in order to cut/copy/delete it.
 
 You can use `showMarkers` command to unfold full markers.
+There is a one downside when folding multiline comments, [see here](#Multiline-comments)
 
 ## Externalizing content
 
@@ -396,7 +397,7 @@ Potentially, note's contents can be stored in centralized database or cloud serv
 
 ## VCS considerations
 
-It's up to you whether you want to commit your sidenotes to VCS or leave them off. Commiting has the benefit that any repositiory version you checkout with VCS will have sidenotes in accordance to this version state. It is useful if sidenote is coupled tightly with the code and you want to keep ot 'in sync' with annotated document. Therefore, it is generally recommended. But, your notes won't be private that way (one way to help it is to use something like [node-cipher](https://www.npmjs.com/package/node-cipher) to encrypt your notes folder).
+It's up to you whether you want to commit your sidenotes to VCS or leave them off. Commiting has the benefit that any repositiory version you checkout with VCS will have sidenotes in accordance to this version state. It is useful if sidenote is coupled tightly with the code and you want to keep ot 'in sync' with annotated document. Therefore, it is generally recommended. But, your notes won't be private that way (one way to help it is to use something like git-encrypt) to encrypt your notes folder.
 
 You can also exclude your sidenotes folder from VCS. In that case, you get notes privacy (they won't be commited and therefore shared with other collaborators through VCS), but you are at risk of getting 'extraneous' or 'broken' notes if you check out the version where sidenote anchor still doesn't exist, or, otherwise, still exists though you could have deleted note and content file in one of later versions. However, if you really want the sidenote to be independent of VCS, it's the way to go.
 
@@ -441,6 +442,13 @@ Obviously, if you want to move your sidenote to other file, that uses different 
 Since sidenotes scanning is done lazily, you have to make editor active to initialize it. This can be seen on application start if you have several editors visible simultaneosly in different panes.
 
 Anyway, in case of unpredictable rendering artefacts you can use `refresh` command to re-draw sidenotes decorations, and report about the issue on Github so I can fix it.
+
+#### Multiline comments
+
+For the languages, that support only multiline, notably HTML / XML / Markdown / CSS, comments folding doesn't play well in latest versions of VS Code in the way that you will have trouble seeing hover tooltip preview on such comments, if folded.
+The reason is the tooltip is not displayed over 'after" pseusdoelement for such comments.
+To do so, you'll need either to place your cursor at the beginning of the icon and take a good aim with your mouse, or - a bit easier - to drag-select comment (or even a whole document with Ctrl-A), and than aim at the icon with your mouse.
+Anyway, the only alternative I can think of currently is to introduce a two decorations for each sidenote (one to show tooltip and another to fold the anchor), which I don't find feasible.
 
 ## Credits
 

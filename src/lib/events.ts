@@ -41,7 +41,7 @@ export default class SnEvents {
 			TextDocument
 		>,
 		private poolRepository: DocumentInitializableSidenotesRepository,
-	) { }
+	) {}
 
 	async onEditorChange(editor: TextEditor): Promise<void> {
 		if (!editor) return; //! 🕮 <cyberbiont> 23a3d9cc-aa47-487e-952a-78c177efe655.md
@@ -82,7 +82,8 @@ export default class SnEvents {
 	}
 
 	async onDidChangeTextDocument(event: TextDocumentChangeEvent): Promise<void> {
-		if (process.env.SIDENOTES_LOCK_EVENTS || !event.contentChanges.length) return;
+		if (process.env.SIDENOTES_LOCK_EVENTS || !event.contentChanges.length)
+			return;
 		if (
 			!event.contentChanges.some(change => {
 				// 🕮 <cyberbiont> aef6cc81-45c3-43bc-8f49-97c7f6ded1c7.md

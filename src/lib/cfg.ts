@@ -99,6 +99,7 @@ const cfg: Cfg = {
 			categories: {
 				common: {
 					style: {
+						// border: '1px solid red',
 						cursor: 'pointer',
 						rangeBehavior: DecorationRangeBehavior.ClosedClosed,
 						gutterIconSize: '80%',
