@@ -428,6 +428,10 @@ It's not really big problem, since Sidenotes are intended to use in development 
 
 But, if you collaborate on code with other people who aren't acquainted with sidenite comments, in order to not scare them too much with uuids in tyou code, it can be a good idea to place some explanation/warning in your repository README so that your collaborators ignore these comments and won't delete them (but if they do, though, you can restore it via VCS).
 
+### You need language support
+
+Comment toggling won't work if you don't have kanguage support installed and enabled for this kind of files (because obviously otherwise it will not know what syntax of comments to use).
+
 ### Manually moving / cutting / copying markers
 
 When you manually move / copy / paste your anchor markers, the decorations need to be updated to account for the new marker position, until then they will be rendered at their old position.

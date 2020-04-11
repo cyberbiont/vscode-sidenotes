@@ -36,9 +36,15 @@ export default class ArrayDictionary<T extends HasKeyProperty>
 		return this;
 	}
 
-	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// 	for (const item of this.list) {
+	// 		yield cb(item);
+	// 	}
+	// }
+
+	*[Symbol.iterator](): Generator<T> {
 		for (const item of this.list) {
-			yield cb(item);
+			yield item;
 		}
 	}
 	// prune(cb) {

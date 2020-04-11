@@ -8,6 +8,7 @@ import { IdProvider } from './idProvider';
 import { StorageService } from './storageService';
 import { EditorUtils, MarkerUtils } from './utils';
 import Scanner from './scanner';
+import SidenoteProcessor from './sidenoteProcessor';
 
 export class Sidenote implements Stylable, Decorable, Anchorable {
 	id: string;
@@ -133,7 +134,8 @@ export class SidenoteFactory {
 		private SidenoteBuilder: Constructor<SidenoteBuilder>,
 		private inspector: Inspector,
 		private cfg: OSidenoteFactory,
-	) {}
+	) // private sidenoteProcessor: SidenoteProcessor,
+	{}
 
 	async build(o: NewSidenoteOptions): Promise<Sidenote>;
 	async build(o: ScannedSidenoteOptions): Promise<Sidenote>;
@@ -226,6 +228,7 @@ export class SidenoteFactory {
 			this.storageService.write(withAnchor, { content: withAnchor.content! }),
 			this.anchorer.write(withAnchor, [range]),
 		]);
+		// await this.sidenoteProcessor.write(withAnchor, range);
 
 		// re-calculate range after comment toggle
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -43,9 +43,15 @@ export default class ObjectDictionary<T extends HasKeyProperty>
 		return this;
 	}
 
-	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// 	for (const key of Object.keys(this.list)) {
+	// 		yield cb(this.list[key]);
+	// 	}
+	// }
+
+	*[Symbol.iterator](): Generator<T> {
 		for (const key of Object.keys(this.list)) {
-			yield cb(this.list[key]);
+			yield this.list[key];
 		}
 	}
 }

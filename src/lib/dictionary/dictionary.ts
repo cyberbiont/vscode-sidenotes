@@ -8,9 +8,10 @@ export interface Dictionary<T> {
 	add(item: T): this;
 	get(key: string): T | undefined;
 	delete(key: string): this;
-	each(cb: (T) => void): void;
+	each(cb: (arg: T) => void): void;
 	clear(): this;
-	[Symbol.asyncIterator](cb): AsyncGenerator<T>;
+	[Symbol.iterator](): Generator<T>;
+	// [Symbol.asyncIterator](cb: Function): AsyncGenerator<T>;
 }
 
 // 🕮 <cyberbiont> 7387d8d0-b7ae-4b35-85ee-35e83d632586.md

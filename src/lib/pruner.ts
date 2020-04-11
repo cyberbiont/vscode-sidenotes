@@ -14,29 +14,30 @@ export default class Pruner {
 		this.pruneBroken();
 	}
 
-	async pruneBroken(): Promise<void> {
+	async pruneBroken(): Promise<boolean> {
 		return this.prune((sidenote: Sidenote) =>
 			this.inspector.isBroken(sidenote),
 		);
 	}
 
-	async pruneEmpty(): Promise<void> {
+	async pruneEmpty(): Promise<boolean> {
 		return this.prune((sidenote: Sidenote) => this.inspector.isEmpty(sidenote));
 	}
 
 	private async prune(
 		getCondition: (sidenote: Sidenote) => boolean,
-	): Promise<void> {
-		const processSidenote = async (sidenote: Sidenote): Promise<boolean> => {
+	): Promise<boolean> {
+		// batch processing of different sidenotes. Has to be done via async for loop, because in adding / deleting anchors consequency matters
+		const processSidenote = async (sidenote: Sidenote): Promise<Sidenote> => {
 			const condition = getCondition(sidenote);
-			if (condition) await this.sidenoteProcessor.delete(sidenote);
-			return condition;
+			if (!condition) return sidenote;
+			return await this.sidenoteProcessor.delete(sidenote);
 		};
 
-		for await (const sidenote of this.pool[Symbol.asyncIterator](
-			processSidenote,
-		)) {
-			// processSidenote(sidenote);
+		for (const sidenote of this.pool) {
+			await processSidenote(sidenote);
 		}
+
+		return true;
 	}
 }

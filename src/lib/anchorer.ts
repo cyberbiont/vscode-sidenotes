@@ -41,15 +41,18 @@ export default class Anchorer {
 	async write(anchorable: Anchorable, ranges: Range[]): Promise<void> {
 		// 🕮 <cyberbiont> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
 		process.env.SIDENOTES_LOCK_EVENTS = 'true';
-		const iterator = this.editsChainer(
-			ranges,
-			// this.writeRange.bind(this, anchorable)
-			(range: Range) => {
-				return this.writeRange.call(this, anchorable, range);
-			},
-		);
-		for await (const range of iterator);
 
+		const writeRangeInChain = async (range: Range) => {
+			return this.writeRange(anchorable, range);
+		};
+
+		// const iterator = this.editsChainer(ranges);
+		// for (let [i, range] of iterator) {
+		// 	await writeRangeInChain(range);
+		// }
+		for (let [i, range] of ranges.entries()) {
+			await writeRangeInChain(range);
+		}
 		delete process.env.SIDENOTES_LOCK_EVENTS;
 	}
 
@@ -60,12 +63,12 @@ export default class Anchorer {
 		anchorable: Anchorable,
 		range: Range,
 		editor = this.editor,
-	): Promise<void> {
+	): Promise<boolean> {
 		await editor.edit(
 			(edit) => edit.insert(range.start, anchorable.anchor.marker),
 			{ undoStopAfter: false, undoStopBefore: false },
 		);
-		await this.utils.toggleComment(range, editor, {
+		return await this.utils.toggleComment(range, editor, {
 			useBlockComments: this.cfg.anchor.comments.useBlockComments,
 		});
 	}
@@ -81,42 +84,32 @@ export default class Anchorer {
 			),
 		);
 
-		const iterator = this.editsChainer(ranges, (range: Range, i: number) => {
+		// const iterator = this.editsChainer(ranges);
+
+		const deleteRangeInChain = async (
+			range: Range,
+			i: number,
+		): Promise<boolean> => {
 			if (i !== 0) {
 				const regexp = new RegExp(
 					this.utils.getBareMarkerRegexString(anchored.id),
 				);
 				const nextRange = this.scanner.rescanForRange(regexp);
 
-				if (!nextRange) return;
+				if (!nextRange)
+					throw new Error(
+						'next anchor marker not found when tryin to rescan for range after previous marker deletion ',
+					);
 
 				range = this.utils.extendRangeToFullLine(nextRange);
 			}
-			this.deleteRange.call(this, range, internalize);
-		});
+			return this.deleteRange(range);
+			// return this.deleteRange(range, internalize);
+		};
 
-		// let notFirstRange: boolean;
-		// const deleteRangeInChain = (range: Range) => {
-		// 	if (notFirstRange) {
-		// 		// if (i !== 0) {
-		// 		const regexp = new RegExp(
-		// 			this.utils.getBareMarkerRegexString(anchored.id),
-		// 		);
-		// 		const nextRange = this.scanner.rescanForRange(regexp);
-
-		// 		if (!nextRange) return;
-
-		// 		range = this.utils.extendRangeToFullLine(nextRange);
-		// 	} else {
-		// 		notFirstRange = true;
-		// 	}
-		// 	this.deleteRange.call(this, range, internalize);
-		// };
-
-		for await (const range of iterator);
-		// for await (let range of iterator) {
-		// 	deleteRangeInChain(range);
-		// }
+		for (let [i, range] of ranges.entries()) {
+			await deleteRangeInChain(range, i);
+		}
 
 		// delete process.env.SIDENOTES_LOCK_EVENTS;
 	}
@@ -127,7 +120,10 @@ export default class Anchorer {
 			.ranges[0];
 	}
 
-	private async deleteRange(range: Range, editor = this.editor): Promise<void> {
+	private async deleteRange(
+		range: Range,
+		editor = this.editor,
+	): Promise<boolean> {
 		let rangeToDelete: Range;
 
 		if (!this.cfg.anchor.comments.useBlockComments) {
@@ -143,12 +139,13 @@ export default class Anchorer {
 			rangeToDelete = this.rescanLine(range);
 		}
 
-		editor.edit(
+		return editor.edit(
 			(edit) => {
 				edit.delete(rangeToDelete);
 			},
 			{ undoStopAfter: false, undoStopBefore: false },
 		);
+		// проблема в том, что новый editor edit запускает до того, как завершиля предыдыдущий, то. перезаписывая edit-билдер
 		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 	}
 
@@ -156,11 +153,13 @@ export default class Anchorer {
 	// 	// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
 	// 	for (const item of iterable) yield cb.call(this, item);
 	// }
-	private async *editsChainer(iterable: Range[], cb: Function): AsyncGenerator {
-		// TODO указать здесь типы для AsyncGenerator!
+	private *editsChainer(iterable: Range[]) {
+		// если мы указаваем здесь возвращаемый тип AsyncGenerator, надо прописать для него дженерики,
+		// типа : AsyncGenerator<Range, void, unknown> иначе будет unknown
 
-		// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
-		for (const item of iterable) yield cb.call(this, item);
-		// for (const range of iterable) yield range;
+		for (let entry of iterable.entries()) yield entry;
 	}
+	// в общем мы здесь можем обойтись и обычным генератором, т.к. все перебираемые значения у нас уже есть изначально (а не поступают асинхронно)
+	// а дождаться завершения асинхронной функции перед запуском следующего цикла можно просто поместив await внутрь for?
+	// и даже вообще без генератора, т.у. нас уже есть массив по которому можно исопльзовать for of
 }

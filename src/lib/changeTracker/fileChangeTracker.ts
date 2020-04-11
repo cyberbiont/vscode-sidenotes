@@ -12,7 +12,7 @@ import { MarkerUtils } from '../utils';
 export type OFileChangeTracker = {
 	storage: {
 		files: {
-			notesSubfolder: string;
+			notesFolder: string;
 			defaultContentFileExtension: string;
 		};
 	};
@@ -24,7 +24,7 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 	protected wait: NodeJS.Timeout | boolean = false;
 
 	protected o: {
-		notesSubfolder: string;
+		notesFolder: string;
 		defaultContentFileExtension: string;
 	};
 
@@ -40,7 +40,7 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 	}
 
 	getFullPathToSubfolder(workspace): string {
-		return path.join(workspace.uri.fsPath, this.o.notesSubfolder);
+		return path.join(workspace.uri.fsPath, this.o.notesFolder);
 	}
 
 	onWorkspaceChange(event: WorkspaceFoldersChangeEvent): void {

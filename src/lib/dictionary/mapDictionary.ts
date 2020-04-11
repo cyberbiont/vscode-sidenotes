@@ -41,9 +41,18 @@ export default class MapDictionary<T extends HasKeyProperty>
 		return this.list.size;
 	}
 
-	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// async *[Symbol.asyncIterator](cb: Function): AsyncGenerator<T> {
+	// 	// for (const item of this.list.values()) {
+	// 	// 	yield cb(item);
+	// 	// }
+	// 	for (const item of this.list.values()) {
+	// 		yield item;
+	// 	}
+	// }
+
+	*[Symbol.iterator](): Generator<T> {
 		for (const item of this.list.values()) {
-			yield cb(item);
+			yield item;
 		}
 	}
 }

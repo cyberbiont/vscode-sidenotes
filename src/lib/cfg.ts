@@ -49,8 +49,8 @@ const cfg: Cfg = {
 
 	storage: {
 		files: {
-			notesSubfolder: settings.get('notesSubfolder') || '.sidenotes',
-			signatureSubfolder: signature,
+			notesFolder: settings.get('notesSubfolder') || '.sidenotes',
+			signatureSubfolderName: signature,
 			defaultContentFileExtension:
 				settings.get('defaultContentFileExtension') || '.md',
 			extensionsQuickPick: settings.get('extensionsQuickPick') || [],

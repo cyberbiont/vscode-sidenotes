@@ -50,9 +50,15 @@ export default class SetDictionary<T extends HasKeyProperty>
 		return this.list.size;
 	}
 
-	async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// async *[Symbol.asyncIterator](cb): AsyncGenerator<T> {
+	// 	for (const item of this.list) {
+	// 		yield cb(item);
+	// 	}
+	// }
+
+	*[Symbol.iterator](): Generator<T> {
 		for (const item of this.list) {
-			yield cb(item);
+			yield item;
 		}
 	}
 }

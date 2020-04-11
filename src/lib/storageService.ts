@@ -49,8 +49,8 @@ type DefaultContentFileExtension = '.md' | '.markdown';
 export type OFileStorage = {
 	storage: {
 		files: {
-			notesSubfolder: string;
-			signatureSubfolder: string;
+			notesFolder: string;
+			signatureSubfolderName: string;
 			defaultContentFileExtension: DefaultContentFileExtension;
 		};
 	};
@@ -61,12 +61,13 @@ export class FileStorage implements StorageService {
 	// 🕮 <cyberbiont> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
-		notesSubfolder: string;
-		signatureSubfolder: string;
+		notesFolder: string;
+		signatureSubfolderName: string;
 		defaultContentFileExtension: DefaultContentFileExtension;
 	};
 
-	private notesFolder: Uri;
+	private notesFolderUri: Uri;
+	private notesSigFolderUri: Uri;
 
 	constructor(
 		public editorServiceController: EditorServiceController,
@@ -76,8 +77,8 @@ export class FileStorage implements StorageService {
 		private commands,
 	) {
 		this.o = cfg.storage.files;
-		this.notesFolder = this.getUri(
-			path.join(this.utils.getWorkspaceFolderPath(), this.o.notesSubfolder),
+		this.notesFolderUri = this.getUri(
+			path.join(this.utils.getWorkspaceFolderPath(), this.o.notesFolder),
 		);
 		this.commands.registerCommand('sidenotes.migrate', this.migrate, this);
 		this.commands.registerCommand(
@@ -85,6 +86,38 @@ export class FileStorage implements StorageService {
 			this.cleanExtraneous,
 			this,
 		);
+	}
+
+	private getNotesFolderUri() {
+		// return
+	}
+
+	private getContentFileName(key: FileStorageKey): string {
+		// 🕮 <cyberbiont> 2190628a-b268-44c2-a81a-939ce26dd7a4.md
+		const { id, extension = this.o.defaultContentFileExtension } = key;
+		return `${id}${extension}`;
+	}
+
+	private getContentFileUri(key: FileStorageKey, ownSignature?: boolean): Uri {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		if (this.uriCache.has(key)) return this.uriCache.get(key)!;
+		// by default we look in the current document's workspace folder
+		const pathParts: string[] = [
+			this.utils.getWorkspaceFolderPath(),
+			this.o.notesFolder,
+			this.getContentFileName(key),
+		];
+		if (ownSignature) pathParts.splice(2, 0, this.o.signatureSubfolderName);
+		else if (key.signature) pathParts.splice(2, 0, key.signature);
+
+		const filePath = path.join.apply(null, pathParts);
+		// 🕮 <cyberbiont> 88f3b639-a288-408e-b926-046d9a59b95b.md
+
+		const fileUri = this.getUri(filePath);
+
+		this.uriCache.set(key, fileUri);
+
+		return fileUri;
 	}
 
 	async read(key: FileStorageKey): Promise<Storable | undefined> {
@@ -107,34 +140,6 @@ export class FileStorage implements StorageService {
 		return Uri.parse(`file:${path}`, true);
 	}
 
-	private getContentFileName(key: FileStorageKey): string {
-		// 🕮 <cyberbiont> 2190628a-b268-44c2-a81a-939ce26dd7a4.md
-		const { id, extension = this.o.defaultContentFileExtension } = key;
-		return `${id}${extension}`;
-	}
-
-	private getContentFileUri(key: FileStorageKey, ownSignature?: boolean): Uri {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		if (this.uriCache.has(key)) return this.uriCache.get(key)!;
-		// by default we look in the current document's workspace folder
-		const pathParts: string[] = [
-			this.utils.getWorkspaceFolderPath(),
-			this.o.notesSubfolder,
-			this.getContentFileName(key),
-		];
-		if (ownSignature) pathParts.splice(2, 0, this.o.signatureSubfolder);
-		else if (key.signature) pathParts.splice(2, 0, key.signature);
-
-		const filePath = path.join.apply(null, pathParts);
-		// 🕮 <cyberbiont> 88f3b639-a288-408e-b926-046d9a59b95b.md
-
-		const fileUri = this.getUri(filePath);
-
-		this.uriCache.set(key, fileUri);
-
-		return fileUri;
-	}
-
 	async delete(key: FileStorageKey): Promise<void[]> {
 		const uri = this.getContentFileUri({ id: key.id, extension: '.assets' });
 		try {
@@ -155,14 +160,14 @@ export class FileStorage implements StorageService {
 
 	async ensureNotesFolderExists(): Promise<void> {
 		// 🕮 <cyberbiont> 5a7d9cf7-71ee-4a84-abbe-ea320afe220f.md
-		if (!this.fs.exists(this.notesFolder.fsPath)) {
+		if (!this.fs.exists(this.notesFolderUri.fsPath)) {
 			try {
-				await this.fs.createDirectory(this.notesFolder);
+				await this.fs.createDirectory(this.notesFolderUri);
 				console.log(
-					`Sidenotes: created missing subfolder ${this.o.notesSubfolder} for content files`,
+					`Sidenotes: created missing subfolder ${this.o.notesFolder} for content files`,
 				);
 			} catch (e) {
-				throw FileSystemError.FileNotFound(this.notesFolder);
+				throw FileSystemError.FileNotFound(this.notesFolderUri);
 			}
 		}
 	}
@@ -207,7 +212,7 @@ export class FileStorage implements StorageService {
 		);
 
 		const currentFileUri = this.getUri(
-			path.join(workspace, this.o.notesSubfolder, fileName),
+			path.join(workspace, this.o.notesFolder, fileName),
 		);
 
 		const action = resolveAction === 'move' ? this.fs.rename : this.fs.copy;
@@ -228,7 +233,7 @@ export class FileStorage implements StorageService {
 			);
 			if (this.fs.exists(assetslookupUri.fsPath)) {
 				const assetsCurrentUri = this.getUri(
-					path.join(workspace, this.o.notesSubfolder, assetsFolderName),
+					path.join(workspace, this.o.notesFolder, assetsFolderName),
 				);
 				promises.push(action.call(this, assetslookupUri, assetsCurrentUri));
 			}
@@ -332,7 +337,7 @@ export class FileStorage implements StorageService {
 				const message =
 					successfulResults.length === 0
 						? `No missing files were found in specified directory`
-						: `The following files have been found and copied to the current workspace:\n
+						: `The following file(s) have been found and copied to the current workspace:\n
 						${successfulResults.join(',\n')}`;
 
 				window.showInformationMessage(message);
@@ -358,7 +363,7 @@ export class FileStorage implements StorageService {
 			}
 
 			console.log(
-				`Sidenotes: ${uris.length} ${type} files in folder ${
+				`Sidenotes: ${uris.length} ${type} file(s) in folder ${
 					folder.uri.fsPath
 				}:\n(${uris.join(')\n(')})`,
 			);
@@ -368,7 +373,7 @@ export class FileStorage implements StorageService {
 				[
 					{
 						label: 'yes',
-						description: `delete ${type} files`,
+						description: `delete ${type} file(s)`,
 					},
 					{
 						label: 'no',
@@ -376,7 +381,7 @@ export class FileStorage implements StorageService {
 					},
 				],
 				{
-					placeHolder: `Sidenotes: found ${uris.length} ${type} files
+					placeHolder: `Sidenotes: found ${uris.length} ${type} file(s)
 					in ${folder.uri.fsPath} sidenote directory.
 					Do you want to delete them now?`,
 				},
@@ -391,7 +396,7 @@ export class FileStorage implements StorageService {
 				);
 
 				window.showInformationMessage(
-					`The following files have been deleted from your sidenote folder:\n
+					`The following file(s) have been deleted from your sidenote folder:\n
 					${deleted.join(',\n')}`,
 				);
 				return true;
@@ -448,7 +453,7 @@ export class FileStorage implements StorageService {
 
 	async analyzeFolderContentFiles(folder: Uri): Promise<FileAnalisysData> {
 		// 🕮 <cyberbiont> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
-		const notesSubfolderPath = path.join(folder.fsPath, this.o.notesSubfolder);
+		const notesSubfolderPath = path.join(folder.fsPath, this.o.notesFolder);
 
 		const fileUrisByFilenames: {
 			[filename: string]: Uri;

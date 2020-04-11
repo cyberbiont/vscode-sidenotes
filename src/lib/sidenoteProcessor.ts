@@ -28,16 +28,16 @@ export default class SidenoteProcessor {
 		return sidenote;
 	}
 
-	async write(sidenote: Sidenote, ranges: Range[]): Promise<void> {
-		if (sidenote.content) {
-			await Promise.all([
-				this.storageService.write(sidenote, sidenote as Storable),
-				this.anchorer.write(sidenote, ranges),
-			]);
-		} else {
-			window.showErrorMessage('no content to write!');
-		}
-	}
+	// async write(sidenote: Sidenote, ranges: Range[]): Promise<void> {
+	// 	if (sidenote.content) {
+	// 		await Promise.all([
+	// 			this.storageService.write(sidenote, sidenote as Storable),
+	// 			this.anchorer.write(sidenote, ranges),
+	// 		]);
+	// 	} else {
+	// 		window.showErrorMessage('no content to write!');
+	// 	}
+	// }
 
 	async updateContent(sidenote: Sidenote): Promise<Sidenote> {
 		const data = await this.storageService.read(sidenote);
