@@ -44,7 +44,7 @@ export default class Anchorer {
 		const iterator = this.editsChainer(
 			ranges,
 			// this.writeRange.bind(this, anchorable)
-			(range: Range, i: number) => {
+			(range: Range) => {
 				return this.writeRange.call(this, anchorable, range);
 			},
 		);
@@ -92,10 +92,31 @@ export default class Anchorer {
 
 				range = this.utils.extendRangeToFullLine(nextRange);
 			}
-			this.deleteRange.call(this, anchored, range, internalize);
+			this.deleteRange.call(this, range, internalize);
 		});
 
+		// let notFirstRange: boolean;
+		// const deleteRangeInChain = (range: Range) => {
+		// 	if (notFirstRange) {
+		// 		// if (i !== 0) {
+		// 		const regexp = new RegExp(
+		// 			this.utils.getBareMarkerRegexString(anchored.id),
+		// 		);
+		// 		const nextRange = this.scanner.rescanForRange(regexp);
+
+		// 		if (!nextRange) return;
+
+		// 		range = this.utils.extendRangeToFullLine(nextRange);
+		// 	} else {
+		// 		notFirstRange = true;
+		// 	}
+		// 	this.deleteRange.call(this, range, internalize);
+		// };
+
 		for await (const range of iterator);
+		// for await (let range of iterator) {
+		// 	deleteRangeInChain(range);
+		// }
 
 		// delete process.env.SIDENOTES_LOCK_EVENTS;
 	}
@@ -106,11 +127,7 @@ export default class Anchorer {
 			.ranges[0];
 	}
 
-	private async deleteRange(
-		anchored: Anchorable,
-		range: Range,
-		editor = this.editor,
-	): Promise<void> {
+	private async deleteRange(range: Range, editor = this.editor): Promise<void> {
 		let rangeToDelete: Range;
 
 		if (!this.cfg.anchor.comments.useBlockComments) {
@@ -135,8 +152,15 @@ export default class Anchorer {
 		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 	}
 
+	// private async *editsChainer(iterable: Range[], cb: Function): AsyncGenerator {
+	// 	// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
+	// 	for (const item of iterable) yield cb.call(this, item);
+	// }
 	private async *editsChainer(iterable: Range[], cb: Function): AsyncGenerator {
+		// TODO указать здесь типы для AsyncGenerator!
+
 		// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
 		for (const item of iterable) yield cb.call(this, item);
+		// for (const range of iterable) yield range;
 	}
 }

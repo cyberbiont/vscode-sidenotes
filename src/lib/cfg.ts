@@ -78,7 +78,7 @@ const cfg: Cfg = {
 			prefix: settings.get('prefix') || '',
 			salt: '🕮',
 			signature,
-			signatureFilter: settings.get('signatureFilter'),
+			signatureFilter: new Set(settings.get('signatureFilter')),
 			readUnsigned: settings.get('readUnsigned'),
 		},
 

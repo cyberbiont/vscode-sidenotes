@@ -7,7 +7,7 @@ export type OMarkerUtils = {
 			salt: string;
 			prefix?: string;
 			signature: string;
-			signatureFilter?: string[];
+			signatureFilter?: Set<string>;
 			readUnsigned?: boolean;
 		};
 	};
@@ -32,11 +32,13 @@ export default class MarkerUtils {
 
 		const extensionRegexString = '(?<extension>.\\w+)?';
 
-		const signatures: string[] = o.signatureFilter ? o.signatureFilter : ['.*'];
-		if (o.signature) signatures.push(o.signature);
-		const readSignaturesRegexString = `(<(?<signature>(${signatures.join(
-			'|',
-		)}))> )${o.readUnsigned ? '?' : ''}`;
+		const signatures: Set<string> = o.signatureFilter
+			? o.signatureFilter
+			: new Set('.*');
+		if (o.signature) signatures.add(o.signature);
+		const readSignaturesRegexString = `(<(?<signature>(${Array.from(
+			signatures,
+		).join('|')}))> )${o.readUnsigned ? '?' : ''}`;
 
 		// 🕮 <cyberbiont> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
 		return `(?<salt>${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
