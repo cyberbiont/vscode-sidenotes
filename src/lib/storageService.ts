@@ -38,7 +38,7 @@ interface FileStorageKey {
 	signature?: string;
 }
 
-interface FileAnalisysData {
+interface FileAnalysisData {
 	fileUrisByFilenames: { [filename: string]: Uri };
 	strayEntries: Uri[];
 }
@@ -56,6 +56,11 @@ export type OFileStorage = {
 	};
 };
 
+interface Paths {
+	workspace: string;
+	root: Uri;
+	ownSig: Uri;
+}
 export class FileStorage implements StorageService {
 	private uriCache: WeakMap<FileStorageKey, Uri> = new WeakMap();
 	// 🕮 <cyberbiont> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
@@ -66,9 +71,6 @@ export class FileStorage implements StorageService {
 		defaultContentFileExtension: DefaultContentFileExtension;
 	};
 
-	private notesFolderUri: Uri;
-	private notesSigFolderUri: Uri;
-
 	constructor(
 		public editorServiceController: EditorServiceController,
 		public utils: EditorUtils & MarkerUtils,
@@ -77,9 +79,6 @@ export class FileStorage implements StorageService {
 		private commands,
 	) {
 		this.o = cfg.storage.files;
-		this.notesFolderUri = this.getUri(
-			path.join(this.utils.getWorkspaceFolderPath(), this.o.notesFolder),
-		);
 		this.commands.registerCommand('sidenotes.migrate', this.migrate, this);
 		this.commands.registerCommand(
 			'sidenotes.extraneous',
@@ -88,8 +87,22 @@ export class FileStorage implements StorageService {
 		);
 	}
 
-	private getNotesFolderUri() {
-		// return
+	private getUri(path: string): Uri {
+		return Uri.parse(`file:${path}`, true);
+	}
+
+	private getNotesFolder(
+		workspace: string = this.utils.getWorkspaceFolderPath(),
+	): Uri {
+		return this.getUri(path.join(workspace, this.o.notesFolder));
+	}
+
+	private getOwnSigNotesFolder(
+		workspace: string = this.utils.getWorkspaceFolderPath(),
+	): Uri {
+		return this.getUri(
+			path.join(workspace, this.o.notesFolder, this.o.signatureSubfolderName),
+		);
 	}
 
 	private getContentFileName(key: FileStorageKey): string {
@@ -98,23 +111,40 @@ export class FileStorage implements StorageService {
 		return `${id}${extension}`;
 	}
 
-	private getContentFileUri(key: FileStorageKey, ownSignature?: boolean): Uri {
+	private getContentFileUri(
+		key: FileStorageKey,
+		workspace: string = this.utils.getWorkspaceFolderPath(),
+		{ ownSignature }: { ownSignature?: boolean } = {},
+	): Uri {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		if (this.uriCache.has(key)) return this.uriCache.get(key)!;
+
+		// workspace'ов может быть несколько! и могут добавляться новые в процессе работы
+		// поэтому нельзя жестко прописать путь при инциализации и использовать его,
+		// нужно считать каждый раз динамически
+
 		// by default we look in the current document's workspace folder
 		const pathParts: string[] = [
-			this.utils.getWorkspaceFolderPath(),
+			workspace,
 			this.o.notesFolder,
 			this.getContentFileName(key),
 		];
 		if (ownSignature) pathParts.splice(2, 0, this.o.signatureSubfolderName);
 		else if (key.signature) pathParts.splice(2, 0, key.signature);
 
-		const filePath = path.join.apply(null, pathParts);
 		// 🕮 <cyberbiont> 88f3b639-a288-408e-b926-046d9a59b95b.md
+		const fileUri = this.getUri(path.join.apply(null, pathParts));
 
-		const fileUri = this.getUri(filePath);
-
+		// let fileUri: Uri;
+		// const fileName = this.getContentFileName(key);
+		// if (!ownSignature && key.signature)
+		// 	fileUri = this.paths.root.with({
+		// 		path: path.join(this.paths.root.path, key.signature, fileName),
+		// 	});
+		// else
+		// 	fileUri = this.paths.ownSig.with({
+		// 		path: path.join(this.paths.ownSig.path, fileName),
+		// 	});
 		this.uriCache.set(key, fileUri);
 
 		return fileUri;
@@ -134,10 +164,6 @@ export class FileStorage implements StorageService {
 		const { extension = this.o.defaultContentFileExtension } = key;
 		const uri = this.getContentFileUri(key);
 		this.editorServiceController.open(uri, extension);
-	}
-
-	private getUri(path: string): Uri {
-		return Uri.parse(`file:${path}`, true);
 	}
 
 	async delete(key: FileStorageKey): Promise<void[]> {
@@ -160,16 +186,18 @@ export class FileStorage implements StorageService {
 
 	async ensureNotesFolderExists(): Promise<void> {
 		// 🕮 <cyberbiont> 5a7d9cf7-71ee-4a84-abbe-ea320afe220f.md
-		if (!this.fs.exists(this.notesFolderUri.fsPath)) {
+		const notesFolder = this.getNotesFolder();
+		if (!this.fs.exists(notesFolder.fsPath)) {
 			try {
-				await this.fs.createDirectory(this.notesFolderUri);
+				await this.fs.createDirectory(notesFolder);
 				console.log(
-					`Sidenotes: created missing subfolder ${this.o.notesFolder} for content files`,
+					`Sidenotes: created missing folder ${notesFolder} for content files`,
 				);
 			} catch (e) {
-				throw FileSystemError.FileNotFound(this.notesFolderUri);
+				throw FileSystemError.FileNotFound(notesFolder);
 			}
 		}
+		// 🕮 <cyberbiont> 175f9a7b-c71a-4392-891e-14c707744cb0.md
 	}
 
 	async write(key: FileStorageKey, data: Storable): Promise<void> {
@@ -192,7 +220,6 @@ export class FileStorage implements StorageService {
 					`Unknown error while trying to write content file`,
 				);
 		}
-		// return false;
 	}
 
 	async lookup(
@@ -211,9 +238,7 @@ export class FileStorage implements StorageService {
 			),
 		);
 
-		const currentFileUri = this.getUri(
-			path.join(workspace, this.o.notesFolder, fileName),
-		);
+		const currentFileUri = this.getContentFileUri(key);
 
 		const action = resolveAction === 'move' ? this.fs.rename : this.fs.copy;
 
@@ -248,9 +273,9 @@ export class FileStorage implements StorageService {
 		return false;
 	}
 
-	private getFolders(): readonly WorkspaceFolder[] {
-		const folders = workspace.workspaceFolders;
-		if (!folders || folders.length === 0) {
+	private getWorkspaceFolders(): readonly WorkspaceFolder[] {
+		const workspaceFolders = workspace.workspaceFolders;
+		if (!workspaceFolders || workspaceFolders.length === 0) {
 			// const message = `You need to have at least one workspace folder open to run this command`
 			// vscode.window.showInformationMessage(
 
@@ -259,11 +284,11 @@ export class FileStorage implements StorageService {
 				`You need to have at least one workspace folder open to run this command`,
 			);
 		}
-		return folders;
+		return workspaceFolders;
 	}
 
 	async migrate(): Promise<void> {
-		const folders = this.getFolders();
+		const folders = this.getWorkspaceFolders();
 
 		folders.forEach(async (folder) => {
 			const {
@@ -357,7 +382,7 @@ export class FileStorage implements StorageService {
 		): Promise<boolean> => {
 			if (uris.length === 0) {
 				window.showInformationMessage(
-					`Sidenotes: no ${type} files was found in ${folder.uri.fsPath} sidenote subfolder`,
+					`Sidenotes: no ${type} files was found in "${folder.uri.fsPath}" workspace folder`,
 				);
 				return false;
 			}
@@ -382,7 +407,7 @@ export class FileStorage implements StorageService {
 				],
 				{
 					placeHolder: `Sidenotes: found ${uris.length} ${type} file(s)
-					in ${folder.uri.fsPath} sidenote directory.
+					in "${folder.uri.fsPath}" workspace folder.
 					Do you want to delete them now?`,
 				},
 			);
@@ -396,7 +421,7 @@ export class FileStorage implements StorageService {
 				);
 
 				window.showInformationMessage(
-					`The following file(s) have been deleted from your sidenote folder:\n
+					`The following file(s) have been deleted from your workspace folder:\n
 					${deleted.join(',\n')}`,
 				);
 				return true;
@@ -405,18 +430,27 @@ export class FileStorage implements StorageService {
 			return false;
 		};
 
-		const folders = this.getFolders();
+		const folders = this.getWorkspaceFolders();
 
 		folders.forEach(async (folder) => {
 			const {
 				detectedKeys,
+				// files
 				files: { fileUrisByFilenames, strayEntries },
 			} = await this.analyzeWorkspaceFolder(folder.uri);
+
 			const extraneous: Uri[] = [];
+			// const stray: Uri[] = [];
+
+			// files.forEach((sigFolderFiles) => {
+
+			// 	const { fileUrisByFilenames, strayEntries } = sigFolderFiles;
+			// 	stray.push(..strayEntries);
 
 			for (const [filename, fileUris] of Object.entries(fileUrisByFilenames)) {
 				if (!detectedKeys.includes(filename)) extraneous.push(fileUris);
 			}
+			// });
 
 			await handleResults('extraneous', extraneous, folder);
 			await handleResults('stray', strayEntries, folder);
@@ -424,10 +458,10 @@ export class FileStorage implements StorageService {
 	}
 
 	async analyzeWorkspaceFolder(
-		folder: Uri,
+		workspaceFolder: Uri,
 	): Promise<{
 		detectedKeys: string[];
-		files: FileAnalisysData;
+		files: FileAnalysisData;
 	}> {
 		// 🕮 <cyberbiont> 577caec8-36d6-4f29-93ba-d8e357563aef.md
 		const attachDefaultExtension = (key: string): string => {
@@ -437,13 +471,13 @@ export class FileStorage implements StorageService {
 		};
 
 		const detectedKeysSet = await this.fs.scanDirectoryFilesContentsForKeys(
-			folder,
+			workspaceFolder,
 		);
 		const detectedKeys = Array.from(detectedKeysSet).map(
 			attachDefaultExtension,
 		);
 
-		const files = await this.analyzeFolderContentFiles(folder);
+		const files = await this.analyzeWorkspaceContentFiles(workspaceFolder);
 
 		return {
 			detectedKeys,
@@ -451,19 +485,62 @@ export class FileStorage implements StorageService {
 		};
 	}
 
-	async analyzeFolderContentFiles(folder: Uri): Promise<FileAnalisysData> {
+	async analyzeWorkspaceContentFiles(
+		workspaceFolder: Uri,
+	): Promise<FileAnalysisData> {
+		const sigFolders = await workspace.fs.readDirectory(
+			this.getNotesFolder(workspaceFolder.fsPath),
+		);
+		const sigFoldersOnly = sigFolders.filter((entry) => entry[1] == 2);
+
+		const sigFoldersData = await Promise.all(
+			sigFoldersOnly.map((sigFolderTuple) =>
+				this.analyzeFolderContentFiles(workspaceFolder, sigFolderTuple[0]),
+			),
+		);
+
+		// let combinedData;
+		const reduced = sigFoldersData.reduce((acc, current) => {
+			return {
+				fileUrisByFilenames: {
+					...acc.fileUrisByFilenames,
+					...current.fileUrisByFilenames,
+				},
+				strayEntries: [...acc.strayEntries, ...current.strayEntries],
+			};
+		});
+		// const combinedData = sigFoldersData.reduce((acc, current) => {
+		// 	return Object.assign(acc, current);
+		// })
+		// const combinedData = Object.assign.apply(null, sigFoldersData);
+		return reduced;
+
+		// 🕮 <cyberbiont> 93a94260-1109-4f86-9a54-e5e03355e683.md
+	}
+
+	async analyzeFolderContentFiles(
+		workspaceFolder: Uri,
+		sigFolderName?: string,
+	): Promise<FileAnalysisData> {
 		// 🕮 <cyberbiont> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
-		const notesSubfolderPath = path.join(folder.fsPath, this.o.notesFolder);
 
 		const fileUrisByFilenames: {
 			[filename: string]: Uri;
 		} = Object.create(null);
+
 		const strayEntries: Uri[] = [];
 
-		const subfolderUri = folder.with({ path: notesSubfolderPath });
+		const folder = sigFolderName
+			? this.getUri(
+					path.join(
+						this.getNotesFolder(workspaceFolder.fsPath).fsPath,
+						sigFolderName,
+					),
+			  )
+			: this.getNotesFolder(workspaceFolder.fsPath);
 
-		for (const [name, type] of await workspace.fs.readDirectory(subfolderUri)) {
-			const uri = this.getUri(path.join(notesSubfolderPath, name));
+		for (const [name] of await workspace.fs.readDirectory(folder)) {
+			const uri = this.getUri(path.join(folder.fsPath, name));
 
 			const id = this.utils.getIdFromString(uri.fsPath);
 			// if (type === vscode.FileType.File) {

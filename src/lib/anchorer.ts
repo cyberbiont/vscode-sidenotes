@@ -46,10 +46,6 @@ export default class Anchorer {
 			return this.writeRange(anchorable, range);
 		};
 
-		// const iterator = this.editsChainer(ranges);
-		// for (let [i, range] of iterator) {
-		// 	await writeRangeInChain(range);
-		// }
 		for (let [i, range] of ranges.entries()) {
 			await writeRangeInChain(range);
 		}
@@ -84,8 +80,6 @@ export default class Anchorer {
 			),
 		);
 
-		// const iterator = this.editsChainer(ranges);
-
 		const deleteRangeInChain = async (
 			range: Range,
 			i: number,
@@ -104,7 +98,6 @@ export default class Anchorer {
 				range = this.utils.extendRangeToFullLine(nextRange);
 			}
 			return this.deleteRange(range);
-			// return this.deleteRange(range, internalize);
 		};
 
 		for (let [i, range] of ranges.entries()) {
@@ -135,7 +128,7 @@ export default class Anchorer {
 				useBlockComments: this.cfg.anchor.comments.useBlockComments,
 			});
 
-			// we have to re-calculate range after comment toggle
+			// we have to re-calculate range after the comment toggle
 			rangeToDelete = this.rescanLine(range);
 		}
 
@@ -145,21 +138,8 @@ export default class Anchorer {
 			},
 			{ undoStopAfter: false, undoStopBefore: false },
 		);
-		// проблема в том, что новый editor edit запускает до того, как завершиля предыдыдущий, то. перезаписывая edit-билдер
 		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 	}
 
-	// private async *editsChainer(iterable: Range[], cb: Function): AsyncGenerator {
-	// 	// for (let [i, item] of iterable.entries()) yield cb.call(this, item, i);
-	// 	for (const item of iterable) yield cb.call(this, item);
-	// }
-	private *editsChainer(iterable: Range[]) {
-		// если мы указаваем здесь возвращаемый тип AsyncGenerator, надо прописать для него дженерики,
-		// типа : AsyncGenerator<Range, void, unknown> иначе будет unknown
-
-		for (let entry of iterable.entries()) yield entry;
-	}
-	// в общем мы здесь можем обойтись и обычным генератором, т.к. все перебираемые значения у нас уже есть изначально (а не поступают асинхронно)
-	// а дождаться завершения асинхронной функции перед запуском следующего цикла можно просто поместив await внутрь for?
-	// и даже вообще без генератора, т.у. нас уже есть массив по которому можно исопльзовать for of
+	//old 🕮 <cyberbiont> 889a4671-a154-4c3c-95f5-abf72fb5b8aa.md
 }

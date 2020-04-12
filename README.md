@@ -46,6 +46,8 @@ Usually Markdown is the best choice for a simple sidenote, since it allows for s
 
 ### Images
 
+#### Placing images
+
 If you want to display an image or some other html-supported content, you can do this by stuffing it inside Markdown file.
 For the local files, you should place the files you are attaching into '\${filename}.assets' subdirectory in your notes subfolder.
 
@@ -59,13 +61,14 @@ Simple absolute paths do not work for markdown images in VScode. You have severa
 
 - To be able to preview image in VScode (in Markdown preview window or by opening on Alt-Click) you have to use relative path. There is an option for this in Typora. But image inserted in this way will not show up in hover tooltip.
 
-- Your second option is to use URI. Uncheck "relative path" option and enable "auto escape image URL". You'll also have to manually add file:/// at the beginning of the URI. Note that this will break some of Typora functionality (you won't be able to open file's directory, for example). This method will allow the image to show up in the tooltip, but unfortunately it won't be visible in preview. You can still use Alt-Click to open it.
+- Your second option is to use URI. Uncheck "relative path" option and enable "auto escape image URL". You'll also have to manually add file:/// at the beginning of the URI. Note that this will break some of Typora functionality (you won't be able to open file's directory, for example). This method will allow the image to show up in the tooltip, but unfortunately it won't be visible in preview. You can still use Alt-Click to open it. (P.S. I cannot get this to work in the latest VS Code versions)
 
-Linking images with URL works fine.
+Linking online images with URL works fine.
 
 <!-- 🕮 <cyberbiont> 1574a389-2783-4446-bebf-c92589dd05f6.md -->
+<!-- 🕮 <cyberbiont> 85ff1604-797b-41d2-917e-988edf3ad89c.md -->
 
-## Commands
+## Commands.
 
 #### Annotate
 
