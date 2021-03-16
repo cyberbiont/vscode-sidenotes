@@ -1,18 +1,16 @@
 import { HasKeyProperty, Dictionary } from './dictionary';
 
-export interface HasFactoryMethod<V> {
-	create: (key: unknown) => V | Promise<V>;
+export interface HasFactoryMethod<K, V> {
+	create: (key: K) => V | Promise<V>;
 }
 
 /**
- * keeps the registry of I class instances,
+ * keeps the registry of the class instances,
  * created by object constructor with certain config, with config as key
- * stores one of them as active(actual) instance
- * and returns it for global use by other modules in application
  */
 export class MapRepository<K extends object, V> {
 	constructor(
-		private Factory: HasFactoryMethod<V>,
+		private Factory: HasFactoryMethod<K, V>,
 		protected map: Map<K, V> | WeakMap<K, V>,
 	) {}
 

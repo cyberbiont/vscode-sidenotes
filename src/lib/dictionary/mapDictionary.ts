@@ -22,7 +22,7 @@ export default class MapDictionary<T extends HasKeyProperty>
 		return this;
 	}
 
-	each(cb) {
+	each(cb: (prop: T) => any) {
 		this.list.forEach((prop, key) => {
 			cb(prop);
 		});

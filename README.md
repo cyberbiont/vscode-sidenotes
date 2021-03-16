@@ -68,7 +68,7 @@ Linking online images with URL works fine.
 <!-- 🕮 <cyberbiont> 1574a389-2783-4446-bebf-c92589dd05f6.md -->
 <!-- 🕮 <cyberbiont> 85ff1604-797b-41d2-917e-988edf3ad89c.md -->
 
-## Commands.
+## Commands
 
 #### Annotate
 

@@ -97,13 +97,13 @@ export class FileStorage implements StorageService {
 		return this.getUri(path.join(workspace, this.o.notesFolder));
 	}
 
-	private getOwnSigNotesFolder(
-		workspace: string = this.utils.getWorkspaceFolderPath(),
-	): Uri {
-		return this.getUri(
-			path.join(workspace, this.o.notesFolder, this.o.signatureSubfolderName),
-		);
-	}
+	// private getOwnSigNotesFolder(
+	// 	workspace: string = this.utils.getWorkspaceFolderPath(),
+	// ): Uri {
+	// 	return this.getUri(
+	// 		path.join(workspace, this.o.notesFolder, this.o.signatureSubfolderName),
+	// 	);
+	// }
 
 	private getContentFileName(key: FileStorageKey): string {
 		// 🕮 <cyberbiont> 2190628a-b268-44c2-a81a-939ce26dd7a4.md

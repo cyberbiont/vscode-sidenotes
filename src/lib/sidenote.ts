@@ -8,7 +8,7 @@ import { IdProvider } from './idProvider';
 import { StorageService } from './storageService';
 import { EditorUtils, MarkerUtils } from './utils';
 import Scanner from './scanner';
-import SidenoteProcessor from './sidenoteProcessor';
+// import SidenoteProcessor from './sidenoteProcessor';
 
 export class Sidenote implements Stylable, Decorable, Anchorable {
 	id: string;
@@ -133,9 +133,8 @@ export class SidenoteFactory {
 		private scanner: Scanner,
 		private SidenoteBuilder: Constructor<SidenoteBuilder>,
 		private inspector: Inspector,
-		private cfg: OSidenoteFactory,
-	) // private sidenoteProcessor: SidenoteProcessor,
-	{}
+		private cfg: OSidenoteFactory, // private sidenoteProcessor: SidenoteProcessor,
+	) {}
 
 	async build(o: NewSidenoteOptions): Promise<Sidenote>;
 	async build(o: ScannedSidenoteOptions): Promise<Sidenote>;

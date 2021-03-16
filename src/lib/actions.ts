@@ -188,7 +188,7 @@ export default class Actions {
 					placeHolder: `choose extension of the content file to be created`,
 				},
 			);
-			extension = action ? action.label : undefined;
+			extension = action?.label;
 		} else {
 			extension = await window.showInputBox({
 				prompt: 'Enter extension for your content file (without dot)',
