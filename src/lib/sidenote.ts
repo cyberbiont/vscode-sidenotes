@@ -11,10 +11,10 @@ import Scanner from './scanner';
 // import SidenoteProcessor from './sidenoteProcessor';
 
 export class Sidenote implements Stylable, Decorable, Anchorable {
-	id: string;
-	key: string;
-	anchor: Anchor;
-	decorations: DecorableDecoration[];
+	id!: string;
+	key!: string;
+	anchor!: Anchor;
+	decorations!: DecorableDecoration[];
 	content?: string;
 	color?: string;
 	signature?: string;

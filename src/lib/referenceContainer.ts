@@ -1,5 +1,5 @@
 export class ReferenceContainer<T extends object> {
-	item: T;
+	item!: T;
 
 	load(item: T): T {
 		this.item = item;
@@ -23,7 +23,7 @@ export class ReferenceContainer<T extends object> {
 
 export class ReferenceController<T extends object, K = string> {
 	private container: ReferenceContainer<T>;
-	public key: K;
+	public key!: K;
 
 	constructor(
 		ReferenceContainer: Constructor<ReferenceContainer<T>>,

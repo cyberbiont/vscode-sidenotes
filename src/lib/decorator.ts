@@ -75,7 +75,7 @@ export type ODecorator = {
 	};
 };
 
-export default class Decorator<T extends Decorable> {
+export default class Decorator {
 	private decorations: Decorations = this.initDecorationConfig();
 	constructor(private pool: SidenotesDictionary, private cfg: ODecorator) {}
 
@@ -144,7 +144,7 @@ export default class Decorator<T extends Decorable> {
 
 	private setColor(
 		color: string | { dark: string; light: string },
-		style,
+		style: DecorationRenderOptions,
 		prop: string,
 	): void {
 		// 🕮 <cyberbiont> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
@@ -184,7 +184,9 @@ export default class Decorator<T extends Decorable> {
 		pool = this.pool,
 		reset = false,
 	}: { pool?: SidenotesDictionary; reset?: boolean } = {}): void {
-		const getStylableDecorationOptions = (decorable: T): Decorations => {
+		const getStylableDecorationOptions = (
+			decorable: Decorable,
+		): Decorations => {
 			if (decorable.decorations) {
 				decorable.decorations.forEach((decoration) => {
 					this.decorations[decoration.category].options.push(

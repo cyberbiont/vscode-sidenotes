@@ -19,7 +19,7 @@ export type Initializable = Mixin<typeof Initializable>;
 
 export function HasEditorReference<T extends Constructor>(Base: T) {
 	return class HasEditorReference extends Base {
-		public editor: TextEditor;
+		public editor!: TextEditor;
 	};
 }
 export type HasEditorReference = Mixin<typeof HasEditorReference>;

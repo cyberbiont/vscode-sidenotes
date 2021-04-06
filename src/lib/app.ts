@@ -56,10 +56,10 @@ export type OApp = {
 };
 
 export default class App {
-	public actions: Actions;
-	private events: SnEvents;
-	private eventEmitter: EventEmitter;
-	private storageService: StorageService;
+	public actions!: Actions;
+	private events!: SnEvents;
+	private eventEmitter!: EventEmitter;
+	private storageService!: StorageService;
 
 	constructor(private cfg: Cfg, private context: ExtensionContext) {
 		this.init();
@@ -131,7 +131,7 @@ export default class App {
 			(key: string): SidenotesDecorator => decoratorsCollection[key],
 		).update('default');
 
-		const decorator: SidenotesDecorator = await decoratorController.getReference();
+		const decorator: SidenotesDecorator = decoratorController.getReference();
 
 		const editorUtils = new EditorUtils(editor, this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
