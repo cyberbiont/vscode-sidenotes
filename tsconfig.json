@@ -1,23 +1,14 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es6",
-		"outDir": "out",
-		"lib": [
-			// "es6"
-			"es2019",
-			"es2020.string"
-		],
-		"sourceMap": true,
-		"rootDir": "src",
-		"newLine": "LF",
-		// "strict": true /* enable all strict type-checking options */,
-		/* Additional Checks */
-		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
-		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
-		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
-		"strictNullChecks": true,
-		"esModuleInterop": true
+		"composite": true, // required on the dependency project for references to work
+		"outDir": ".",
+		"rootDir": ".", // if out path for a file is same as its src path, nothing will be emitted
+		"resolveJsonModule": true,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"importHelpers": true,
+		"removeComments": true
 	},
-	"exclude": ["node_modules", ".vscode-test"]
+	// by whitelisting the files to include, TS won't automatically include all source below root, which is the default.
+	"files": ["package.json"]
 }
