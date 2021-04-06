@@ -1,4 +1,4 @@
-import { HasKeyProperty, Dictionary } from './dictionary';
+import { Dictionary, HasKeyProperty } from './dictionary';
 
 export interface HasFactoryMethod<K, V> {
 	create: (key: K) => V | Promise<V>;
@@ -74,7 +74,9 @@ export class DictionaryRepository<C, V extends HasKeyProperty> {
 	}
 }
 
-// TODO introduce separate classes MapPool & WeakMapPool 🕮 <cyberbiont> fea781b6-9af8-435c-9a7e-9f42f1affc14.md
+// TODO introduce separate classes MapPool & WeakMapPool
+// 🕮 <cyberbiont> 51d5cc18-0851-4abd-9d0a-c2899a6e94eb.md
+//
 // what to use as a key 🕮 <cyberbiont> 9ec1095e-abfb-49f5-af6d-4a9fed205b6c.md
 // 🕮 <cyberbiont> f82a72dc-baae-448e-8737-126f0dec5e2d.md
 // @old 🕮 <cyberbiont> 7e2a51d6-a376-4fa0-b1b9-09cbfb35d967.md
