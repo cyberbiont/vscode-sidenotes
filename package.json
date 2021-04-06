@@ -9,6 +9,7 @@
 		"url": "https://github.com/cyberbiont/vscode-sidenotes.git"
 	},
 	"license": "ISC",
+	"icon": "images/extensionIcon.png",
 	"engines": {
 		"vscode": "^1.41.0",
 		"node": "^10.16.0"
@@ -210,12 +211,14 @@
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
-		"eslint": "eslint"
+		"eslint": "eslint",
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
