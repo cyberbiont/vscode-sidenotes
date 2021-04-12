@@ -49,6 +49,8 @@ import {
 	SidenotesRepository,
 } from './types';
 
+import { copyProperties } from './utilityFunctions';
+
 export type OApp = {
 	app: {
 		hoverToolbar: boolean;
@@ -141,34 +143,14 @@ export default class App {
 		).update('default');
 
 		const decorator: SidenotesDecorator = decoratorController.getReference();
-		decorator.addNestedProperty({ s: 1 }, 'very.deep.property', 32);
 
 		const editorUtils = new EditorUtils(editor, this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
 
-		const utils = Object.create(null);
+		const utils: MarkerUtils & EditorUtils = Object.create(null);
 
-		const copyProperties = (
-			target: Record<string, unknown>,
-			source: Record<string, unknown>,
-		): Record<string, unknown> => {
-			for (
-				let o = source;
-				o !== Object.prototype;
-				o = Object.getPrototypeOf(o)
-			) {
-				for (const name of Object.getOwnPropertyNames(o)) {
-					// eslint-disable-next-line no-continue
-					if (name === 'constructor') continue;
-					target[name] = o[name];
-				}
-			}
-			return target;
-		};
-
-		// ! TODO utils получается any
-		copyProperties(utils, (editorUtils as unknown) as Record<string, unknown>);
-		copyProperties(utils, (markerUtils as unknown) as Record<string, unknown>);
+		copyProperties(utils, editorUtils);
+		copyProperties(utils, markerUtils);
 
 		const scanner = new Scanner(editor, utils);
 

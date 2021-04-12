@@ -10,7 +10,7 @@ import {
 import path from 'path';
 import { Sidenote } from './sidenote';
 import { SidenotesDictionary } from './types';
-import { addNestedProperty } from './addNestedProperty';
+import { addNestedProperty } from './utilityFunctions';
 
 export interface DecorableDecoration {
 	category: string;

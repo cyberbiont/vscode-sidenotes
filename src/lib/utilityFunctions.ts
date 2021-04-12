@@ -61,3 +61,13 @@ const foo: Foo = {
 };
 
 addNestedProperty(foo, 'a.very.deep.property', 2);
+
+export function copyProperties(target: obj, source: obj): obj {
+	for (let o = source; o !== Object.prototype; o = Object.getPrototypeOf(o)) {
+		for (const name of Object.getOwnPropertyNames(o)) {
+			if (name === 'constructor') continue;
+			target[name] = o[name];
+		}
+	}
+	return target;
+}
