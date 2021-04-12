@@ -1,15 +1,15 @@
-declare type Optional<T> = T | undefined;
+type Optional<T> = T | undefined;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare type Constructor<T = {}> = new (...args: any[]) => T;
+type Constructor<T = {}> = new (...args: any[]) => T;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare type AnyFunction<T = any> = (...input: any[]) => T;
+type AnyFunction<T = any> = (...input: any[]) => T;
 
-declare type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>;
+type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>;
 
-declare type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
+type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
 
-declare type Split<S extends string, D extends string = '.'> = string extends S
+type Split<S extends string, D extends string = '.'> = string extends S
 	? string[]
 	: S extends ''
 	? []
