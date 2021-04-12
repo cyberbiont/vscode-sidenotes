@@ -118,7 +118,7 @@ export default class EditorUtils {
 		return content;
 	}
 
-	async cycleEditors(cb): Promise<void> {
+	async cycleEditors(): Promise<void> {
 		// const firstEditor = this.editor;
 		// const editors: string[] = [];
 		console.log(workspace.textDocuments.length);

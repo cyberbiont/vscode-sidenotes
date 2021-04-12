@@ -11,7 +11,7 @@ import { ChangeTracker, FileChangeTracker } from './changeTracker';
 
 export interface EditorService {
 	changeTracker: ChangeTracker;
-	open(path: string | Uri, extension?: string);
+	open(path: string | Uri, extension?: string): unknown;
 }
 
 export class VscodeEditorService implements EditorService {
@@ -48,7 +48,7 @@ export class SystemDefaultEditorService implements EditorService {
 }
 
 export class ShellEditorService implements EditorService {
-	private terminal: Terminal;
+	private terminal!: Terminal;
 	// 🕮 <cyberbiont> ed1e948e-8c99-4b59-adba-fef501653dda.md
 
 	constructor(public changeTracker: FileChangeTracker) {}

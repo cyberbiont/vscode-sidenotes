@@ -1,12 +1,12 @@
 import { ExtensionContext, workspace } from 'vscode';
 import { EventEmitter } from 'events';
-import chokidar from 'chokidar';
+import chokidar, { FSWatcher } from 'chokidar';
 import FileChangeTracker, { OFileChangeTracker } from './fileChangeTracker';
 import { IdProvider } from '../idProvider';
 import { MarkerUtils } from '../utils';
 
 export default class ChokidarChangeTracker extends FileChangeTracker {
-	public watcher;
+	public watcher!: FSWatcher;
 	constructor(
 		idProvider: IdProvider,
 		eventEmitter: EventEmitter,
@@ -38,7 +38,10 @@ export default class ChokidarChangeTracker extends FileChangeTracker {
 		this.initListeners();
 	}
 
-	onChange = this.debounce(function (path: string, stats) {
+	onChange = this.debounce(function (
+		this: ChokidarChangeTracker,
+		path: string,
+	) {
 		this.generateCustomEvent(path, 'change');
 	});
 

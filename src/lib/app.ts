@@ -100,9 +100,18 @@ export default class App {
 			new WeakMap(),
 		);
 
+		/* 		class RR<T, D> {
+			constructor(a: number, b: string | undefined) {}
+
+			async get(arg: T): Promise<this> {
+				return this;
+			}
+		}
+		const x = await new RR(1, 'e').get(1); */
+
 		const editorController = await new ReferenceController(
 			ReferenceContainer,
-			() => window.activeTextEditor!,
+			async () => window.activeTextEditor!,
 		).update();
 		const editor: TextEditor = editorController.getReference();
 
@@ -110,34 +119,39 @@ export default class App {
 			ReferenceContainer,
 			async (key: TextDocument) => poolRepository.obtain(key),
 		).update(editor.document);
-		const pool: SidenotesDictionary = await poolController.getReference();
+		const pool: SidenotesDictionary = poolController.getReference();
 
 		// TODO move to configuration
-		function getAlternativeStylesCfg(): Cfg {
+		const getAlternativeStylesCfg = (): Cfg => {
 			const altCfg: Cfg = JSON.parse(JSON.stringify(this.cfg));
-			altCfg.anchor.styles.settings.hideMarkers = !this.cfg.anchor.styles
-				.settings.hideMarkers;
+			altCfg.anchor.styles.settings.hideMarkers = this.cfg.anchor.styles.settings.hideMarkers;
 			// altCfg.anchor.styles.settings.before = 'alternative config ';
 			return altCfg;
-		}
+		};
 
-		const decoratorsCollection = {
+		const decoratorsCollection: Record<string, Decorator> = {
 			default: new Decorator(pool, this.cfg),
-			alternative: new Decorator(pool, getAlternativeStylesCfg.call(this)),
+			alternative: new Decorator(pool, getAlternativeStylesCfg()),
 		};
 
 		const decoratorController = await new ReferenceController(
 			ReferenceContainer,
-			(key: string): SidenotesDecorator => decoratorsCollection[key],
+			async (key: keyof typeof decoratorsCollection) =>
+				decoratorsCollection[key],
 		).update('default');
 
 		const decorator: SidenotesDecorator = decoratorController.getReference();
+		decorator.addNestedProperty({ s: 1 }, 'very.deep.property', 32);
 
 		const editorUtils = new EditorUtils(editor, this.cfg);
 		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
 
 		const utils = Object.create(null);
-		const copyProperties = (target: object, source: object): object => {
+
+		const copyProperties = (
+			target: Record<string, unknown>,
+			source: Record<string, unknown>,
+		): Record<string, unknown> => {
 			for (
 				let o = source;
 				o !== Object.prototype;
@@ -152,8 +166,9 @@ export default class App {
 			return target;
 		};
 
-		copyProperties(utils, editorUtils);
-		copyProperties(utils, markerUtils);
+		// ! TODO utils получается any
+		copyProperties(utils, (editorUtils as unknown) as Record<string, unknown>);
+		copyProperties(utils, (markerUtils as unknown) as Record<string, unknown>);
 
 		const scanner = new Scanner(editor, utils);
 
@@ -179,7 +194,6 @@ export default class App {
 			utils,
 			fileSystem,
 			this.cfg,
-			commands,
 		);
 
 		const anchorer = new Anchorer(editor, utils, scanner, this.cfg);

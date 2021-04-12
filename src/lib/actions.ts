@@ -37,7 +37,7 @@ export default class Actions {
 		public inspector: Inspector,
 		public pool: SidenotesDictionary,
 		public poolController: ReferenceController<
-			Promise<SidenotesDictionary>,
+			SidenotesDictionary,
 			TextDocument
 		>,
 		public pruner: Pruner,

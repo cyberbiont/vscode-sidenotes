@@ -4,11 +4,13 @@ import {
 	OverviewRulerLane,
 	TextEditor,
 	TextEditorDecorationType,
+	ThemableDecorationRenderOptions,
 	window,
 } from 'vscode';
 import path from 'path';
 import { Sidenote } from './sidenote';
 import { SidenotesDictionary } from './types';
+import { addNestedProperty } from './addNestedProperty';
 
 export interface DecorableDecoration {
 	category: string;
@@ -34,7 +36,7 @@ type OSettings = {
 	hideMarkers: boolean;
 	gutterIcon: boolean;
 	ruler: boolean;
-	colorIndication?: Array<colorIndication>;
+	colorIndication?: Array<ColorIndicationName>;
 };
 
 interface OCategory {
@@ -51,13 +53,13 @@ interface OCategory {
 }
 
 type OCategories = {
-	common: OCategory;
+	common: OCategory; // full
 } & {
-	[category in categories]: Partial<OCategory>;
+	[category in CategoryName]: Partial<OCategory>; // partial overrides
 };
 
-type categories = 'active' | 'broken' | 'empty';
-type colorIndication = 'text' | 'after' | 'before' | 'ruler';
+export type CategoryName = 'active' | 'broken' | 'empty';
+type ColorIndicationName = 'text' | 'after' | 'before' | 'ruler';
 
 export type ODecorator = {
 	anchor: {
@@ -68,7 +70,7 @@ export type ODecorator = {
 				hideMarkers: boolean;
 				gutterIcon: boolean;
 				ruler: boolean;
-				colorIndication?: Array<colorIndication>;
+				colorIndication?: Array<ColorIndicationName>;
 			};
 			categories: OCategories;
 		};
@@ -90,7 +92,7 @@ export default class Decorator {
 		if (!categories.common || !categories.common.style)
 			throw new Error(
 				`sidenotes: cannot build decoration types.
-			the "common" section is not found inside styles configuration. It should contain `,
+			the "common" section is not found inside styles configuration.`,
 			);
 
 		const result = Object.create(null);
@@ -108,23 +110,23 @@ export default class Decorator {
 				c.style.letterSpacing = '-1rem';
 			}
 			if (o.gutterIcon) c.style.gutterIconPath = this.getIconPath(c.icon);
-			if (o.before)
-				this.addNestedProperty(c.style, 'before.contentText', o.before);
-			if (o.after)
-				this.addNestedProperty(c.style, 'after.contentText', o.after);
+			if (o.before) addNestedProperty(c.style, 'before.contentText', o.before);
+			if (o.after) addNestedProperty(c.style, 'after.contentText', o.after);
 			if (o.ruler) c.style.overviewRulerLane = OverviewRulerLane.Right;
 			if (o.colorIndication && c.color)
 				o.colorIndication.forEach((prop) => {
 					switch (prop) {
 						case 'text':
-							this.setColor(c.color, c.style, 'color');
+							this.setColor(c.style, 'color', c.color);
 							break;
 						case 'ruler':
-							this.setColor(c.color, c.style, 'overviewRulerColor');
+							this.setColor(c.style, 'overviewRulerColor', c.color);
 							break;
 						case 'after':
+							this.setColor(c.style, `after.color`, c.color);
+							break;
 						case 'before':
-							this.setColor(c.color, c.style, `${prop}.color`);
+							this.setColor(c.style, `before.color`, c.color);
 							break;
 						// no default
 					}
@@ -143,41 +145,37 @@ export default class Decorator {
 	}
 
 	private setColor(
-		color: string | { dark: string; light: string },
 		style: DecorationRenderOptions,
-		prop: string,
+		prop:
+			| RecursiveKeyOf<DecorationRenderOptions>
+			| RecursiveKeyOf<ThemableDecorationRenderOptions>,
+		color: string | { dark: string; light: string },
 	): void {
 		// 🕮 <cyberbiont> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
-		this.addNestedProperty(
+
+		function isThemableDecorationRenderOptionsKey(
+			prop: string,
+		): prop is RecursiveKeyOf<ThemableDecorationRenderOptions> {
+			const arr = prop.split('.');
+			if ((arr.length > 1 && arr[0] !== 'after') || arr[0] !== 'before')
+				return false;
+			return true;
+		}
+		addNestedProperty(
 			style,
 			prop,
 			typeof color === 'string' ? color : color.dark,
 		);
-		this.addNestedProperty(
-			style,
-			`light.${prop}`,
-			typeof color === 'string' ? color : color.light,
-		);
-	}
 
-	private addNestedProperty(
-		base: object,
-		propsString: string,
-		value: unknown,
-	): object {
-		// 🕮 <cyberbiont> c5745bee-a5b1-4b45-966e-839fec3db57a.md
-		const props = propsString.split('.');
-		const lastProp = arguments.length === 3 ? props.pop() : undefined;
+		if (isThemableDecorationRenderOptionsKey(prop)) {
+			if (!style.light) style.light = {};
 
-		const lastBase = props.reduce((base, prop) => {
-			const value = base[prop] ? base[prop] : {};
-			base[prop] = value;
-			base = value;
-			return base;
-		}, base);
-
-		if (lastProp) lastBase[lastProp] = value;
-		return lastBase;
+			addNestedProperty(
+				style.light,
+				prop,
+				typeof color === 'string' ? color : color.light,
+			);
+		}
 	}
 
 	updateDecorations({

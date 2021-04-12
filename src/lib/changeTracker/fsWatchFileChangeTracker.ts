@@ -6,6 +6,12 @@ import { MapDictionary, Dictionary } from '../dictionary';
 import { IdProvider } from '../idProvider';
 import { MarkerUtils } from '../utils';
 import { ChangeData } from '.';
+import { EventData } from './changeTracker';
+
+export interface Watch {
+	key: string;
+	watch: nodeFs.FSWatcher;
+}
 
 export default class FsWatchChangeTracker extends FileChangeTracker {
 	constructor(
@@ -42,18 +48,17 @@ export default class FsWatchChangeTracker extends FileChangeTracker {
 		this.pool.get(path)!.watch.close();
 	}
 
-	onChange = this.debounce(function (event, fileName: string) {
+	onChange = this.debounce(function (
+		this: FsWatchChangeTracker,
+		event: string,
+		fileName: string,
+	) {
 		this.generateCustomEvent(fileName, event); // change args order to conform with chokidar
 	});
 
-	processEventData(eventData): ChangeData | undefined {
+	processEventData(eventData: EventData): ChangeData | undefined {
 		if (eventData.event === 'rename' || ~eventData.fileName.indexOf('~'))
 			return undefined;
 		return super.processEventData(eventData);
 	}
-}
-
-export interface Watch {
-	key: string;
-	watch: nodeFs.FSWatcher;
 }

@@ -105,7 +105,7 @@ export type ScannedSidenoteOptions = {
 	key: string;
 	marker: {
 		id: string;
-		extension?: string;
+		extension: string;
 		signature?: string;
 	};
 	ranges: Range[];
@@ -144,7 +144,7 @@ export class SidenoteFactory {
 		let key: string;
 		let id: string;
 		let content: Optional<string>;
-		let extension: Optional<string>;
+		let extension: string;
 		let signature: Optional<string>;
 		let mime: string | false;
 		let ranges: Range[];

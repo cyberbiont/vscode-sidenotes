@@ -12,8 +12,9 @@ export function activate(context: vscode.ExtensionContext): void {
 	}
 }
 
-export function deactivate(): void {
-	this._subscriptions.dispose();
+export function deactivate(this: any): void {
+	console.log(this);
+	// this._subscriptions.dispose();
 	app.actions.decorator.disposeDecorationTypes();
 	app.actions.pool.clear();
 	// app.storageService.watcherService.dispose();

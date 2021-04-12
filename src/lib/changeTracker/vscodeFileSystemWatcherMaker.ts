@@ -57,9 +57,9 @@ export default class VSCodeFileSystemWatcherMaker extends FileChangeTracker {
 		return watcher;
 	}
 
-	// onChange = this.debounce(function (uri: vscode.Uri) {
-	// 	this.generateCustomEvent(uri.fsPath, 'change');
-	// })
+	/* onChange = this.debounce(function (uri: vscode.Uri) {
+		this.generateCustomEvent(uri.fsPath, 'change');
+	}) */
 
 	onChange(uri: Uri): void {
 		// this.debounce(() => this.generateCustomEvent(uri.fsPath, 'change'));

@@ -23,13 +23,20 @@ export class ReferenceContainer<T extends object> {
 
 export class ReferenceController<T extends object, K = string> {
 	private container: ReferenceContainer<T>;
-	public key!: K;
+
+	public key?: K;
+
+	// если написать просто public getItem: (key?: K) => Promise<T>
+	// то при передаче аргумента типа async (key: TextDocument) => poolRepository.obtain(key)
+	// получаем ошибку Argument of type '(key: TextDocument) => Promise<TextEditor>' is not assignable to parameter of type '(key?: TextDocument | undefined) => Promise<TextEditor>
+	// очевидно нужна перегрузка
 
 	constructor(
 		ReferenceContainer: Constructor<ReferenceContainer<T>>,
-		public getItem: (key?: K) => T,
+		public getItem: ((key: K) => Promise<T>) | (() => Promise<T>),
 	) {
 		this.container = new ReferenceContainer();
+		this.getItem = getItem;
 	}
 
 	getReference(): T {
@@ -37,9 +44,18 @@ export class ReferenceController<T extends object, K = string> {
 	}
 
 	async update(key?: K): Promise<this> {
-		const instance = await this.getItem(key);
-		this.container.load(instance);
+		function functionNeedsNoArguments(fn: Function): fn is () => Promise<T> {
+			return fn.length === 0;
+		}
+		let instance: T;
+		if (functionNeedsNoArguments(this.getItem)) instance = await this.getItem();
+		else if (key) instance = await this.getItem(key);
+		else throw new Error('no key passed to ReferenceController');
+
+		//! TODO вообще это не совсем, лучше создать отдельный подкласс KeyedReferenceController,
+		// который будет иметь св-во key и принимать функцию getIten с обязательным аргументом key
 		if (key) this.key = key;
+		this.container.load(instance);
 		return this;
 	}
 }

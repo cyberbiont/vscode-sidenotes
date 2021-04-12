@@ -1,6 +1,7 @@
 import {
 	ExtensionContext,
 	workspace,
+	WorkspaceFolder,
 	WorkspaceFoldersChangeEvent,
 } from 'vscode';
 import path from 'path';
@@ -20,7 +21,7 @@ export type OFileChangeTracker = {
 
 // 🕮 <cyberbiont> 39bcba93-982b-44c1-8fa7-4eb99e3acab0.md
 export default abstract class FileChangeTracker extends ChangeTracker {
-	protected watcherService;
+	// protected watcherService;
 	protected wait: NodeJS.Timeout | boolean = false;
 
 	protected o: {
@@ -39,17 +40,17 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 		this.o = cfg.storage.files;
 	}
 
-	getFullPathToSubfolder(workspace): string {
-		return path.join(workspace.uri.fsPath, this.o.notesFolder);
+	getFullPathToSubfolder(workspaceFolder: WorkspaceFolder): string {
+		return path.join(workspaceFolder.uri.fsPath, this.o.notesFolder);
 	}
 
 	onWorkspaceChange(event: WorkspaceFoldersChangeEvent): void {
 		if (event.added)
-			event.added.forEach((workspaceFolder) =>
+			event.added.forEach((workspaceFolder: WorkspaceFolder) =>
 				this.setWatch(this.getFullPathToSubfolder(workspaceFolder)),
 			);
 		if (event.removed)
-			event.removed.forEach((workspaceFolder) =>
+			event.removed.forEach((workspaceFolder: WorkspaceFolder) =>
 				this.stopWatch(this.getFullPathToSubfolder(workspaceFolder)),
 			);
 	}
@@ -61,8 +62,8 @@ export default abstract class FileChangeTracker extends ChangeTracker {
 		);
 	}
 
-	debounce(cb) {
-		return function (...args): void {
+	debounce(cb: Function) {
+		return function (this: FileChangeTracker, ...args: unknown[]): void {
 			if (this.wait) return;
 			this.wait = setTimeout(() => {
 				this.wait = false;

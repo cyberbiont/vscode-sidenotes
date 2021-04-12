@@ -5,6 +5,8 @@ import {
 	window,
 	workspace,
 	WorkspaceFolder,
+	commands,
+	TextEditor,
 } from 'vscode';
 import path from 'path';
 import SnFileSystem from './fileSystem';
@@ -22,7 +24,7 @@ export interface StorageService {
 	delete(key: StorageKey): Promise<void | void[]>;
 	write(key: StorageKey, data: Storable): Promise<void>;
 	read(key: StorageKey): Promise<Storable | undefined>;
-	open(key: StorageKey);
+	open(key: StorageKey): void;
 	checkStartupRequirements?(): void;
 	lookup?(
 		key: FileStorageKey,
@@ -76,11 +78,10 @@ export class FileStorage implements StorageService {
 		public utils: EditorUtils & MarkerUtils,
 		public fs: SnFileSystem,
 		cfg: OFileStorage,
-		private commands,
 	) {
 		this.o = cfg.storage.files;
-		this.commands.registerCommand('sidenotes.migrate', this.migrate, this);
-		this.commands.registerCommand(
+		commands.registerCommand('sidenotes.migrate', this.migrate, this);
+		commands.registerCommand(
 			'sidenotes.extraneous',
 			this.cleanExtraneous,
 			this,
@@ -160,7 +161,7 @@ export class FileStorage implements StorageService {
 		}
 	}
 
-	async open(key: FileStorageKey): Promise<void> {
+	async open(key: FileStorageKey) {
 		const { extension = this.o.defaultContentFileExtension } = key;
 		const uri = this.getContentFileUri(key);
 		this.editorServiceController.open(uri, extension);

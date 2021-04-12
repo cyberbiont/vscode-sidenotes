@@ -37,13 +37,13 @@ export default class SnEvents {
 		private utils: MarkerUtils,
 		private editorController: ReferenceController<TextEditor>,
 		private poolController: ReferenceController<
-			Promise<SidenotesDictionary>,
+			SidenotesDictionary,
 			TextDocument
 		>,
 		private poolRepository: DocumentInitializableSidenotesRepository,
 	) {}
 
-	async onEditorChange(editor: TextEditor): Promise<void> {
+	async onEditorChange(editor?: TextEditor): Promise<void> {
 		if (!editor) return; //! 🕮 <cyberbiont> 23a3d9cc-aa47-487e-952a-78c177efe655.md
 		try {
 			await this.editorController.update();

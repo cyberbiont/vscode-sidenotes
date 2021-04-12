@@ -1,6 +1,7 @@
 import { DecorationInstanceRenderOptions, Range } from 'vscode';
 import { DecorableDecoration, ODecorator } from './decorator';
 import { Inspector } from './sidenote';
+import { CategoryName } from './decorator';
 
 export interface Stylable {
 	content?: string;
@@ -35,31 +36,28 @@ export default class Styler {
 		return decorations;
 	}
 
-	private markAsDuplicated(
-		decoration: DecorableDecoration,
-		color: string,
-	): void {
+	private markAsDuplicated(decoration: DecorableDecoration, color: string) {
 		decoration.options.renderOptions = this.cfg.anchor.styles.instanceRenderOptions(
 			color,
 		);
 	}
 
-	getRandomHSLColor(lightness = '75%'): string {
+	getRandomHSLColor(lightness = '75%') {
 		// 🕮 <cyberbiont> 16762ea0-4553-4aee-8dd2-508e37ca0adb.md
 		const color = `hsl(${Math.random() * 360}, 100%, ${lightness})`;
 		return color;
 	}
 
-	getRangeDecorations(range: Range, stylable: Stylable): DecorableDecoration[] {
+	getRangeDecorations(range: Range, stylable: Stylable) {
 		const categories = this.getDecorationCategories(stylable);
 		return categories.map((category) =>
 			this.getCategoryDecoration(category, range, stylable),
 		);
 	}
 
-	getDecorationCategories(stylable: Stylable): string[] {
+	getDecorationCategories(stylable: Stylable) {
 		// TODO represent categories as enum
-		const categories: string[] = [];
+		const categories: CategoryName[] = [];
 		if (this.inspector.isBroken(stylable)) categories.push('broken');
 		else if (this.inspector.isEmpty(stylable)) categories.push('empty');
 		else categories.push('active');
@@ -67,16 +65,17 @@ export default class Styler {
 	}
 
 	getCategoryDecoration(
-		category: string,
+		category: CategoryName,
 		range: Range,
 		stylable: Stylable,
-	): DecorableDecoration {
+	) {
 		const { extension, mime, content } = stylable;
 		const isTextFile = this.inspector.isText(stylable);
 
 		let message: string;
-		if (this.cfg.anchor.styles.categories[category].message)
-			message = this.cfg.anchor.styles.categories[category].message;
+
+		const catMessage = this.cfg.anchor.styles.categories[category].message;
+		if (catMessage) message = catMessage;
 		else if (isTextFile && content) message = content;
 		else message = '';
 

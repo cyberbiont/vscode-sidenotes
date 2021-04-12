@@ -44,7 +44,7 @@ export class MapRepository<K extends object, V> {
 
 // 🕮 <cyberbiont> 7f52e358-d011-44ac-9073-83738f5abb44.md
 export interface HasBuildFactoryMethod<V> {
-	build: (key: unknown) => V | Promise<V>;
+	build: (key: any) => V | Promise<V>;
 }
 
 export class DictionaryRepository<C, V extends HasKeyProperty> {

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { Event } from 'vscode';
 import { IdProvider } from '../idProvider';
 import { MarkerUtils } from '../utils';
 
@@ -7,6 +8,11 @@ export type OChangeTracker = {};
 export type ChangeData = {
 	id: string;
 	path: string;
+};
+
+export type EventData = {
+	event: string;
+	fileName: string;
 };
 
 interface ChangeTracker {
@@ -29,7 +35,7 @@ abstract class ChangeTracker {
 		this.eventEmitter.emit('sidenoteDocumentChange', changeData);
 	}
 
-	processEventData(eventData): ChangeData | undefined {
+	processEventData(eventData: EventData): ChangeData | undefined {
 		const id = this.getIdFromFileName(eventData.fileName);
 		if (id) {
 			const changeData = {

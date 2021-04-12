@@ -1,4 +1,4 @@
-import { window, QuickPickItem, Range, TextEditor } from 'vscode';
+import { window, QuickPickItem, TextEditor } from 'vscode';
 import { StorageService, Storable } from './storageService';
 import Anchorer from './anchorer';
 import { SidenotesDictionary } from './types';
@@ -53,8 +53,8 @@ export default class SidenoteProcessor {
 		return sidenote;
 	}
 
-	async open(sidenote: Sidenote): Promise<TextEditor> {
-		return this.storageService.open(sidenote);
+	async open(sidenote: Sidenote) {
+		this.storageService.open(sidenote);
 	}
 
 	// TODO move to UserInteraction module

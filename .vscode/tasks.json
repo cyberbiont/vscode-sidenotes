@@ -15,6 +15,16 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"label": "tsc compile",
+			"type": "typescript",
+			"tsconfig": "tsconfig.json",
+			"problemMatcher": ["$tsc"],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }

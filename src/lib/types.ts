@@ -15,7 +15,7 @@ export type DocumentInitializableSidenotesRepository = MapRepository<
 	SidenotesDictionary
 >;
 
-export type SidenotesDecorator = Decorator<Sidenote>;
+export type SidenotesDecorator = Decorator;
 
 export type SidenotesRepository = DictionaryRepository<
 	SidenoteFactoryOptions,
