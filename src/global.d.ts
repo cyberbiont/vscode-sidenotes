@@ -1,15 +1,15 @@
-type Optional<T> = T | undefined;
+declare type Optional<T> = T | undefined;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T = {}> = new (...args: any[]) => T;
+declare type Constructor<T = {}> = new (...args: any[]) => T;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyFunction<T = any> = (...input: any[]) => T;
+declare type AnyFunction<T = any> = (...input: any[]) => T;
 
-type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>;
+declare type Mixin<T extends AnyFunction> = InstanceType<ReturnType<T>>;
 
-type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
+declare type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
 
-type Split<S extends string, D extends string = '.'> = string extends S
+declare type Split<S extends string, D extends string = '.'> = string extends S
 	? string[]
 	: S extends ''
 	? []
@@ -19,15 +19,18 @@ type Split<S extends string, D extends string = '.'> = string extends S
 // const str = 'foo.bar.baz';
 // const a = str.split('.') as Split<typeof str, '.'>;
 
-type obj = Record<string, any>;
+declare type obj = Record<string, any>;
 
-type PathToObject<Path extends string, V> = Path extends `${infer T}.${infer U}`
+declare type PathToObject<
+	Path extends string,
+	V
+> = Path extends `${infer T}.${infer U}`
 	? {
 			[prop in T]: PathToObject<U, V>;
 	  }
 	: { [prop in Path]: V };
 
-type DeepType<T, S extends string> = T extends object
+declare type DeepType<T, S extends string> = T extends object
 	? S extends `${infer Key}.${infer NextKey}`
 		? Key extends keyof T
 			? DeepType<T[Key], NextKey>
@@ -37,7 +40,7 @@ type DeepType<T, S extends string> = T extends object
 		: never
 	: T;
 
-type RecursiveKeyOf<TObj extends object> = {
+declare type RecursiveKeyOf<TObj extends object> = {
 	[TKey in keyof TObj & (string | number)]: RecursiveKeyOfHandleValue<
 		TObj[TKey],
 		`${TKey}`
