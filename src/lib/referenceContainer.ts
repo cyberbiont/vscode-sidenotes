@@ -52,8 +52,7 @@ export class ReferenceController<T extends object, K = string> {
 		else if (key) instance = await this.getItem(key);
 		else throw new Error('no key passed to ReferenceController');
 
-		//! TODO вообще это не совсем, лучше создать отдельный подкласс KeyedReferenceController,
-		// который будет иметь св-во key и принимать функцию getIten с обязательным аргументом key
+		// TODO 🕮 <cyberbiont> 07597a9f-25f7-422c-a268-6ed9371a36d7.md
 		if (key) this.key = key;
 		this.container.load(instance);
 		return this;

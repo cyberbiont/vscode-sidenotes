@@ -142,12 +142,6 @@ const cfg: Cfg = {
 				},
 			}),
 		},
-
-		// markersVisible: {
-		// 	settings: {
-		// 		hideMarkers: false
-		// 	}
-		// }
 	},
 };
 
