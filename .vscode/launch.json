@@ -19,7 +19,8 @@
 				"<node_internals>/**/*.js",
 				"${workspaceFolder}/node_modules/**/*.js"
 			],
-			"preLaunchTask": "npm: webpack-dev"
+			"preLaunchTask": "npm: webpack",
+			"smartStep": true
 		},
 		{
 			"name": "do not disable extensions",
@@ -32,7 +33,8 @@
 				"<node_internals>/**/*.js",
 				"${workspaceFolder}/node_modules/**/*.js"
 			],
-			"preLaunchTask": "npm: webpack-dev"
+			"preLaunchTask": "npm: webpack",
+			"smartStep": true
 		},
 		{
 			"name": "Extension Tests",
@@ -67,7 +69,7 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch Program tsc",
+			"name": "Launch Program (tsc)",
 			"program": "${workspaceFolder}/src/test.ts",
 			"preLaunchTask": "tsc compile",
 			"outFiles": ["${workspaceFolder}/out/**/*.js"]
