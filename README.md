@@ -1,6 +1,8 @@
 # Sidenotes
 
-Externalize your comments.
+Externalize and keep organized your comments.
+
+![vscode-sidenotes-basic-operation-gif](images/gif/presentation.gif 'creating and managing sidenotes')
 
 ## Features
 
@@ -433,7 +435,7 @@ But, if you collaborate on code with other people who aren't acquainted with sid
 
 ### You need language support
 
-Comment toggling won't work if you don't have kanguage support installed and enabled for this kind of files (because obviously otherwise it will not know what syntax of comments to use).
+Comment toggling won't work if you don't have language support installed and enabled for this kind of files (because otherwise it will not know what syntax of comments to use).
 
 ### Manually moving / cutting / copying markers
 
@@ -441,15 +443,15 @@ When you manually move / copy / paste your anchor markers, the decorations need 
 
 Sadly, VSCode currently has no way of detecting cut events, so the closest event you can get after moving your marker is the document change event, which happens after you paste your text. On this event extension will scan changes and update decorations if any markers are involved. So, when you cut fragment of code that contains sidenote markers, the decorations will stay in their old place until you paste your code / switch editors.
 
-Also, 'undo' in vscode doesn't trigger 'editor change' event, so if after undoing adding new sidenote, you may have to manually `refresh` decorations. Any way, 'undo' is not recommended in this case, because it will leave content file in place, so if you changed your mind after creating sidenote, better `delete` it.
+Also, 'undo' in vscode doesn't trigger 'editor change' event, so after undoing adding new sidenote, you may have to manually `refresh` decorations. Anyway, 'undo' is not recommended in this case, because it will leave content file in place, so if you changed your mind after creating sidenote, better `delete` it.
 
-#### Moving to document with another syntax
+#### Moving sidenote to the document with another syntax
 
 Obviously, if you want to move your sidenote to other file, that uses different comment syntax (according to language used), you'll have to manually edit comment to match (tip: untoggle comment before moving, then toggle back after);
 
 Since sidenotes scanning is done lazily, you have to make editor active to initialize it. This can be seen on application start if you have several editors visible simultaneosly in different panes.
 
-Anyway, in case of unpredictable rendering artefacts you can use `refresh` command to re-draw sidenotes decorations, and report about the issue on Github so I can fix it.
+Anyway, in case of unpredictable rendering artifacts you can use `refresh` command to re-draw sidenotes decorations, and report about the issue on Github so I can fix it.
 
 #### Multiline comments
 
