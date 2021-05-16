@@ -1,11 +1,12 @@
-import vscode from 'vscode';
-import cfg from './lib/cfg';
 import App from './lib/app';
+import ConfigMaker from './lib/cfg';
+import vscode from 'vscode';
 
 let app: App;
 
 export function activate(context: vscode.ExtensionContext): void {
 	try {
+		const cfg = new ConfigMaker().create();
 		app = new App(cfg, context);
 	} catch (e) {
 		console.log(e);
@@ -13,7 +14,7 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(this: any): void {
-	console.log(this);
+	// console.log(this);
 	// this._subscriptions.dispose();
 	app.actions.decorator.disposeDecorationTypes();
 	app.actions.pool.clear();
