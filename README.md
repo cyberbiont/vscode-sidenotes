@@ -90,11 +90,11 @@ Same as annotate, but if used with selection made, this command automatically wr
 
 #### Annotate (Input Extension)
 
-Same as annotate, but when creating new note, this command presents you with an input field where you can type in custom extension for your content file.
+Same as annotate, but when creating a new note, this command presents you with an input field where you can type in custom extension for your content file.
 
 #### Annotate (Input Extension)
 
-Same as annotate, but when creating new note, this command presents you with a dropdown list of extensions so you can select the one you need. List options can be edited in [configuration](#extensionsQuickPick)
+Same as annotate, but when creating a new note, this command presents you with a dropdown list of extensions so you can select the one you need. List options can be edited in [configuration](#extensionsQuickPick)
 
 #### Delete
 
@@ -459,6 +459,18 @@ For the languages, that support only multiline, notably HTML / XML / Markdown / 
 The reason is the tooltip is not displayed over 'after" pseusdoelement for such comments.
 To do so, you'll need either to place your cursor at the beginning of the icon and take a good aim with your mouse, or - a bit easier - to drag-select comment (or even a whole document with Ctrl-A), and than aim at the icon with your mouse.
 Anyway, the only alternative I can think of currently is to introduce a two decorations for each sidenote (one to show tooltip and another to fold the anchor), which I don't find feasible.
+
+## Alternatives
+
+### How is it different from Codestream
+
+- Local. Notes are stored in files in your filesystem. Codeshare srores everything including your source code, on their server. This can make difference if you hav confidential information in your notes.
+- Private notes. Storing notes in files makes it possible to encrypt them before commiting to repo, so that they become effectively private and no one with access to your repo can read them without knowing the encryption key.
+- Codestream opens notes editor in sidebar, that creates ifferent expirience comparing to opening them in normal editor to the side. In Codestream you cannot for example have syntax highligthing for markdown itself and other languages in code blocks. You can add code block from source file in special field, but it will be none-editable.
+- Sidenotes does not require Git. Codestream requires a local Git repository, linked to remote repository to function.
+- Sidenotes allows you to link not only text, but literally any files.
+- In short, Sidenotes were created more for the personal use (though it can be used in collaboration) and Codestream is more of a collaboration-oriented service and has more features for this.
+- Because all your notes are stored as files inside your project, they will be included if you do Ctrl-Alt-F search VS Code
 
 ## Credits
 
