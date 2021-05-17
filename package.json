@@ -229,19 +229,9 @@
 		"@types/node": "^14.14.37",
 		"@types/uuid": "^8.3.0",
 		"@types/vscode": "^1.55.0",
-		"@typescript-eslint/eslint-plugin": "^4.21.0",
-		"@typescript-eslint/parser": "^4.21.0",
 		"conditional-type-checks": "^1.0.5",
-		"eslint": "^7.23.0",
-		"eslint-config-airbnb-base": "^14.2.1",
-		"eslint-config-prettier": "^8.1.0",
-		"eslint-config-standard": "^16.0.2",
-		"eslint-plugin-import": "^2.22.1",
-		"eslint-plugin-no-null": "^1.0.2",
-		"eslint-plugin-node": "^11.1.0",
-		"eslint-plugin-prettier": "^3.3.1",
+		"eslint-config-cyberbiont": "github:cyberbiont/eslint-config-cyberbiont",
 		"glob": "^7.1.6",
-		"prettier": "^2.2.1",
 		"ts-cleaner": "^1.0.5",
 		"ts-loader": "^8.1.0",
 		"ts-node": "^9.1.1",
@@ -258,5 +248,9 @@
 		"minimatch": "^3.0.4",
 		"open": "^8.0.5",
 		"uuid": "^8.3.2"
+	},
+	"prettier": "eslint-config-cyberbiont/prettier.config.js",
+	"eslintConfig": {
+		"extends": "cyberbiont"
 	}
 }
