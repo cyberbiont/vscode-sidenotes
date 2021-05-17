@@ -21,7 +21,7 @@ import Scanner, { ScanData } from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
 import { EditorUtils } from './utils';
 
-type ExtensionSelectionDialogTypes = 'input' | 'pick';
+type ExtensionSelectionDialogTypes = `input` | `pick`;
 
 export type OActions = {
 	storage: {
@@ -133,7 +133,7 @@ export default class Actions {
 			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
 
 			if (useCodeFence && !process.env.SIDENOTES_USE_CODE_FENCE)
-				process.env.SIDENOTES_USE_CODE_FENCE = 'true';
+				process.env.SIDENOTES_USE_CODE_FENCE = `true`;
 
 			const scanData = onHoverScanData || this.scanner.scanLine();
 
@@ -175,13 +175,13 @@ export default class Actions {
 
 	// TODO extract to User Interactions
 	async promptExtension(
-		dialogType: ExtensionSelectionDialogTypes = 'input',
+		dialogType: ExtensionSelectionDialogTypes = `input`,
 	): Promise<string | undefined> {
 		let extension: string | undefined;
 
-		if (dialogType === 'pick') {
+		if (dialogType === `pick`) {
 			const action = await window.showQuickPick(
-				this.cfg.storage.files.extensionsQuickPick.map((ext) => ({
+				this.cfg.storage.files.extensionsQuickPick.map(ext => ({
 					label: ext,
 				})),
 				{
@@ -191,8 +191,8 @@ export default class Actions {
 			extension = action?.label;
 		} else {
 			extension = await window.showInputBox({
-				prompt: 'Enter extension for your content file (without dot)',
-				value: 'md',
+				prompt: `Enter extension for your content file (without dot)`,
+				value: `md`,
 			});
 		}
 
@@ -209,7 +209,7 @@ export default class Actions {
 		const scanData = onHoverScanData || this.scanner.scanLine();
 		if (!scanData) {
 			window.showWarningMessage(
-				'There is no sidenotes attached at current cursor position',
+				`There is no sidenotes attached at current cursor position`,
 			);
 			return;
 		}
@@ -226,9 +226,7 @@ export default class Actions {
 		let range: Range;
 
 		if (onHoverScanData) {
-			const [[start, end]] = (onHoverScanData.ranges as unknown) as [
-				Position[],
-			]; // consequence of JSON convertion
+			const [[start, end]] = onHoverScanData.ranges as unknown as [Position[]]; // consequence of JSON convertion
 			range = new Range(
 				new Position(start.line, start.character),
 				new Position(end.line, end.character),
@@ -242,7 +240,7 @@ export default class Actions {
 		const lineRange = this.utils.extendRangeToFullLine(range);
 
 		await this.utils.editor.edit(
-			(edit) => {
+			edit => {
 				edit.delete(lineRange);
 			},
 			{ undoStopAfter: false, undoStopBefore: false },
@@ -255,10 +253,10 @@ export default class Actions {
 		this.scan();
 
 		switch (category) {
-			case 'broken':
+			case `broken`:
 				await this.pruner.pruneBroken();
 				break;
-			case 'empty':
+			case `empty`:
 				await this.pruner.pruneEmpty();
 				break;
 			default:
@@ -281,7 +279,7 @@ export default class Actions {
 
 	switchStylesCfg(): void {
 		const key =
-			this.decoratorController.key === 'default' ? 'alternative' : 'default';
+			this.decoratorController.key === `default` ? `alternative` : `default`;
 		this.decoratorController.update(key);
 		this.refresh();
 	}

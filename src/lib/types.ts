@@ -1,10 +1,10 @@
-import { TextDocument } from 'vscode';
-
-import { Initializable, HasEditorReference } from './mixins';
-import { MapDictionary } from './dictionary';
 import { DictionaryRepository, MapRepository } from './repository';
-import Decorator from './decorator';
+import { HasEditorReference, Initializable } from './mixins';
 import { Sidenote, SidenoteFactoryOptions } from './sidenote';
+
+import Decorator from './decorator';
+import { MapDictionary } from './dictionary';
+import { TextDocument } from 'vscode';
 
 export type SidenotesDictionary = MapDictionary<Sidenote> &
 	Initializable &

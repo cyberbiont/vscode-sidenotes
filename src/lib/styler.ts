@@ -1,7 +1,7 @@
+import { CategoryName, DecorableDecoration, ODecorator } from './decorator';
 import { DecorationInstanceRenderOptions, Range } from 'vscode';
-import { DecorableDecoration, ODecorator } from './decorator';
+
 import { Inspector } from './sidenote';
-import { CategoryName } from './decorator';
 
 export interface Stylable {
 	content?: string;
@@ -23,7 +23,7 @@ export default class Styler {
 
 	get(stylable: Stylable, ranges: Range[]): DecorableDecoration[] {
 		const decorations: DecorableDecoration[] = ranges
-			.map((range) => this.getRangeDecorations(range, stylable))
+			.map(range => this.getRangeDecorations(range, stylable))
 			.flat();
 
 		if (ranges.length > 1) {
@@ -31,18 +31,17 @@ export default class Styler {
 				? stylable.color
 				: (stylable.color = this.getRandomHSLColor());
 			// TODO decrease color lightness for dark themes
-			decorations.map((decoration) => this.markAsDuplicated(decoration, color));
+			decorations.map(decoration => this.markAsDuplicated(decoration, color));
 		}
 		return decorations;
 	}
 
 	private markAsDuplicated(decoration: DecorableDecoration, color: string) {
-		decoration.options.renderOptions = this.cfg.anchor.styles.instanceRenderOptions(
-			color,
-		);
+		decoration.options.renderOptions =
+			this.cfg.anchor.styles.instanceRenderOptions(color);
 	}
 
-	getRandomHSLColor(lightness = '75%') {
+	getRandomHSLColor(lightness = `75%`) {
 		// 🕮 <cyberbiont> 16762ea0-4553-4aee-8dd2-508e37ca0adb.md
 		const color = `hsl(${Math.random() * 360}, 100%, ${lightness})`;
 		return color;
@@ -50,7 +49,7 @@ export default class Styler {
 
 	getRangeDecorations(range: Range, stylable: Stylable) {
 		const categories = this.getDecorationCategories(stylable);
-		return categories.map((category) =>
+		return categories.map(category =>
 			this.getCategoryDecoration(category, range, stylable),
 		);
 	}
@@ -58,9 +57,9 @@ export default class Styler {
 	getDecorationCategories(stylable: Stylable) {
 		// TODO represent categories as enum
 		const categories: CategoryName[] = [];
-		if (this.inspector.isBroken(stylable)) categories.push('broken');
-		else if (this.inspector.isEmpty(stylable)) categories.push('empty');
-		else categories.push('active');
+		if (this.inspector.isBroken(stylable)) categories.push(`broken`);
+		else if (this.inspector.isEmpty(stylable)) categories.push(`empty`);
+		else categories.push(`active`);
 		return categories;
 	}
 
@@ -77,7 +76,7 @@ export default class Styler {
 		const catMessage = this.cfg.anchor.styles.categories[category].message;
 		if (catMessage) message = catMessage;
 		else if (isTextFile && content) message = content;
-		else message = '';
+		else message = ``;
 
 		const hoverMessage: string[] = [message];
 

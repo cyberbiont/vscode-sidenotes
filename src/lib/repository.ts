@@ -8,7 +8,7 @@ export interface HasFactoryMethod<K, V> {
  * keeps the registry of the class instances,
  * created by object constructor with certain config, with config as key
  */
-export class MapRepository<K extends object, V> {
+export class MapRepository<K extends AnyObject, V> {
 	constructor(
 		private Factory: HasFactoryMethod<K, V>,
 		protected map: Map<K, V> | WeakMap<K, V>,
@@ -44,6 +44,7 @@ export class MapRepository<K extends object, V> {
 
 // 🕮 <cyberbiont> 7f52e358-d011-44ac-9073-83738f5abb44.md
 export interface HasBuildFactoryMethod<V> {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	build: (key: any) => V | Promise<V>;
 }
 

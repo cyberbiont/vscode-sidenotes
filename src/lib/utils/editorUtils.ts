@@ -1,14 +1,15 @@
+import { IMinimatch, Minimatch } from 'minimatch';
 import {
-	workspace,
-	window,
-	commands,
+	Range,
 	Selection,
 	TextEditor,
-	Range,
 	TextLine,
+	commands,
+	window,
+	workspace,
 } from 'vscode';
-import { Minimatch, IMinimatch } from 'minimatch';
-
+// TODO переключиться на micromatch
+// import {default as micromatch}
 export type OEditorUtils = {
 	worskspaceFilter: {
 		include: string;

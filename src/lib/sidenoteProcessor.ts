@@ -1,9 +1,10 @@
-import { window, QuickPickItem, TextEditor } from 'vscode';
-import { StorageService, Storable } from './storageService';
+import { Inspector, Sidenote } from './sidenote';
+import { QuickPickItem, TextEditor, window } from 'vscode';
+import { Storable, StorageService } from './storageService';
+
 import Anchorer from './anchorer';
 import { SidenotesDictionary } from './types';
 import Styler from './styler';
-import { Inspector, Sidenote } from './sidenote';
 
 export default class SidenoteProcessor {
 	constructor(
@@ -45,9 +46,7 @@ export default class SidenoteProcessor {
 		/* assuming that ranges hasn't change (update onEditorChange event is responsible for handling this)
 		we can extract ranges from decorations */
 		const ranges = Array.from(
-			new Set(
-				sidenote.decorations.map((decoration) => decoration.options.range),
-			),
+			new Set(sidenote.decorations.map(decoration => decoration.options.range)),
 		);
 		sidenote.decorations = this.styler.get(sidenote, ranges);
 		return sidenote;
@@ -64,24 +63,23 @@ export default class SidenoteProcessor {
 		> => {
 			const actions: QuickPickItem[] = [
 				{
-					label: 'delete',
-					description: 'delete note comment',
+					label: `delete`,
+					description: `delete note comment`,
 				},
 				{
-					label: 're-create',
-					description: 're-create storage entry for this note comment',
+					label: `re-create`,
+					description: `re-create storage entry for this note comment`,
 				},
 			];
 
 			if (this.storageService.lookup)
 				actions.push({
-					label: 'lookup',
-					description: 'look for the missing sidenote file (select folder)',
+					label: `lookup`,
+					description: `look for the missing sidenote file (select folder)`,
 				});
 
 			const chosen = await window.showQuickPick(actions, {
-				placeHolder:
-					'No corresponding content file is found in workspace sidenotes folder. What do you want to do?',
+				placeHolder: `No corresponding content file is found in workspace sidenotes folder. What do you want to do?`,
 			});
 
 			return chosen;
@@ -91,17 +89,17 @@ export default class SidenoteProcessor {
 		if (!action) return undefined;
 
 		switch (action.label) {
-			case 'delete':
+			case `delete`:
 				this.anchorer.delete(sidenote);
 				this.pool.delete(sidenote.id);
 				return undefined;
 
-			case 're-create':
-				sidenote.content = '';
+			case `re-create`:
+				sidenote.content = ``;
 				await this.storageService.write(sidenote, sidenote as Storable);
 				return sidenote;
 
-			case 'lookup':
+			case `lookup`:
 				return this.lookup(sidenote);
 
 			default:
@@ -112,7 +110,7 @@ export default class SidenoteProcessor {
 	private async lookup(sidenote: Sidenote): Promise<Sidenote | undefined> {
 		// TODO move to UserInteractions class
 		if (!this.storageService.lookup) {
-			console.warn('storage type does not provide lookup method');
+			console.warn(`storage type does not provide lookup method`);
 			return undefined;
 		}
 		const result = await window.showOpenDialog({

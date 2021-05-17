@@ -1,23 +1,23 @@
+import { EditorUtils, MarkerUtils } from './utils';
 import {
-	Uri,
 	FileSystemError,
 	OpenDialogOptions,
-	window,
-	workspace,
+	Uri,
 	WorkspaceFolder,
 	commands,
-	TextEditor,
+	window,
+	workspace,
 } from 'vscode';
-import path from 'path';
-import SnFileSystem from './fileSystem';
+
 import EditorServiceController from './editorServiceController';
-import { EditorUtils, MarkerUtils } from './utils';
+import SnFileSystem from './fileSystem';
+import path from 'path';
 
 export interface Storable {
 	content: string;
 }
 
-export type OStorageService = {};
+export type OStorageService = Record<string, unknown>;
 type StorageKey = FileStorageKey;
 
 export interface StorageService {
@@ -45,7 +45,7 @@ interface FileAnalysisData {
 	strayEntries: Uri[];
 }
 
-type DefaultContentFileExtension = '.md' | '.markdown';
+type DefaultContentFileExtension = `.md` | `.markdown`;
 // 🕮 <cyberbiont> 6abe46d6-116f-44c7-9e0f-4e2b81b64513.md
 
 export type OFileStorage = {
@@ -80,9 +80,9 @@ export class FileStorage implements StorageService {
 		cfg: OFileStorage,
 	) {
 		this.o = cfg.storage.files;
-		commands.registerCommand('sidenotes.migrate', this.migrate, this);
+		commands.registerCommand(`sidenotes.migrate`, this.migrate, this);
 		commands.registerCommand(
-			'sidenotes.extraneous',
+			`sidenotes.extraneous`,
 			this.cleanExtraneous,
 			this,
 		);
@@ -168,13 +168,13 @@ export class FileStorage implements StorageService {
 	}
 
 	async delete(key: FileStorageKey): Promise<void[]> {
-		const uri = this.getContentFileUri({ id: key.id, extension: '.assets' });
+		const uri = this.getContentFileUri({ id: key.id, extension: `.assets` });
 		try {
 			const promises = [this.fs.delete(this.getContentFileUri(key))];
 
 			const assetsUri = this.getContentFileUri({
 				id: key.id,
-				extension: '.assets',
+				extension: `.assets`,
 			});
 			if (this.fs.exists(assetsUri.fsPath))
 				promises.push(this.fs.delete(assetsUri)); // delete assets subfolder if such exists
@@ -209,9 +209,9 @@ export class FileStorage implements StorageService {
 			if (!this.fs.exists(uri.fsPath)) {
 				await this.fs.write(uri, data.content);
 			} else
-				console.warn('content file already exists, aborting write file action');
+				console.warn(`content file already exists, aborting write file action`);
 		} catch (err) {
-			if (err.code === 'ENOENT') {
+			if (err.code === `ENOENT`) {
 				// console.log(`content files directory seems to not exist at specified location. Creating directory and trying again`);
 				await this.ensureNotesFolderExists();
 				await this.write(key, data);
@@ -227,7 +227,7 @@ export class FileStorage implements StorageService {
 		key: FileStorageKey,
 		lookupFolderUri: Uri,
 		workspace: string = this.utils.getWorkspaceFolderPath(),
-		resolveAction = 'copy',
+		resolveAction = `copy`,
 	): Promise<Uri | boolean> {
 		const fileName = this.getContentFileName(key);
 
@@ -241,7 +241,7 @@ export class FileStorage implements StorageService {
 
 		const currentFileUri = this.getContentFileUri(key);
 
-		const action = resolveAction === 'move' ? this.fs.rename : this.fs.copy;
+		const action = resolveAction === `move` ? this.fs.rename : this.fs.copy;
 
 		if (
 			this.fs.exists(lookupUri.fsPath) &&
@@ -252,7 +252,7 @@ export class FileStorage implements StorageService {
 			// support handling assets folder
 			const assetsFolderName = this.getContentFileName({
 				id: key.id,
-				extension: '.assets',
+				extension: `.assets`,
 			});
 			const assetslookupUri = this.getUri(
 				path.join(lookupFolderUri.fsPath, assetsFolderName),
@@ -275,7 +275,7 @@ export class FileStorage implements StorageService {
 	}
 
 	private getWorkspaceFolders(): readonly WorkspaceFolder[] {
-		const workspaceFolders = workspace.workspaceFolders;
+		const { workspaceFolders } = workspace;
 		if (!workspaceFolders || workspaceFolders.length === 0) {
 			// const message = `You need to have at least one workspace folder open to run this command`
 			// vscode.window.showInformationMessage(
@@ -291,7 +291,7 @@ export class FileStorage implements StorageService {
 	async migrate(): Promise<void> {
 		const folders = this.getWorkspaceFolders();
 
-		folders.forEach(async (folder) => {
+		folders.forEach(async folder => {
 			const {
 				detectedKeys,
 				files: { fileUrisByFilenames: fileKeys },
@@ -299,10 +299,10 @@ export class FileStorage implements StorageService {
 
 			const broken: string[] = [];
 
-			detectedKeys.forEach((key) => {
+			detectedKeys.forEach(key => {
 				if (
 					!(
-						(key in fileKeys && typeof this.fs.read(fileKeys[key]) === 'string') // ensure that content note is readable
+						(key in fileKeys && typeof this.fs.read(fileKeys[key]) === `string`) // ensure that content note is readable
 					)
 				) {
 					broken.push(key);
@@ -320,12 +320,12 @@ export class FileStorage implements StorageService {
 			const action = await window.showQuickPick(
 				[
 					{
-						label: 'yes',
+						label: `yes`,
 						description: `look for missing content files (select folder to look in)`,
 					},
 					{
-						label: 'no',
-						description: 'cancel',
+						label: `no`,
+						description: `cancel`,
 					},
 				],
 				{
@@ -334,12 +334,12 @@ export class FileStorage implements StorageService {
 				},
 			);
 
-			if (action?.label === 'yes') {
+			if (action?.label === `yes`) {
 				const options: OpenDialogOptions = {
 					canSelectMany: false,
 					canSelectFolders: true,
 					defaultUri: folder.uri,
-					openLabel: 'Confirm selection',
+					openLabel: `Confirm selection`,
 				};
 
 				const promptResult = await window.showOpenDialog(options);
@@ -348,7 +348,7 @@ export class FileStorage implements StorageService {
 
 				const results = await Promise.all(
 					// ids.map
-					broken.map(async (key) => {
+					broken.map(async key => {
 						// const [id, extension] = key.split('.');
 						const { name: id, ext: extension } = path.parse(key);
 						// 🕮 <cyberbiont> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
@@ -358,13 +358,13 @@ export class FileStorage implements StorageService {
 
 				const successfulResults = results
 					.filter((result): result is Uri => !!result)
-					.map((uri) => path.basename(uri.fsPath));
+					.map(uri => path.basename(uri.fsPath));
 
 				const message =
 					successfulResults.length === 0
 						? `No missing files were found in specified directory`
 						: `The following file(s) have been found and copied to the current workspace:\n
-						${successfulResults.join(',\n')}`;
+						${successfulResults.join(`,\n`)}`;
 
 				window.showInformationMessage(message);
 
@@ -391,19 +391,19 @@ export class FileStorage implements StorageService {
 			console.log(
 				`Sidenotes: ${uris.length} ${type} file(s) in folder ${
 					folder.uri.fsPath
-				}:\n(${uris.join(')\n(')})`,
+				}:\n(${uris.join(`)\n(`)})`,
 			);
 			// paths.forEach(path => console.log(path));
 
 			const action = await window.showQuickPick(
 				[
 					{
-						label: 'yes',
+						label: `yes`,
 						description: `delete ${type} file(s)`,
 					},
 					{
-						label: 'no',
-						description: 'cancel',
+						label: `no`,
+						description: `cancel`,
 					},
 				],
 				{
@@ -413,7 +413,7 @@ export class FileStorage implements StorageService {
 				},
 			);
 
-			if (action && action.label === 'yes') {
+			if (action && action.label === `yes`) {
 				const deleted = await Promise.all(
 					uris.map(async (uri: Uri) => {
 						await this.fs.delete(uri);
@@ -423,7 +423,7 @@ export class FileStorage implements StorageService {
 
 				window.showInformationMessage(
 					`The following file(s) have been deleted from your workspace folder:\n
-					${deleted.join(',\n')}`,
+					${deleted.join(`,\n`)}`,
 				);
 				return true;
 			}
@@ -433,7 +433,7 @@ export class FileStorage implements StorageService {
 
 		const folders = this.getWorkspaceFolders();
 
-		folders.forEach(async (folder) => {
+		folders.forEach(async folder => {
 			const {
 				detectedKeys,
 				// files
@@ -453,14 +453,12 @@ export class FileStorage implements StorageService {
 			}
 			// });
 
-			await handleResults('extraneous', extraneous, folder);
-			await handleResults('stray', strayEntries, folder);
+			await handleResults(`extraneous`, extraneous, folder);
+			await handleResults(`stray`, strayEntries, folder);
 		});
 	}
 
-	async analyzeWorkspaceFolder(
-		workspaceFolder: Uri,
-	): Promise<{
+	async analyzeWorkspaceFolder(workspaceFolder: Uri): Promise<{
 		detectedKeys: string[];
 		files: FileAnalysisData;
 	}> {
@@ -492,24 +490,22 @@ export class FileStorage implements StorageService {
 		const sigFolders = await workspace.fs.readDirectory(
 			this.getNotesFolder(workspaceFolder.fsPath),
 		);
-		const sigFoldersOnly = sigFolders.filter((entry) => entry[1] == 2);
+		const sigFoldersOnly = sigFolders.filter(entry => entry[1] === 2);
 
 		const sigFoldersData = await Promise.all(
-			sigFoldersOnly.map((sigFolderTuple) =>
+			sigFoldersOnly.map(sigFolderTuple =>
 				this.analyzeFolderContentFiles(workspaceFolder, sigFolderTuple[0]),
 			),
 		);
 
 		// let combinedData;
-		const reduced = sigFoldersData.reduce((acc, current) => {
-			return {
-				fileUrisByFilenames: {
-					...acc.fileUrisByFilenames,
-					...current.fileUrisByFilenames,
-				},
-				strayEntries: [...acc.strayEntries, ...current.strayEntries],
-			};
-		});
+		const reduced = sigFoldersData.reduce((acc, current) => ({
+			fileUrisByFilenames: {
+				...acc.fileUrisByFilenames,
+				...current.fileUrisByFilenames,
+			},
+			strayEntries: [...acc.strayEntries, ...current.strayEntries],
+		}));
 		// const combinedData = sigFoldersData.reduce((acc, current) => {
 		// 	return Object.assign(acc, current);
 		// })

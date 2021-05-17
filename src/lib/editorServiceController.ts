@@ -1,14 +1,15 @@
-import { Uri } from 'vscode';
 import {
 	EditorService,
-	SystemDefaultEditorService,
 	ShellEditorService,
+	SystemDefaultEditorService,
 	VscodeEditorService,
 } from './editorService';
 
+import { Uri } from 'vscode';
+
 export type OEditorServiceController = {
 	app: {
-		defaultMarkdownEditor: 'typora' | 'vscode' | 'system default';
+		defaultMarkdownEditor: `typora` | `vscode` | `system default`;
 	};
 };
 
@@ -22,13 +23,13 @@ export default class EditorServiceController {
 		private cfg: OEditorServiceController,
 	) {
 		switch (this.cfg.app.defaultMarkdownEditor) {
-			case 'typora':
+			case `typora`:
 				this.markdownEditor = this.shell;
 				break;
-			case 'system default':
+			case `system default`:
 				this.markdownEditor = this.systemDefault;
 				break;
-			case 'vscode':
+			case `vscode`:
 			default:
 				this.markdownEditor = this.vscode;
 		}
@@ -37,12 +38,12 @@ export default class EditorServiceController {
 	// 🕮 <cyberbiont> 114e29b0-8288-4b64-9fde-060bbb889c90.md
 	open(uri: Uri, extension: string) {
 		switch (extension) {
-			case '.md':
-			case '.mdown':
+			case `.md`:
+			case `.mdown`:
 				this.markdownEditor.open(uri);
 				break;
-			case '.cson':
-			case '.markdown':
+			case `.cson`:
+			case `.markdown`:
 				this.shell.open(uri.fsPath, extension);
 				break;
 			default:

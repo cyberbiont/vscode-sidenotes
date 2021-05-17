@@ -1,3 +1,4 @@
+import { ChangeTracker, FileChangeTracker } from './changeTracker';
 import {
 	Terminal,
 	TextEditor,
@@ -6,8 +7,8 @@ import {
 	window,
 	workspace,
 } from 'vscode';
+
 import open from 'open';
-import { ChangeTracker, FileChangeTracker } from './changeTracker';
 
 export interface EditorService {
 	changeTracker: ChangeTracker;
@@ -25,13 +26,12 @@ export class VscodeEditorService implements EditorService {
 		// @old 🕮 <cyberbiont> ea2901bc-16b1-4153-8753-1daa685ca125.md
 
 		return workspace.openTextDocument(uri).then(
-			async (doc) => {
-				return window.showTextDocument(doc, {
+			async doc =>
+				window.showTextDocument(doc, {
 					viewColumn: ViewColumn.Beside,
 					// 🕮 <cyberbiont> f94a2a43-584b-49fb-bf3b-1ae27b53079b.md
-				});
-			},
-			(error) => {
+				}),
+			error => {
 				window.showErrorMessage(`<Failed to open file>. ${error.message}`);
 			},
 		);
@@ -55,12 +55,12 @@ export class ShellEditorService implements EditorService {
 
 	private getExecutableName(extension: string): string {
 		switch (extension) {
-			case '.cson':
-				return 'Boost note';
-			case '.md':
-			case '.markdown':
+			case `.cson`:
+				return `Boost note`;
+			case `.md`:
+			case `.markdown`:
 			default:
-				return 'typora';
+				return `typora`;
 		}
 	}
 
@@ -68,7 +68,7 @@ export class ShellEditorService implements EditorService {
 	open(path: string, extension: string): Terminal | false {
 		const executableName = this.getExecutableName(extension);
 
-		if (!this.terminal) this.terminal = window.createTerminal('Sidenotes');
+		if (!this.terminal) this.terminal = window.createTerminal(`Sidenotes`);
 
 		try {
 			this.terminal.sendText(`& "${executableName}" "${path}"`);

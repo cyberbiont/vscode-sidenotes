@@ -36,10 +36,10 @@ export type Cfg = OEditorUtils &
 	OEditorServiceController &
 	OActions;
 
-const settings = workspace.getConfiguration('sidenotes');
+const settings = workspace.getConfiguration(`sidenotes`);
 
-const signature: string = settings.get('signature') || os.userInfo().username;
-const testval = settings.get('notesSubfolder');
+const signature: string = settings.get(`signature`) || os.userInfo().username;
+const testval = settings.get(`notesSubfolder`);
 // @bug 🕮 <cyberbiont> 389a9433-4182-43cb-b559-e567ba7dfc95.md
 
 export default class ConfigMaker {
@@ -47,25 +47,25 @@ export default class ConfigMaker {
 		const cfg: Cfg = {
 			app: {
 				defaultMarkdownEditor:
-					settings.get('defaultMarkdownEditor') || 'vscode',
-				hoverToolbar: settings.get('hoverToolbar') || true,
+					settings.get(`defaultMarkdownEditor`) || `vscode`,
+				hoverToolbar: settings.get(`hoverToolbar`) || true,
 			},
 
 			storage: {
 				files: {
-					notesFolder: settings.get('notesSubfolder') || '.sidenotes',
+					notesFolder: settings.get(`notesSubfolder`) || `.sidenotes`,
 					signatureSubfolderName: signature,
 					defaultContentFileExtension:
-						settings.get('defaultContentFileExtension') || '.md',
-					extensionsQuickPick: settings.get('extensionsQuickPick') || [],
+						settings.get(`defaultContentFileExtension`) || `.md`,
+					extensionsQuickPick: settings.get(`extensionsQuickPick`) || [],
 				},
 			},
 
 			worskspaceFilter: {
 				// 🕮 <cyberbiont> 7372242a-1c7a-4342-8de9-9a45539d2f39.md
-				include: settings.get('filter.include') || '**/*',
+				include: settings.get(`filter.include`) || `**/*`,
 				exclude:
-					settings.get('filter.exclude') ||
+					settings.get(`filter.exclude`) ||
 					`**/{node_modules,.git,.idea,target,out,build,vendor}/**/*`,
 			},
 
@@ -79,24 +79,24 @@ export default class ConfigMaker {
 
 				marker: {
 					// 🕮 <cyberbiont> f7cc1c04-8751-4431-af02-a912c375750c.md
-					prefix: settings.get('prefix') || '',
-					salt: '🕮',
+					prefix: settings.get(`prefix`) || ``,
+					salt: `🕮`,
 					signature,
-					signatureFilter: new Set(settings.get('signatureFilter')),
-					readUnsigned: settings.get('readUnsigned'),
+					signatureFilter: new Set(settings.get(`signatureFilter`)),
+					readUnsigned: settings.get(`readUnsigned`),
 				},
 
 				styles: {
 					settings: {
-						before: settings.get('design.before') || undefined,
-						after: settings.get('design.after') || '🕮',
-						ruler: settings.get('design.ruler') || true,
-						gutterIcon: settings.get('design.gutterIcon') || true,
-						hideMarkers: settings.get('design.hideMarkers') || true,
-						colorIndication: settings.get('design.colorIndication') || [
-							'after',
-							'text',
-							'ruler',
+						before: settings.get(`design.before`) || undefined,
+						after: settings.get(`design.after`) || `🕮`,
+						ruler: settings.get(`design.ruler`) || true,
+						gutterIcon: settings.get(`design.gutterIcon`) || true,
+						hideMarkers: settings.get(`design.hideMarkers`) || true,
+						colorIndication: settings.get(`design.colorIndication`) || [
+							`after`,
+							`text`,
+							`ruler`,
 						],
 					},
 
@@ -104,17 +104,17 @@ export default class ConfigMaker {
 						common: {
 							style: {
 								// border: '1px solid red',
-								cursor: 'pointer',
+								cursor: `pointer`,
 								rangeBehavior: DecorationRangeBehavior.ClosedClosed,
-								gutterIconSize: '80%',
+								gutterIconSize: `80%`,
 							},
-							icon: 'sidenote.svg',
+							icon: `sidenote.svg`,
 							color: {
-								dark: 'rgb(255, 255, 255)',
-								light: 'rgb(0, 0, 0)',
+								dark: `rgb(255, 255, 255)`,
+								light: `rgb(0, 0, 0)`,
 							},
 							// color: 'rgb(13, 242, 201)',
-							message: '',
+							message: ``,
 						},
 
 						// style categories to become separate decorationTypes:
@@ -124,16 +124,16 @@ export default class ConfigMaker {
 						},
 
 						broken: {
-							color: 'rgba(255, 0, 0, 1)',
-							icon: 'sidenote_broken.svg',
+							color: `rgba(255, 0, 0, 1)`,
+							icon: `sidenote_broken.svg`,
 							message: `⮜ BROKEN ⮞
 							Can not find content file, associated with this comment.
 							Run 'annotate' command to choose your action.`,
 						},
 
 						empty: {
-							color: 'rgb(248, 171, 27)',
-							icon: 'sidenote_empty.svg',
+							color: `rgb(248, 171, 27)`,
+							icon: `sidenote_empty.svg`,
 							message: `⮜ EMPTY ⮞ This sidenote is empty.`,
 						},
 					},

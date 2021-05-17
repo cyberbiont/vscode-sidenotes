@@ -1,7 +1,8 @@
-import { TextEditor, Range } from 'vscode';
 import { EditorUtils, MarkerUtils } from './utils';
-import Scanner from './scanner';
+import { Range, TextEditor } from 'vscode';
+
 import { DecorableDecoration } from './decorator';
+import Scanner from './scanner';
 
 // 🕮 <cyberbiont> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface Anchor {
@@ -40,13 +41,13 @@ export default class Anchorer {
 	// 🕮 <cyberbiont> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: Anchorable, ranges: Range[]): Promise<void> {
 		// 🕮 <cyberbiont> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
-		process.env.SIDENOTES_LOCK_EVENTS = 'true';
+		process.env.SIDENOTES_LOCK_EVENTS = `true`;
 
-		const writeRangeInChain = async (range: Range) => {
-			return this.writeRange(anchorable, range);
-		};
+		const writeRangeInChain = async (range: Range) =>
+			this.writeRange(anchorable, range);
 
-		for (let [i, range] of ranges.entries()) {
+		for (const [i, range] of ranges.entries()) {
+			// eslint-disable-next-line no-await-in-loop
 			await writeRangeInChain(range);
 		}
 		delete process.env.SIDENOTES_LOCK_EVENTS;
@@ -61,10 +62,10 @@ export default class Anchorer {
 		editor = this.editor,
 	): Promise<boolean> {
 		await editor.edit(
-			(edit) => edit.insert(range.start, anchorable.anchor.marker),
+			edit => edit.insert(range.start, anchorable.anchor.marker),
 			{ undoStopAfter: false, undoStopBefore: false },
 		);
-		return await this.utils.toggleComment(range, editor, {
+		return this.utils.toggleComment(range, editor, {
 			useBlockComments: this.cfg.anchor.comments.useBlockComments,
 		});
 	}
@@ -75,9 +76,7 @@ export default class Anchorer {
 	): Promise<void> {
 		// process.env.SIDENOTES_LOCK_EVENTS = 'true';
 		const ranges = Array.from(
-			new Set(
-				anchored.decorations.map((decoration) => decoration.options.range),
-			),
+			new Set(anchored.decorations.map(decoration => decoration.options.range)),
 		);
 
 		const deleteRangeInChain = async (
@@ -92,7 +91,7 @@ export default class Anchorer {
 
 				if (!nextRange)
 					throw new Error(
-						'next anchor marker not found when tryin to rescan for range after previous marker deletion ',
+						`next anchor marker not found when tryin to rescan for range after previous marker deletion `,
 					);
 
 				range = this.utils.extendRangeToFullLine(nextRange);
@@ -100,7 +99,8 @@ export default class Anchorer {
 			return this.deleteRange(range);
 		};
 
-		for (let [i, range] of ranges.entries()) {
+		for (const [i, range] of ranges.entries()) {
+			// eslint-disable-next-line no-await-in-loop
 			await deleteRangeInChain(range, i);
 		}
 
@@ -133,7 +133,7 @@ export default class Anchorer {
 		}
 
 		return editor.edit(
-			(edit) => {
+			edit => {
 				edit.delete(rangeToDelete);
 			},
 			{ undoStopAfter: false, undoStopBefore: false },
@@ -141,5 +141,5 @@ export default class Anchorer {
 		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 	}
 
-	//old 🕮 <cyberbiont> 889a4671-a154-4c3c-95f5-abf72fb5b8aa.md
+	// old 🕮 <cyberbiont> 889a4671-a154-4c3c-95f5-abf72fb5b8aa.md
 }

@@ -7,10 +7,11 @@ import {
 	ThemableDecorationRenderOptions,
 	window,
 } from 'vscode';
-import path from 'path';
+
 import { Sidenote } from './sidenote';
 import { SidenotesDictionary } from './types';
 import { addNestedProperty } from './utilityFunctions';
+import path from 'path';
 
 export interface DecorableDecoration {
 	category: string;
@@ -58,8 +59,8 @@ type OCategories = {
 	[category in CategoryName]: Partial<OCategory>; // partial overrides
 };
 
-export type CategoryName = 'active' | 'broken' | 'empty';
-type ColorIndicationName = 'text' | 'after' | 'before' | 'ruler';
+export type CategoryName = `active` | `broken` | `empty`;
+type ColorIndicationName = `text` | `after` | `before` | `ruler`;
 
 export type ODecorator = {
 	anchor: {
@@ -99,33 +100,33 @@ export default class Decorator {
 
 		for (const [categoryName, categoryOptions] of Object.entries(categories)) {
 			// eslint-disable-next-line no-continue
-			if (categoryName === 'common') continue;
+			if (categoryName === `common`) continue;
 
 			// merge categories cfg over common cfg
 			const c: OCategory = Object.assign(categories.common, categoryOptions);
 
 			// set optional properties for sidenote categories:
 			if (o.hideMarkers) {
-				c.style.opacity = '0';
-				c.style.letterSpacing = '-1rem';
+				c.style.opacity = `0`;
+				c.style.letterSpacing = `-1rem`;
 			}
 			if (o.gutterIcon) c.style.gutterIconPath = this.getIconPath(c.icon);
-			if (o.before) addNestedProperty(c.style, 'before.contentText', o.before);
-			if (o.after) addNestedProperty(c.style, 'after.contentText', o.after);
+			if (o.before) addNestedProperty(c.style, `before.contentText`, o.before);
+			if (o.after) addNestedProperty(c.style, `after.contentText`, o.after);
 			if (o.ruler) c.style.overviewRulerLane = OverviewRulerLane.Right;
 			if (o.colorIndication && c.color)
-				o.colorIndication.forEach((prop) => {
+				o.colorIndication.forEach(prop => {
 					switch (prop) {
-						case 'text':
-							this.setColor(c.style, 'color', c.color);
+						case `text`:
+							this.setColor(c.style, `color`, c.color);
 							break;
-						case 'ruler':
-							this.setColor(c.style, 'overviewRulerColor', c.color);
+						case `ruler`:
+							this.setColor(c.style, `overviewRulerColor`, c.color);
 							break;
-						case 'after':
+						case `after`:
 							this.setColor(c.style, `after.color`, c.color);
 							break;
-						case 'before':
+						case `before`:
 							this.setColor(c.style, `before.color`, c.color);
 							break;
 						// no default
@@ -141,7 +142,7 @@ export default class Decorator {
 	}
 
 	private getIconPath(fileName: string): string {
-		return path.join(__dirname, '..', '..', 'images', fileName);
+		return path.join(__dirname, `..`, `..`, `images`, fileName);
 	}
 
 	private setColor(
@@ -152,19 +153,18 @@ export default class Decorator {
 		color: string | { dark: string; light: string },
 	): void {
 		// 🕮 <cyberbiont> 2be2105d-c01b-4bf7-89ab-03665aaa2ce1.md
-
 		function isThemableDecorationRenderOptionsKey(
 			prop: string,
 		): prop is RecursiveKeyOf<ThemableDecorationRenderOptions> {
-			const arr = prop.split('.');
-			if ((arr.length > 1 && arr[0] !== 'after') || arr[0] !== 'before')
+			const arr = prop.split(`.`);
+			if ((arr.length > 1 && arr[0] !== `after`) || arr[0] !== `before`)
 				return false;
 			return true;
 		}
 		addNestedProperty(
 			style,
 			prop,
-			typeof color === 'string' ? color : color.dark,
+			typeof color === `string` ? color : color.dark,
 		);
 
 		if (isThemableDecorationRenderOptionsKey(prop)) {
@@ -173,7 +173,7 @@ export default class Decorator {
 			addNestedProperty(
 				style.light,
 				prop,
-				typeof color === 'string' ? color : color.light,
+				typeof color === `string` ? color : color.light,
 			);
 		}
 	}
@@ -186,7 +186,7 @@ export default class Decorator {
 			decorable: Decorable,
 		): Decorations => {
 			if (decorable.decorations) {
-				decorable.decorations.forEach((decoration) => {
+				decorable.decorations.forEach(decoration => {
 					this.decorations[decoration.category].options.push(
 						decoration.options,
 					);

@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext): void {
 	}
 }
 
-export function deactivate(this: any): void {
+export function deactivate(this: unknown): void {
 	// console.log(this);
 	// this._subscriptions.dispose();
 	app.actions.decorator.disposeDecorationTypes();

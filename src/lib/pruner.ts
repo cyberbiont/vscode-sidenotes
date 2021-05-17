@@ -1,6 +1,7 @@
-import { Sidenote, Inspector } from './sidenote';
-import { SidenotesDictionary } from './types';
+import { Inspector, Sidenote } from './sidenote';
+
 import SidenoteProcessor from './sidenoteProcessor';
+import { SidenotesDictionary } from './types';
 
 export default class Pruner {
 	constructor(
@@ -31,10 +32,11 @@ export default class Pruner {
 		const processSidenote = async (sidenote: Sidenote): Promise<Sidenote> => {
 			const condition = getCondition(sidenote);
 			if (!condition) return sidenote;
-			return await this.sidenoteProcessor.delete(sidenote);
+			return this.sidenoteProcessor.delete(sidenote);
 		};
 
 		for (const sidenote of this.pool) {
+			// eslint-disable-next-line no-await-in-loop
 			await processSidenote(sidenote);
 		}
 

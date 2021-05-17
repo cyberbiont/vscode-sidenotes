@@ -1,22 +1,23 @@
 import {
+	DocumentInitializableSidenotesRepository,
+	SidenotesDecorator,
+	SidenotesDictionary,
+} from './types';
+import {
 	TextDocument,
 	TextDocumentChangeEvent,
 	TextEditor,
 	workspace,
 } from 'vscode';
-import path from 'path';
+
 import Actions from './actions';
-import {
-	SidenotesDictionary,
-	SidenotesDecorator,
-	DocumentInitializableSidenotesRepository,
-} from './types';
-import Scanner from './scanner';
-import SidenoteProcessor from './sidenoteProcessor';
+import { ChangeData } from './changeTracker';
 import { MarkerUtils } from './utils';
 import { ReferenceController } from './referenceContainer';
-import { ChangeData } from './changeTracker';
+import Scanner from './scanner';
 import { Sidenote } from './sidenote';
+import SidenoteProcessor from './sidenoteProcessor';
+import path from 'path';
 
 export type OSnEvents = {
 	anchor: {
@@ -64,30 +65,28 @@ export default class SnEvents {
 		const documents = workspace.textDocuments;
 
 		const sidenotes = await Promise.all(
-			documents.map(async (document) => {
+			documents.map(async document => {
 				if (document.isClosed) return undefined;
 				const pool = await this.poolRepository.obtain(document);
 				const sidenote = pool.get(key);
 				if (sidenote) pools.push(pool);
 				return sidenote;
 			}),
-		).then((results) =>
-			results.filter((result): result is Sidenote => !!result),
-		);
+		).then(results => results.filter((result): result is Sidenote => !!result));
 
 		if (sidenotes.length === 0)
 			throw new Error(
-				'Update sidenote failed: no corresponding sidenotes were found in pool',
+				`Update sidenote failed: no corresponding sidenotes were found in pool`,
 			);
-		sidenotes.map((sidenote) => this.sidenoteProcessor.updateContent(sidenote));
-		pools.map((pool) => this.decorator.updateDecorations({ pool }));
+		sidenotes.map(sidenote => this.sidenoteProcessor.updateContent(sidenote));
+		pools.map(pool => this.decorator.updateDecorations({ pool }));
 	}
 
 	async onDidChangeTextDocument(event: TextDocumentChangeEvent): Promise<void> {
 		if (process.env.SIDENOTES_LOCK_EVENTS || !event.contentChanges.length)
 			return;
 		if (
-			!event.contentChanges.some((change) => {
+			!event.contentChanges.some(change => {
 				// 🕮 <cyberbiont> aef6cc81-45c3-43bc-8f49-97c7f6ded1c7.md
 				const condition =
 					(change.rangeLength &&

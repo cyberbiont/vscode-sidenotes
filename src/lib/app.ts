@@ -12,43 +12,39 @@ import {
 	window,
 	workspace,
 } from 'vscode';
-
-import { EventEmitter } from 'events';
+import { DictionaryRepository, MapRepository } from './repository';
 import {
-	SystemDefaultEditorService,
+	DocumentInitializableSidenotesRepository,
+	SidenotesDecorator,
+	SidenotesDictionary,
+	SidenotesRepository,
+} from './types';
+import { EditorUtils, MarkerUtils } from './utils';
+import { FileStorage, StorageService } from './storageService';
+import { HasEditorReference, Initializable } from './mixins';
+import { Inspector, SidenoteBuilder, SidenoteFactory } from './sidenote';
+import { ReferenceContainer, ReferenceController } from './referenceContainer';
+import {
 	ShellEditorService,
+	SystemDefaultEditorService,
 	VscodeEditorService,
 } from './editorService';
-import {
-	// ChokidarChangeTracker,
-	VSCodeFileSystemWatcherMaker,
-} from './changeTracker';
-import { Inspector, SidenoteBuilder, SidenoteFactory } from './sidenote';
-import Anchorer from './anchorer';
+
 import Actions from './actions';
-import Styler from './styler';
-import SnFileSystem from './fileSystem';
+import Anchorer from './anchorer';
+import { Cfg } from './cfg';
+import Decorator from './decorator';
+import EditorServiceController from './editorServiceController';
+import { EventEmitter } from 'events';
+import { MapDictionary } from './dictionary';
 import Pruner from './pruner';
 import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
-import Decorator from './decorator';
-import UuidProvider from './idProvider';
-import { FileStorage, StorageService } from './storageService';
-import { MapDictionary } from './dictionary';
-import { ReferenceContainer, ReferenceController } from './referenceContainer';
-import { MapRepository, DictionaryRepository } from './repository';
-import { Initializable, HasEditorReference } from './mixins';
-import { MarkerUtils, EditorUtils } from './utils';
 import SnEvents from './events';
-import EditorServiceController from './editorServiceController';
-import { Cfg } from './cfg';
-import {
-	DocumentInitializableSidenotesRepository,
-	SidenotesDictionary,
-	SidenotesDecorator,
-	SidenotesRepository,
-} from './types';
-
+import SnFileSystem from './fileSystem';
+import Styler from './styler';
+import UuidProvider from './idProvider';
+import { VSCodeFileSystemWatcherMaker } from './changeTracker';
 import { copyProperties } from './utilityFunctions';
 
 export type OApp = {
@@ -89,18 +85,20 @@ export default class App {
 
 		// const parentContainer: { parent?: TextDocument } = {};
 
-		const poolRepository: DocumentInitializableSidenotesRepository = new MapRepository(
-			{
-				// adding static create method
-				...MixinedMapDictionary,
-				create(): SidenotesDictionary {
-					const dictionary: SidenotesDictionary = new MixinedMapDictionary();
-					dictionary.editor = window.activeTextEditor!;
-					return dictionary;
+		const poolRepository: DocumentInitializableSidenotesRepository =
+			new MapRepository(
+				{
+					// adding static create method
+					...MixinedMapDictionary,
+					create(): SidenotesDictionary {
+						const dictionary: SidenotesDictionary = new MixinedMapDictionary();
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						dictionary.editor = window.activeTextEditor!;
+						return dictionary;
+					},
 				},
-			},
-			new WeakMap(),
-		);
+				new WeakMap(),
+			);
 
 		/* 		class RR<T, D> {
 			constructor(a: number, b: string | undefined) {}
@@ -113,6 +111,7 @@ export default class App {
 
 		const editorController = await new ReferenceController(
 			ReferenceContainer,
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			async () => window.activeTextEditor!,
 		).update();
 		const editor: TextEditor = editorController.getReference();
@@ -126,7 +125,8 @@ export default class App {
 		// TODO move to configuration
 		const getAlternativeStylesCfg = (): Cfg => {
 			const altCfg: Cfg = JSON.parse(JSON.stringify(this.cfg));
-			altCfg.anchor.styles.settings.hideMarkers = this.cfg.anchor.styles.settings.hideMarkers;
+			altCfg.anchor.styles.settings.hideMarkers =
+				this.cfg.anchor.styles.settings.hideMarkers;
 			// altCfg.anchor.styles.settings.before = 'alternative config ';
 			return altCfg;
 		};
@@ -140,7 +140,7 @@ export default class App {
 			ReferenceContainer,
 			async (key: keyof typeof decoratorsCollection) =>
 				decoratorsCollection[key],
-		).update('default');
+		).update(`default`);
 
 		const decorator: SidenotesDecorator = decoratorController.getReference();
 
@@ -249,7 +249,7 @@ export default class App {
 			this.storageService.checkStartupRequirements();
 
 		if (!window.activeTextEditor)
-			throw new Error('active text editor is undefined');
+			throw new Error(`active text editor is undefined`);
 	}
 
 	setEventListeners(): void {
@@ -264,7 +264,7 @@ export default class App {
 			this.context.subscriptions,
 		);
 		this.eventEmitter.on(
-			'sidenoteDocumentChange',
+			`sidenoteDocumentChange`,
 			this.events.onSidenoteDocumentChange.bind(this.events),
 		);
 	}
@@ -272,50 +272,50 @@ export default class App {
 	registerCommands(): number {
 		return this.context.subscriptions.push(
 			commands.registerCommand(
-				'sidenotes.annotate',
+				`sidenotes.annotate`,
 				this.actions.run,
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.annotateCode',
+				`sidenotes.annotateCode`,
 				this.actions.run.bind(this.actions, { useCodeFence: true }),
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.annotatePickExt',
-				this.actions.run.bind(this.actions, { selectExtensionBy: 'pick' }),
+				`sidenotes.annotatePickExt`,
+				this.actions.run.bind(this.actions, { selectExtensionBy: `pick` }),
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.annotateInputExt',
-				this.actions.run.bind(this.actions, { selectExtensionBy: 'input' }),
+				`sidenotes.annotateInputExt`,
+				this.actions.run.bind(this.actions, { selectExtensionBy: `input` }),
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.delete',
+				`sidenotes.delete`,
 				this.actions.delete,
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.wipeAnchor',
+				`sidenotes.wipeAnchor`,
 				this.actions.wipeAnchor,
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.pruneBroken',
-				this.actions.prune.bind(this.actions, 'broken'),
+				`sidenotes.pruneBroken`,
+				this.actions.prune.bind(this.actions, `broken`),
 			),
 			commands.registerCommand(
-				'sidenotes.pruneEmpty',
-				this.actions.prune.bind(this.actions, 'empty'),
+				`sidenotes.pruneEmpty`,
+				this.actions.prune.bind(this.actions, `empty`),
 			),
 			commands.registerCommand(
-				'sidenotes.refresh',
+				`sidenotes.refresh`,
 				this.actions.refresh,
 				this.actions,
 			),
 			commands.registerCommand(
-				'sidenotes.showMarkers',
+				`sidenotes.showMarkers`,
 				this.actions.switchStylesCfg,
 				this.actions,
 			),
@@ -330,7 +330,7 @@ export default class App {
 			languages.registerHoverProvider(
 				// '*',
 				{
-					scheme: 'file',
+					scheme: `file`,
 				},
 				new (class implements HoverProvider {
 					provideHover(

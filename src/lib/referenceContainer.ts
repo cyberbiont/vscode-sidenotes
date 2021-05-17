@@ -1,4 +1,4 @@
-export class ReferenceContainer<T extends object> {
+export class ReferenceContainer<T extends AnyObject> {
 	item!: T;
 
 	load(item: T): T {
@@ -7,7 +7,7 @@ export class ReferenceContainer<T extends object> {
 	}
 
 	getProxy(): T {
-		const proxy = (new Proxy(this, {
+		const proxy = new Proxy(this, {
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			get(target, prop) {
 				return Reflect.get(target.item, prop);
@@ -16,12 +16,12 @@ export class ReferenceContainer<T extends object> {
 			set(target, prop, value) {
 				return Reflect.set(target.item, prop, value);
 			},
-		}) as unknown) as T;
+		}) as unknown as T;
 		return proxy;
 	}
 }
 
-export class ReferenceController<T extends object, K = string> {
+export class ReferenceController<T extends AnyObject, K = string> {
 	private container: ReferenceContainer<T>;
 
 	public key?: K;
@@ -44,13 +44,13 @@ export class ReferenceController<T extends object, K = string> {
 	}
 
 	async update(key?: K): Promise<this> {
-		function functionNeedsNoArguments(fn: Function): fn is () => Promise<T> {
+		function functionNeedsNoArguments(fn: AnyFunction): fn is () => Promise<T> {
 			return fn.length === 0;
 		}
 		let instance: T;
 		if (functionNeedsNoArguments(this.getItem)) instance = await this.getItem();
 		else if (key) instance = await this.getItem(key);
-		else throw new Error('no key passed to ReferenceController');
+		else throw new Error(`no key passed to ReferenceController`);
 
 		// TODO 🕮 <cyberbiont> 07597a9f-25f7-422c-a268-6ed9371a36d7.md
 		if (key) this.key = key;

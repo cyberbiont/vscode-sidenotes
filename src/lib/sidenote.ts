@@ -1,13 +1,14 @@
-/* eslint-disable max-classes-per-file */
-import { Selection, commands, Range } from 'vscode';
-import mimeTypes from 'mime-types';
-import Styler, { Stylable } from './styler';
+import Anchorer, { Anchor, Anchorable } from './anchorer';
 import { Decorable, DecorableDecoration } from './decorator';
-import Anchorer, { Anchorable, Anchor } from './anchorer';
-import { IdProvider } from './idProvider';
-import { StorageService } from './storageService';
 import { EditorUtils, MarkerUtils } from './utils';
+/* eslint-disable max-classes-per-file */
+import { Range, Selection, commands } from 'vscode';
+import Styler, { Stylable } from './styler';
+
+import { IdProvider } from './idProvider';
 import Scanner from './scanner';
+import { StorageService } from './storageService';
+import mimeTypes from 'mime-types';
 // import SidenoteProcessor from './sidenoteProcessor';
 
 export class Sidenote implements Stylable, Decorable, Anchorable {
@@ -29,19 +30,19 @@ export class Sidenote implements Stylable, Decorable, Anchorable {
 }
 
 export class Inspector {
-	isBroken(sidenote: Pick<Sidenote, 'content'>): boolean {
-		return typeof sidenote.content === 'undefined';
+	isBroken(sidenote: Pick<Sidenote, `content`>): boolean {
+		return typeof sidenote.content === `undefined`;
 	}
 
-	isEmpty(sidenote: Pick<Sidenote, 'content'>): boolean {
-		return sidenote.content === '';
+	isEmpty(sidenote: Pick<Sidenote, `content`>): boolean {
+		return sidenote.content === ``;
 	}
 
-	isText(sidenote: Pick<Sidenote, 'mime'>): boolean {
+	isText(sidenote: Pick<Sidenote, `mime`>): boolean {
 		const { mime } = sidenote;
 		if (mime === undefined) return true;
 		if (mime === false) return false;
-		return mime.includes('text');
+		return mime.includes(`text`);
 	}
 }
 
@@ -62,21 +63,21 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 		extension?: string,
 		mime?: string | false,
 		signature?: string,
-	): this & Pick<Sidenote, 'key' | 'id' | 'extension' | 'signature' | 'mime'> {
+	): this & Pick<Sidenote, `key` | `id` | `extension` | `signature` | `mime`> {
 		return Object.assign(this, { key, id, mime, extension, signature });
 	}
 
-	withAnchor(anchor: Anchor): this & Pick<Sidenote, 'anchor'> {
+	withAnchor(anchor: Anchor): this & Pick<Sidenote, `anchor`> {
 		return Object.assign(this, { anchor });
 	}
 
-	withContent(content?: string): this & Pick<Sidenote, 'content'> {
+	withContent(content?: string): this & Pick<Sidenote, `content`> {
 		return Object.assign(this, { content });
 	}
 
 	withDecorations(
 		decorations: DecorableDecoration[],
-	): this & Pick<Sidenote, 'decorations'> {
+	): this & Pick<Sidenote, `decorations`> {
 		return Object.assign(this, { decorations });
 	}
 
@@ -200,7 +201,7 @@ export class SidenoteFactory {
 				selection.start,
 				selection.start,
 			);
-			content = '';
+			content = ``;
 		}
 
 		const withAnchor = withMeta
@@ -216,7 +217,7 @@ export class SidenoteFactory {
 			this.utils.editor.selection.isEmpty &&
 			!this.utils.getTextLine().isEmptyOrWhitespace
 		) {
-			await commands.executeCommand('editor.action.insertLineBefore');
+			await commands.executeCommand(`editor.action.insertLineBefore`);
 		}
 
 		const position = this.utils.editor.selection.anchor;
