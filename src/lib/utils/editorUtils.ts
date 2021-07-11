@@ -41,12 +41,12 @@ export default class EditorUtils {
 	getWorkspaceFolderPath(): string {
 		// @bug 🕮 <cyberbiont> 1a6740cd-a7a6-49a9-897c-f8ed877dea0f.md
 		if (!workspace.workspaceFolders)
-			throw new Error('Adding notes requires an open folder.');
-		const currentWorkspaceFolder = workspace.workspaceFolders.find((folder) =>
+			throw new Error(`Adding notes requires an open folder.`);
+		const currentWorkspaceFolder = workspace.workspaceFolders.find(folder =>
 			this.editor.document.fileName.includes(folder.uri.fsPath),
 		);
 		if (!currentWorkspaceFolder)
-			throw new Error('Files outside a workspace folder cannot be aanotated.');
+			throw new Error(`Files outside a workspace folder cannot be aanotated.`);
 		return currentWorkspaceFolder.uri.fsPath;
 	}
 
@@ -101,12 +101,12 @@ export default class EditorUtils {
 	async extractSelectionContent(): Promise<string> {
 		let content: string;
 
-		if (this.editor.selection.isEmpty) content = '';
+		if (this.editor.selection.isEmpty) content = ``;
 		else {
 			content = this.editor.document.getText(this.editor.selection);
 			if (content) {
 				await this.editor.edit(
-					(edit) => {
+					edit => {
 						edit.delete(this.editor.selection);
 					},
 					{ undoStopAfter: false, undoStopBefore: false },
@@ -127,7 +127,7 @@ export default class EditorUtils {
 		do {
 			// await cb();
 			++i;
-			commands.executeCommand('workbench.action.nextEditor');
+			commands.executeCommand(`workbench.action.nextEditor`);
 		} while (i < workspace.textDocuments.length);
 		// что-то толком не работает
 	}
@@ -141,9 +141,9 @@ export default class EditorUtils {
 			const selection = new Selection(range.start, range.end);
 			editor.selection = selection;
 			if (useBlockComments) {
-				await commands.executeCommand('editor.action.blockComment');
+				await commands.executeCommand(`editor.action.blockComment`);
 			} else {
-				await commands.executeCommand('editor.action.commentLine');
+				await commands.executeCommand(`editor.action.commentLine`);
 			}
 			return true;
 		} catch (e) {

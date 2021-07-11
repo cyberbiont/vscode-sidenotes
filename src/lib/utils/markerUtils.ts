@@ -1,12 +1,16 @@
 import { Position, Range } from 'vscode';
-import { IdProvider } from '../idProvider';
 
+import { IdProvider } from '../idProvider';
+import Signature from '../signature';
+
+// TODO remove signature config from here and prepare and take all values from signature class instance
 export type OMarkerUtils = {
 	anchor: {
 		marker: {
 			salt: string;
 			prefix?: string;
-			signature: string;
+			defaultSignature: string;
+			riggedSignatures: Set<string>;
 			signatureFilter?: Set<string>;
 			readUnsigned?: boolean;
 		};
@@ -14,14 +18,18 @@ export type OMarkerUtils = {
 };
 
 export default class MarkerUtils {
-	constructor(public idProvider: IdProvider, public cfg: OMarkerUtils) {}
+	constructor(
+		public idProvider: IdProvider,
+		public signature: Signature,
+		public cfg: OMarkerUtils,
+	) {}
 
 	BARE_MARKER_SYMBOLS_COUNT: number =
 		this.cfg.anchor.marker.salt.length + this.idProvider.symbolsCount;
 
 	bareMarkerRegexString: string = this.getBareMarkerRegexString();
 
-	bareMarkerRegex = new RegExp(this.bareMarkerRegexString, 'g');
+	bareMarkerRegex = new RegExp(this.bareMarkerRegexString, `g`);
 
 	bareMarkerRegexNonG = new RegExp(this.bareMarkerRegexString);
 
@@ -30,15 +38,15 @@ export default class MarkerUtils {
 	): string {
 		const o = this.cfg.anchor.marker;
 
-		const extensionRegexString = '(?<extension>.\\w+)?';
+		const extensionRegexString = `(?<extension>.\\w+)?`;
 
-		const signatures: Set<string> = o.signatureFilter
-			? o.signatureFilter
-			: new Set('.*');
-		if (o.signature) signatures.add(o.signature);
+		const readSignatures: Set<string> = o.signatureFilter
+			? new Set([...o.signatureFilter, ...o.riggedSignatures])
+			: new Set(`.*`);
+
 		const readSignaturesRegexString = `(<(?<signature>(${Array.from(
-			signatures,
-		).join('|')}))> )${o.readUnsigned ? '?' : ''}`;
+			readSignatures,
+		).join(`|`)}))> )${o.readUnsigned ? `?` : ``}`;
 
 		// 🕮 <cyberbiont> 3ff25cbb-b2cb-46fe-88cd-eb5f2c488470.md
 		return `(?<salt>${o.salt}|🖉) ${readSignaturesRegexString}${idString}${extensionRegexString}`;
@@ -52,13 +60,13 @@ export default class MarkerUtils {
 	getMarker(id: string, extension?: string): string {
 		// template 🕮 <cyberbiont> 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c.md
 		const o = this.cfg.anchor.marker;
-		return `${o.prefix ? `${o.prefix} ` : ''}${o.salt} <${
-			o.signature
+		return `${o.prefix ? `${o.prefix} ` : ``}${o.salt} <${
+			this.signature.active
 		}> ${id}${extension}`;
 	}
 
 	getKey(id: string, extension?: string): string {
-		return `${id}${extension || ''}`;
+		return `${id}${extension || ``}`;
 	}
 
 	getIdFromString(string: string): string | null {

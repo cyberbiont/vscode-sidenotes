@@ -142,7 +142,8 @@ export default class Decorator {
 	}
 
 	private getIconPath(fileName: string): string {
-		return path.join(__dirname, `..`, `..`, `images`, fileName);
+		const dir = __dirname;
+		return path.join(__dirname, `..`, `images`, fileName);
 	}
 
 	private setColor(

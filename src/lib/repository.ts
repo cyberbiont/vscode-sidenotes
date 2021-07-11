@@ -5,7 +5,7 @@ export interface HasFactoryMethod<K, V> {
 }
 
 /**
- * keeps the registry of the class instances,
+ * holds the registry of the class instances,
  * created by object constructor with certain config, with config as key
  */
 export class MapRepository<K extends AnyObject, V> {
@@ -14,7 +14,7 @@ export class MapRepository<K extends AnyObject, V> {
 		protected map: Map<K, V> | WeakMap<K, V>,
 	) {}
 
-	async obtain(key: K, create = true): Promise<V> {
+	async obtain(key: K): Promise<V> {
 		let item: V;
 
 		const queryResult = this.map.get(key);

@@ -26,7 +26,7 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./out/extension.js",
+	"main": "./dist/extension.js",
 	"contributes": {
 		"configuration": [
 			{
@@ -95,9 +95,16 @@
 						"type": "string",
 						"description": "Glob pattern for files that will be disabled for annotation."
 					},
-					"sidenotes.signature": {
+					"sidenotes.defaultSignature": {
 						"type": "string",
 						"description": "Signature to be added to your markers"
+					},
+					"sidenotes.riggedSignatures": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "Signatures to switch between"
 					},
 					"sidenotes.signatureFilter": {
 						"type": "array",
@@ -165,6 +172,14 @@
 			{
 				"command": "sidenotes.showMarkers",
 				"title": "Sidenotes: Toggle Markers"
+			},
+			{
+				"command": "sidenotes.switchActiveSignature",
+				"title": "Sidenotes: Switch Active Signature"
+			},
+			{
+				"command": "sidenotes.changeSidenoteSignature",
+				"title": "Sidenotes: Change Sidenote Signature"
 			}
 		],
 		"menus": {
@@ -179,6 +194,10 @@
 				},
 				{
 					"command": "sidenotes.wipeAnchor",
+					"group": "sidenotes"
+				},
+				{
+					"command": "sidenotes.changeSidenoteSignature",
 					"group": "sidenotes"
 				}
 			]
@@ -247,7 +266,8 @@
 		"mime-types": "^2.1.30",
 		"minimatch": "^3.0.4",
 		"open": "^8.0.5",
-		"uuid": "^8.3.2"
+		"uuid": "^8.3.2",
+		"ts-dedent": "^2.1.1"
 	},
 	"prettier": "eslint-config-cyberbiont/prettier.config.js",
 	"eslintConfig": {

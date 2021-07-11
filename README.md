@@ -108,6 +108,16 @@ Deletes comment anchor (without deleting content file). Can be useful if you hav
 
 Resets decorations for document, rescans and rebuilds them (in case something has gone awry).
 
+#### Switch Active Signature
+
+Switches the signature that is used for the new sidenotes.
+
+#### Change Signature
+
+Changes the signature of the existing sidenote
+
+Switches signature that is used for the new sidenotes.
+
 <!-- 🕮 <cyberbiont> 8373285c-2587-414b-be3a-eedf42b1b4cd -->
 
 #### Toggle markers
@@ -228,7 +238,11 @@ It is usually sensible to use as your signature you Github login to prevent poss
 
 If you and your colleague want to share sidenotes, no problem: you can either use some common signature when authoring, for example, 'Shared', or none at all. Or each can add his colleague's signature to his `anchor.marker.signature.read` settings.
 
-If you want to change signature, you can manully edit the signature of marker in the document.
+If you want to change signature, you can manually edit the signature of marker in the document.
+
+You can have several signatures specified under `signatures` setting and switch between them with `Switch signature` command. This way you can separate between private and public notes (for example, you can set up encryption only for the `myName-private` signature folder and switch to this signature anytime you want your note to be private).
+You can also switch the signature for the already existing note, this will update the marker and move the corresponding file to the new signature folder.
+However, if you want to make the note private in this way, be aware, that if you had commited the note in unencrypted state into your repository earlier, it will remain in VCS history, so it's up to you to clean it up.
 
 #### signatureFilter
 
@@ -250,6 +264,12 @@ _default: your username (defined in OS)_
 
 This will be your signature that will be written down in every comment. Specified string is added at the beginning of the marker, that will be included in search RegExp. Signature helps in understanding to whom the sidenote belongs to, even when extension is inactive.
 Your signature, if specified, is automatically added to the `signatureFilter` array.
+
+#### riggedSignatures
+
+_default: []_
+
+A list of signatures you can switch between.
 
 #### prefix
 

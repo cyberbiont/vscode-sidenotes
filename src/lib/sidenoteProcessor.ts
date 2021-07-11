@@ -4,7 +4,9 @@ import { Storable, StorageService } from './storageService';
 
 import Anchorer from './anchorer';
 import { SidenotesDictionary } from './types';
+import Signature from './signature';
 import Styler from './styler';
+import UserInteraction from './userInteraction';
 
 export default class SidenoteProcessor {
 	constructor(
@@ -13,6 +15,8 @@ export default class SidenoteProcessor {
 		public pool: SidenotesDictionary,
 		public styler: Styler,
 		public inspector: Inspector,
+		public userInteraction: UserInteraction,
+		public signature: Signature,
 	) {}
 
 	async delete(
@@ -56,36 +60,19 @@ export default class SidenoteProcessor {
 		this.storageService.open(sidenote);
 	}
 
-	// TODO move to UserInteraction module
+	async changeSignature(sidenote: Sidenote) {
+		const newSignature = this.userInteraction.selectSignature(
+			this.signature.active,
+		);
+		/* NOT IMPLEMENTED  */
+		// re-write marker
+		// move file
+	}
+
 	async handleBroken(sidenote: Sidenote): Promise<Sidenote | undefined> {
-		const promptUserForAction = async (): Promise<
-			QuickPickItem | undefined
-		> => {
-			const actions: QuickPickItem[] = [
-				{
-					label: `delete`,
-					description: `delete note comment`,
-				},
-				{
-					label: `re-create`,
-					description: `re-create storage entry for this note comment`,
-				},
-			];
-
-			if (this.storageService.lookup)
-				actions.push({
-					label: `lookup`,
-					description: `look for the missing sidenote file (select folder)`,
-				});
-
-			const chosen = await window.showQuickPick(actions, {
-				placeHolder: `No corresponding content file is found in workspace sidenotes folder. What do you want to do?`,
-			});
-
-			return chosen;
-		};
-
-		const action = await promptUserForAction();
+		const action = await this.userInteraction.promptUserForAction(
+			this.storageService.lookup,
+		);
 		if (!action) return undefined;
 
 		switch (action.label) {
@@ -110,7 +97,7 @@ export default class SidenoteProcessor {
 	private async lookup(sidenote: Sidenote): Promise<Sidenote | undefined> {
 		// TODO move to UserInteractions class
 		if (!this.storageService.lookup) {
-			console.warn(`storage type does not provide lookup method`);
+			console.warn(`this storage type does not provide the lookup method`);
 			return undefined;
 		}
 		const result = await window.showOpenDialog({

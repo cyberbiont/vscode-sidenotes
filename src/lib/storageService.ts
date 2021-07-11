@@ -10,6 +10,8 @@ import {
 } from 'vscode';
 
 import EditorServiceController from './editorServiceController';
+import { Sidenote } from './sidenote';
+import Signature from './signature';
 import SnFileSystem from './fileSystem';
 import path from 'path';
 
@@ -52,24 +54,16 @@ export type OFileStorage = {
 	storage: {
 		files: {
 			notesFolder: string;
-			signatureSubfolderName: string;
 			defaultContentFileExtension: DefaultContentFileExtension;
 		};
 	};
 };
-
-interface Paths {
-	workspace: string;
-	root: Uri;
-	ownSig: Uri;
-}
 export class FileStorage implements StorageService {
 	private uriCache: WeakMap<FileStorageKey, Uri> = new WeakMap();
 	// 🕮 <cyberbiont> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
 		notesFolder: string;
-		signatureSubfolderName: string;
 		defaultContentFileExtension: DefaultContentFileExtension;
 	};
 
@@ -77,6 +71,7 @@ export class FileStorage implements StorageService {
 		public editorServiceController: EditorServiceController,
 		public utils: EditorUtils & MarkerUtils,
 		public fs: SnFileSystem,
+		public signature: Signature,
 		cfg: OFileStorage,
 	) {
 		this.o = cfg.storage.files;
@@ -98,14 +93,6 @@ export class FileStorage implements StorageService {
 		return this.getUri(path.join(workspace, this.o.notesFolder));
 	}
 
-	// private getOwnSigNotesFolder(
-	// 	workspace: string = this.utils.getWorkspaceFolderPath(),
-	// ): Uri {
-	// 	return this.getUri(
-	// 		path.join(workspace, this.o.notesFolder, this.o.signatureSubfolderName),
-	// 	);
-	// }
-
 	private getContentFileName(key: FileStorageKey): string {
 		// 🕮 <cyberbiont> 2190628a-b268-44c2-a81a-939ce26dd7a4.md
 		const { id, extension = this.o.defaultContentFileExtension } = key;
@@ -120,32 +107,18 @@ export class FileStorage implements StorageService {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		if (this.uriCache.has(key)) return this.uriCache.get(key)!;
 
-		// workspace'ов может быть несколько! и могут добавляться новые в процессе работы
-		// поэтому нельзя жестко прописать путь при инциализации и использовать его,
-		// нужно считать каждый раз динамически
-
-		// by default we look in the current document's workspace folder
+		// 🕮 <cyberbiont> 9ab282a9-d285-4309-b68d-6b5e03088340.md
 		const pathParts: string[] = [
 			workspace,
 			this.o.notesFolder,
 			this.getContentFileName(key),
 		];
-		if (ownSignature) pathParts.splice(2, 0, this.o.signatureSubfolderName);
+		if (ownSignature) pathParts.splice(2, 0, this.signature.subfolderName);
 		else if (key.signature) pathParts.splice(2, 0, key.signature);
 
 		// 🕮 <cyberbiont> 88f3b639-a288-408e-b926-046d9a59b95b.md
 		const fileUri = this.getUri(path.join.apply(null, pathParts));
 
-		// let fileUri: Uri;
-		// const fileName = this.getContentFileName(key);
-		// if (!ownSignature && key.signature)
-		// 	fileUri = this.paths.root.with({
-		// 		path: path.join(this.paths.root.path, key.signature, fileName),
-		// 	});
-		// else
-		// 	fileUri = this.paths.ownSig.with({
-		// 		path: path.join(this.paths.ownSig.path, fileName),
-		// 	});
 		this.uriCache.set(key, fileUri);
 
 		return fileUri;
@@ -206,9 +179,8 @@ export class FileStorage implements StorageService {
 
 		try {
 			// 🕮 <cyberbiont> 40e7f83a-036c-4944-9af1-c63be09f369d.md
-			if (!this.fs.exists(uri.fsPath)) {
-				await this.fs.write(uri, data.content);
-			} else
+			if (!this.fs.exists(uri.fsPath)) await this.fs.write(uri, data.content);
+			else
 				console.warn(`content file already exists, aborting write file action`);
 		} catch (err) {
 			if (err.code === `ENOENT`) {
@@ -351,7 +323,7 @@ export class FileStorage implements StorageService {
 					broken.map(async key => {
 						// const [id, extension] = key.split('.');
 						const { name: id, ext: extension } = path.parse(key);
-						// 🕮 <cyberbiont> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
+						// !🕮 <cyberbiont> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
 						return this.lookup({ id, extension }, lookupUri);
 					}),
 				);

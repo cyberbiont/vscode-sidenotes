@@ -20,6 +20,7 @@ import {
 	SidenotesRepository,
 } from './types';
 import { EditorUtils, MarkerUtils } from './utils';
+import Errors, { ErrorHandlers } from './errors';
 import { FileStorage, StorageService } from './storageService';
 import { HasEditorReference, Initializable } from './mixins';
 import { Inspector, SidenoteBuilder, SidenoteFactory } from './sidenote';
@@ -40,11 +41,14 @@ import { MapDictionary } from './dictionary';
 import Pruner from './pruner';
 import Scanner from './scanner';
 import SidenoteProcessor from './sidenoteProcessor';
+import Signature from './signature';
 import SnEvents from './events';
 import SnFileSystem from './fileSystem';
 import Styler from './styler';
+import UserInteraction from './userInteraction';
 import UuidProvider from './idProvider';
 import { VSCodeFileSystemWatcherMaker } from './changeTracker';
+import VsOutputChannel from './outputChannel';
 import { copyProperties } from './utilityFunctions';
 
 export type OApp = {
@@ -77,6 +81,14 @@ export default class App {
 		const uuidMaker = new UuidProvider();
 
 		const eventEmitter = new EventEmitter();
+
+		const outputChannel = new VsOutputChannel(`Sidenotes`);
+		const on = new ErrorHandlers(outputChannel);
+		const errors = new Errors(outputChannel);
+
+		const userInteraction = new UserInteraction(this.cfg, errors);
+
+		const signature = new Signature(userInteraction, this.cfg);
 
 		const MixinedMapDictionary = HasEditorReference(
 			Initializable(MapDictionary),
@@ -126,7 +138,7 @@ export default class App {
 		const getAlternativeStylesCfg = (): Cfg => {
 			const altCfg: Cfg = JSON.parse(JSON.stringify(this.cfg));
 			altCfg.anchor.styles.settings.hideMarkers =
-				this.cfg.anchor.styles.settings.hideMarkers;
+				!this.cfg.anchor.styles.settings.hideMarkers;
 			// altCfg.anchor.styles.settings.before = 'alternative config ';
 			return altCfg;
 		};
@@ -145,7 +157,7 @@ export default class App {
 		const decorator: SidenotesDecorator = decoratorController.getReference();
 
 		const editorUtils = new EditorUtils(editor, this.cfg);
-		const markerUtils = new MarkerUtils(uuidMaker, this.cfg);
+		const markerUtils = new MarkerUtils(uuidMaker, signature, this.cfg);
 
 		const utils: MarkerUtils & EditorUtils = Object.create(null);
 
@@ -175,6 +187,7 @@ export default class App {
 			editorServiceController,
 			utils,
 			fileSystem,
+			signature,
 			this.cfg,
 		);
 
@@ -189,6 +202,8 @@ export default class App {
 			pool,
 			styler,
 			inspector,
+			userInteraction,
+			signature,
 		);
 
 		const pruner = new Pruner(pool, sidenoteProcessor, inspector);
@@ -202,6 +217,7 @@ export default class App {
 			scanner,
 			SidenoteBuilder,
 			inspector,
+			signature,
 			this.cfg,
 		);
 
@@ -222,6 +238,8 @@ export default class App {
 			decorator,
 			decoratorController,
 			utils,
+			userInteraction,
+			signature,
 			this.cfg,
 		);
 
@@ -317,6 +335,16 @@ export default class App {
 			commands.registerCommand(
 				`sidenotes.showMarkers`,
 				this.actions.switchStylesCfg,
+				this.actions,
+			),
+			commands.registerCommand(
+				`sidenotes.switchActiveSignature`,
+				this.actions.switchActiveSignature,
+				this.actions,
+			),
+			commands.registerCommand(
+				`sidenotes.changeSidenoteSignature`,
+				this.actions.changeSidenoteSignature,
 				this.actions,
 			),
 		);

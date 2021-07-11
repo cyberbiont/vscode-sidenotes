@@ -7,20 +7,26 @@ import Styler, { Stylable } from './styler';
 
 import { IdProvider } from './idProvider';
 import Scanner from './scanner';
+import Signature from './signature';
 import { StorageService } from './storageService';
 import mimeTypes from 'mime-types';
+
 // import SidenoteProcessor from './sidenoteProcessor';
 
 export class Sidenote implements Stylable, Decorable, Anchorable {
+	content?: string;
+	decorations!: DecorableDecoration[];
+	color?: string;
+	mime?: string | false;
+
 	id!: string;
 	key!: string;
-	anchor!: Anchor;
-	decorations!: DecorableDecoration[];
-	content?: string;
-	color?: string;
 	signature?: string;
 	extension?: string;
-	mime?: string | false;
+
+	anchor!: Anchor;
+	ranges!: Range[];
+
 	constructor(
 		sidenote: Sidenote,
 		// status: Inspector
@@ -48,14 +54,17 @@ export class Inspector {
 
 export class SidenoteBuilder implements Partial<Sidenote> {
 	// 🕮 <cyberbiont> d86498f7-fcd0-4150-bcf2-bbbdbf5f4b14.md
+	content?: string;
+	decorations?: DecorableDecoration[];
+	mime?: string | false;
+
 	key?: string;
 	id?: string;
 	extension?: string;
-	mime?: string | false;
 	signature?: string;
+
 	anchor?: Anchor;
-	content?: string;
-	decorations?: DecorableDecoration[];
+	ranges!: Range[];
 
 	withMeta(
 		key: string,
@@ -93,9 +102,6 @@ export type OSidenoteFactory = {
 		};
 	};
 	anchor: {
-		marker: {
-			signature: string;
-		};
 		comments: {
 			affectNewlineSymbols: boolean;
 		};
@@ -134,7 +140,8 @@ export class SidenoteFactory {
 		private scanner: Scanner,
 		private SidenoteBuilder: Constructor<SidenoteBuilder>,
 		private inspector: Inspector,
-		private cfg: OSidenoteFactory, // private sidenoteProcessor: SidenoteProcessor,
+		private signature: Signature,
+		private cfg: OSidenoteFactory,
 	) {}
 
 	async build(o: NewSidenoteOptions): Promise<Sidenote>;
@@ -151,19 +158,24 @@ export class SidenoteFactory {
 		let ranges: Range[];
 		let sidenote: Sidenote;
 
+		// build sidenote object for existing anchor
 		if (isScannedSidenoteOptions(o)) {
 			({
 				key,
 				ranges,
 				marker: { id, signature, extension },
 			} = o);
+
 			mime = mimeTypes.lookup(extension);
+
 			const storageEntry = await this.storageService.read({
 				id,
 				signature,
 				extension,
 			});
-			content = storageEntry ? storageEntry.content : undefined;
+
+			content = storageEntry?.content;
+
 			const withAnchor = new this.SidenoteBuilder()
 				.withMeta(key, id, extension, mime, signature)
 				.withContent(content)
@@ -174,14 +186,14 @@ export class SidenoteFactory {
 				.build();
 
 			return sidenote;
-		} // buildNewSidenote
+		}
+
+		// create new sidenote
 		id = this.idProvider.makeId();
 		extension =
-			o && o.marker && o.marker.extension
-				? o.marker.extension
-				: this.cfg.storage.files.defaultContentFileExtension;
+			o?.marker?.extension ||
+			this.cfg.storage.files.defaultContentFileExtension;
 		mime = mimeTypes.lookup(extension);
-		signature = this.cfg.anchor.marker.signature;
 		key = this.utils.getKey(id, extension);
 
 		const withMeta = new SidenoteBuilder().withMeta(
@@ -189,7 +201,7 @@ export class SidenoteFactory {
 			id,
 			extension,
 			mime,
-			signature,
+			this.signature.active,
 		);
 
 		if (this.inspector.isText(withMeta)) {
@@ -210,7 +222,7 @@ export class SidenoteFactory {
 
 		/* cannot generate decoration with proper range before write method,
 			because comment toggling changes range and it may vary with language,
-			so regexp rescan is needed inside designer(we can limit it to current line based on position) */
+			so regexp rescan is needed inside designer function (we can limit it to current line based on position) */
 
 		if (
 			this.cfg.anchor.comments.affectNewlineSymbols &&

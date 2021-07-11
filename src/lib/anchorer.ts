@@ -38,9 +38,9 @@ export default class Anchorer {
 		};
 	}
 
-	// 🕮 <cyberbiont> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
+	// <cyberbiont> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: Anchorable, ranges: Range[]): Promise<void> {
-		// 🕮 <cyberbiont> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
+		// TODO <cyberbiont> be351e3b-e84f-4aa8-9f6e-a216550300d9.md
 		process.env.SIDENOTES_LOCK_EVENTS = `true`;
 
 		const writeRangeInChain = async (range: Range) =>

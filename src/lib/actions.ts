@@ -7,21 +7,24 @@ import {
 	Uri,
 	window,
 } from 'vscode';
-
-import Styler from './styler';
 import { Inspector, Sidenote } from './sidenote';
+import Scanner, { ScanData } from './scanner';
 import {
+	SidenotesDecorator,
 	SidenotesDictionary,
 	SidenotesRepository,
-	SidenotesDecorator,
 } from './types';
-import { ReferenceController } from './referenceContainer';
-import Pruner from './pruner';
-import Scanner, { ScanData } from './scanner';
-import SidenoteProcessor from './sidenoteProcessor';
-import { EditorUtils } from './utils';
+import UserInteraction, {
+	ExtensionSelectionDialogTypes,
+} from './userInteraction';
 
-type ExtensionSelectionDialogTypes = `input` | `pick`;
+import { EditorUtils } from './utils';
+import Pruner from './pruner';
+import { ReferenceController } from './referenceContainer';
+import SidenoteProcessor from './sidenoteProcessor';
+import Signature from './signature';
+import Styler from './styler';
+import dedent from 'ts-dedent';
 
 export type OActions = {
 	storage: {
@@ -47,10 +50,12 @@ export default class Actions {
 		public decorator: SidenotesDecorator,
 		public decoratorController: ReferenceController<SidenotesDecorator, string>,
 		public utils: EditorUtils,
+		public userInteraction: UserInteraction,
+		public signature: Signature,
 		public cfg: OActions,
 	) {}
 
-	async scan(): Promise<void> {
+	async scan() {
 		const scanResults = this.scanner.scanText();
 		if (!scanResults) return;
 
@@ -62,10 +67,7 @@ export default class Actions {
 		this.decorator.updateDecorations();
 	}
 
-	async getHover(
-		document: TextDocument,
-		position: Position,
-	): Promise<Hover | undefined> {
+	async getHover(document: TextDocument, position: Position) {
 		const scanData = this.scanner.scanLine(document.lineAt(position));
 		if (!scanData) return undefined;
 
@@ -82,9 +84,18 @@ export default class Actions {
 		const wipeCommandUri = Uri.parse(
 			`command:sidenotes.wipeAnchor?${uriEncodedScanData}`,
 		);
+		const signCommandUri = Uri.parse(
+			`command:sidenotes.changeSidenoteSignature?${uriEncodedScanData}`,
+		);
 
 		const contents = new MarkdownString(
-			`[Edit](${editCommandUri}) [Delete](${deleteCommandUri}) [Wipe](${wipeCommandUri})`,
+			dedent`
+			[Edit](${editCommandUri})
+			[Delete](${deleteCommandUri})
+			[Wipe](${wipeCommandUri})
+			[Sign](${signCommandUri})
+			by ${scanData.marker.signature}\n
+			${scanData.marker.id}`,
 		);
 		const [range] = scanData.ranges;
 		contents.isTrusted = true;
@@ -92,9 +103,7 @@ export default class Actions {
 		return new Hover(contents, range);
 	}
 
-	async initializeDocumentSidenotesPool(
-		scanResults: ScanData[],
-	): Promise<void> {
+	async initializeDocumentSidenotesPool(scanResults: ScanData[]) {
 		if (!this.utils.checkFileIsLegible()) return;
 		await Promise.all(
 			scanResults.map(
@@ -105,9 +114,7 @@ export default class Actions {
 		this.pool.isInitialized = true;
 	}
 
-	async updateDocumentSidenotesPool(
-		scanResults: ScanData[],
-	): Promise<Sidenote[]> {
+	async updateDocumentSidenotesPool(scanResults: ScanData[]) {
 		const updateDecorationRange = async (
 			scanData: ScanData,
 		): Promise<Sidenote> => {
@@ -128,7 +135,7 @@ export default class Actions {
 		useCodeFence?: boolean;
 		selectExtensionBy?: ExtensionSelectionDialogTypes | false;
 		onHoverScanData?: ScanData;
-	} = {}): Promise<void> {
+	} = {}) {
 		try {
 			if (!this.utils.checkFileIsLegible({ showMessage: true })) return;
 
@@ -143,6 +150,7 @@ export default class Actions {
 				const obtainedSidenote = await this.sidenotesRepository.obtain(
 					scanData,
 				);
+
 				if (this.inspector.isBroken(obtainedSidenote)) {
 					sidenote = await this.sidenoteProcessor.handleBroken(
 						obtainedSidenote,
@@ -152,7 +160,9 @@ export default class Actions {
 				let extension: string | undefined;
 
 				if (selectExtensionBy) {
-					const promptResult = await this.promptExtension(selectExtensionBy);
+					const promptResult = await this.userInteraction.promptExtension(
+						selectExtensionBy,
+					);
 					if (promptResult) extension = `.${promptResult}`;
 					else return;
 				} else extension = undefined;
@@ -173,30 +183,19 @@ export default class Actions {
 		}
 	}
 
-	// TODO extract to User Interactions
-	async promptExtension(
-		dialogType: ExtensionSelectionDialogTypes = `input`,
-	): Promise<string | undefined> {
-		let extension: string | undefined;
-
-		if (dialogType === `pick`) {
-			const action = await window.showQuickPick(
-				this.cfg.storage.files.extensionsQuickPick.map(ext => ({
-					label: ext,
-				})),
-				{
-					placeHolder: `choose extension of the content file to be created`,
-				},
+	private async getSidenoteAtCursor({
+		onHoverScanData,
+	}: {
+		onHoverScanData?: ScanData;
+	}) {
+		const scanData = onHoverScanData || this.scanner.scanLine();
+		if (!scanData) {
+			window.showWarningMessage(
+				`There is no sidenotes attached at current cursor position`,
 			);
-			extension = action?.label;
-		} else {
-			extension = await window.showInputBox({
-				prompt: `Enter extension for your content file (without dot)`,
-				value: `md`,
-			});
+			return undefined;
 		}
-
-		return extension;
+		return this.sidenotesRepository.obtain(scanData);
 	}
 
 	async delete({
@@ -205,22 +204,31 @@ export default class Actions {
 	}: {
 		deleteContentFile?: boolean;
 		onHoverScanData?: ScanData;
-	} = {}): Promise<void> {
-		const scanData = onHoverScanData || this.scanner.scanLine();
-		if (!scanData) {
-			window.showWarningMessage(
-				`There is no sidenotes attached at current cursor position`,
-			);
-			return;
+	} = {}) {
+		const sidenote = await this.getSidenoteAtCursor({ onHoverScanData });
+		if (sidenote) {
+			await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
+			this.decorator.updateDecorations();
 		}
-		const sidenote = await this.sidenotesRepository.obtain(scanData);
-		await this.sidenoteProcessor.delete(sidenote, { deleteContentFile });
-		this.decorator.updateDecorations();
 	}
 
-	async wipeAnchor({
+	async changeSidenoteSignature({
 		onHoverScanData,
-	}: { onHoverScanData?: ScanData } = {}): Promise<void> {
+	}: {
+		onHoverScanData?: ScanData;
+	} = {}) {
+		const sidenote = await this.getSidenoteAtCursor({ onHoverScanData });
+		if (sidenote) {
+			await this.sidenoteProcessor.changeSignature(sidenote);
+			this.decorator.updateDecorations();
+		}
+	}
+
+	async switchActiveSignature() {
+		this.signature.switchActiveSignature();
+	}
+
+	async wipeAnchor({ onHoverScanData }: { onHoverScanData?: ScanData } = {}) {
 		// 🕮 <cyberbiont> ee0dfe5b-ff4d-4e76-b494-967aa73151e1.md
 		//! 🕮 <cyberbiont> 11f45863-9374-4824-ae21-4698c7aaf99f.md
 		let range: Range;
@@ -249,7 +257,7 @@ export default class Actions {
 		this.refresh();
 	}
 
-	async prune(category: string): Promise<void> {
+	async prune(category: string) {
 		this.scan();
 
 		switch (category) {
@@ -266,18 +274,18 @@ export default class Actions {
 		this.decorator.updateDecorations();
 	}
 
-	reset(): void {
+	reset() {
 		this.decorator.resetDecorations();
 		this.pool.clear();
 		this.pool.isInitialized = false;
 	}
 
-	refresh(): void {
+	refresh() {
 		this.reset();
 		this.scan();
 	}
 
-	switchStylesCfg(): void {
+	switchStylesCfg() {
 		const key =
 			this.decoratorController.key === `default` ? `alternative` : `default`;
 		this.decoratorController.update(key);

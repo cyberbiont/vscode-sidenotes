@@ -17,6 +17,7 @@ import { OSidenoteFactory } from './sidenote';
 import { OSnEvents } from './events';
 import { OSnFileSystem } from './fileSystem';
 import { OStyler } from './styler';
+import { OUserInteraction } from './userInteraction';
 import os from 'os';
 
 export type Cfg = OEditorUtils &
@@ -34,16 +35,16 @@ export type Cfg = OEditorUtils &
 	OScanner &
 	OSidenoteFactory &
 	OEditorServiceController &
-	OActions;
+	OActions &
+	OUserInteraction;
 
 const settings = workspace.getConfiguration(`sidenotes`);
 
-const signature: string = settings.get(`signature`) || os.userInfo().username;
-const testval = settings.get(`notesSubfolder`);
 // @bug 🕮 <cyberbiont> 389a9433-4182-43cb-b559-e567ba7dfc95.md
 
 export default class ConfigMaker {
 	create(): Cfg {
+		// 🕮 <cyberbiont> 8f112833-9e97-4faf-ba59-5505b9194729.md
 		const cfg: Cfg = {
 			app: {
 				defaultMarkdownEditor:
@@ -54,7 +55,6 @@ export default class ConfigMaker {
 			storage: {
 				files: {
 					notesFolder: settings.get(`notesSubfolder`) || `.sidenotes`,
-					signatureSubfolderName: signature,
 					defaultContentFileExtension:
 						settings.get(`defaultContentFileExtension`) || `.md`,
 					extensionsQuickPick: settings.get(`extensionsQuickPick`) || [],
@@ -81,7 +81,9 @@ export default class ConfigMaker {
 					// 🕮 <cyberbiont> f7cc1c04-8751-4431-af02-a912c375750c.md
 					prefix: settings.get(`prefix`) || ``,
 					salt: `🕮`,
-					signature,
+					defaultSignature:
+						settings.get(`defaultSignature`) || os.userInfo().username,
+					riggedSignatures: new Set(settings.get(`riggedSignatures`) || []),
 					signatureFilter: new Set(settings.get(`signatureFilter`)),
 					readUnsigned: settings.get(`readUnsigned`),
 				},
