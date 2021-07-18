@@ -57,7 +57,7 @@ export default class MarkerUtils {
 	 * @returns {string} full marker to be written in document
 	 * @memberof MarkerUtils
 	 */
-	getMarker(id: string, extension?: string): string {
+	getMarker(id: string, extension: string): string {
 		// template 🕮 <cyberbiont> 7ce3c26f-8b5e-4ef5-babf-fab8100f6d6c.md
 		const o = this.cfg.anchor.marker;
 		return `${o.prefix ? `${o.prefix} ` : ``}${o.salt} <${
@@ -65,7 +65,7 @@ export default class MarkerUtils {
 		}> ${id}${extension}`;
 	}
 
-	getKey(id: string, extension?: string): string {
+	getKey(id: string, extension: string): string {
 		return `${id}${extension || ``}`;
 	}
 
@@ -78,14 +78,32 @@ export default class MarkerUtils {
 	/**
 	 * returns range of string based on its start position
 	 *
-	 * @param {string} str
+	 * @param {string} marker
 	 * @param {vscode.Position} start
 	 * @returns {vscode.Range} range of marker
 	 * @memberof MarkerUtils
 	 */
-	getMarkerRange(str: string, start: Position): Range {
-		return new Range(start, start.translate({ characterDelta: str.length }));
+	getMarkerRange(marker: string, start: Position): Range {
+		return new Range(start, start.translate({ characterDelta: marker.length }));
+	}
+
+	getMarkerSubRange(
+		markerStartPos: Position,
+		marker: string,
+		substring: string,
+	): Range {
+		const substringStartIndex = marker.indexOf(substring);
+		const substringEndIndex = substringStartIndex + substring.length;
+		return new Range(
+			markerStartPos.translate({ characterDelta: substringStartIndex }),
+			markerStartPos.translate({ characterDelta: substringEndIndex }),
+		);
+	}
+
+	// TODO move to utility funcions
+	isText(mime: string | undefined | false) {
+		if (mime === undefined) return true;
+		if (mime === false) return false;
+		return mime.includes(`text`);
 	}
 }
-
-// @outdated 🕮 <cyberbiont> a96faaf1-b199-43b1-a8f1-aa66cd669e27.md

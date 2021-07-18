@@ -3,15 +3,15 @@ import { Range, TextEditor, TextLine } from 'vscode';
 
 export type OScanner = AnyObject;
 
+// 🕮 <cyberbiont> 3d3fb8fd-a5fc-4670-9bca-c73592fa91a8.md
 export interface ScanData {
-	marker: {
-		fullMatch: string;
-		signature?: string;
-		id: string;
-		extension?: string;
-	};
+	marker: string; // full marker
+	signature: string;
+	id: string;
+	extension: string;
 	ranges: Range[];
 	key: string;
+	// 🕮 <cyberbiont> 0b98de6e-2cde-4be3-b031-07ce78963322.md
 }
 
 export default class Scanner {
@@ -23,17 +23,21 @@ export default class Scanner {
 	scanText(
 		text: string = this.editor.document.getText(),
 	): ScanData[] | undefined {
-		const result: {
-			[key: string]: Pick<ScanData, `marker`> & {
-				positions: Set<number | undefined>;
-			};
-		} = Object.create(null);
-
+		// 🕮 <cyberbiont> a844327f-600d-4f49-91c5-bba1899aa441.md
 		const regex = this.utils.bareMarkerRegex;
 		const matches = text.matchAll(regex);
+
+		type TempData = {
+			// intermediate type to store values
+			[key: string]: Omit<ScanData, `ranges` | `key`> & {
+				positions: Set<number | undefined>;
+			};
+		};
+
+		const result: TempData = Object.create(null);
+
 		for (const match of matches) {
 			const { index } = match;
-			// @old 🕮 <cyberbiont> 9596da3d-a8bd-40c9-9439-8bbdec915cc8.md
 			const [fullMatch] = match;
 			// 🕮 <cyberbiont> c924fc03-6eaf-4eab-be51-7ae8428f956d.md
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -43,30 +47,27 @@ export default class Scanner {
 			if (result[key]) result[key].positions.add(index);
 			else
 				result[key] = {
-					marker: {
-						signature,
-						id,
-						extension,
-						fullMatch,
-					},
+					signature,
+					id,
+					extension,
+					marker: fullMatch,
+
 					positions: new Set([index]),
 				};
 		}
-		// @old 🕮 <cyberbiont> b9d9f141-a247-4e3e-b3eb-48fbaf78d6d2.md
 
 		const entries = Object.entries(result);
 		if (entries.length === 0) return undefined;
 
 		return entries.map(entry => {
-			const [key, { marker, positions }] = entry;
-			const { fullMatch } = marker;
+			const [key, tempData] = entry;
 			return {
 				key,
-				marker,
-				ranges: Array.from(positions, index => {
+				...tempData,
+				ranges: Array.from(tempData.positions, index => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const position = this.editor.document.positionAt(index!);
-					const range = this.utils.getMarkerRange(fullMatch, position);
+					const range = this.utils.getMarkerRange(tempData.marker, position);
 					return range;
 				}),
 			};
@@ -106,12 +107,10 @@ export default class Scanner {
 
 			return {
 				key,
-				marker: {
-					signature,
-					id,
-					extension,
-					fullMatch,
-				},
+				signature,
+				id,
+				extension,
+				marker: fullMatch,
 				ranges: [range],
 			};
 		}

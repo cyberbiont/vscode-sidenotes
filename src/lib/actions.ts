@@ -94,8 +94,8 @@ export default class Actions {
 			[Delete](${deleteCommandUri})
 			[Wipe](${wipeCommandUri})
 			[Sign](${signCommandUri})
-			by ${scanData.marker.signature}\n
-			${scanData.marker.id}`,
+			by ${scanData.signature}\n
+			${scanData.id}`,
 		);
 		const [range] = scanData.ranges;
 		contents.isTrusted = true;
@@ -168,7 +168,7 @@ export default class Actions {
 				} else extension = undefined;
 
 				sidenote = await this.sidenotesRepository.create({
-					marker: { extension },
+					extension,
 				});
 			}
 

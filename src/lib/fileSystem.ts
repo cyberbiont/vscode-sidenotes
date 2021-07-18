@@ -28,7 +28,7 @@ export default class SnFileSystem {
 		private nfs = nodeFs,
 	) {}
 
-	async scanDirectoryFilesContentsForKeys(folder: Uri): Promise<Set<string>> {
+	async scanDirectoryFilesContentsForKeys(folder: Uri) {
 		// 🕮 <cyberbiont> 9a3ca084-350c-49c3-8fa8-631dbc63a254.md
 		const getFiles = async (folder: Uri): Promise<Uri[]> =>
 			workspace.findFiles(
@@ -36,7 +36,7 @@ export default class SnFileSystem {
 				new RelativePattern(folder.fsPath, this.cfg.worskspaceFilter.exclude),
 			);
 
-		const readFiles = (fileUris: Uri[]): Promise<string[]> =>
+		const readFiles = (fileUris: Uri[]) =>
 			Promise.all(
 				fileUris.map(async uri => {
 					const data = await workspace.fs.readFile(uri);
@@ -44,19 +44,27 @@ export default class SnFileSystem {
 				}),
 			);
 
-		const scanContents = (contents: string[]): string[] => {
+		const scanContents = (contents: string[]) => {
 			const fileMatches = contents
 				.map(content => this.scanner.scanText(content), this.scanner)
 				.filter(scanData => scanData !== undefined) as unknown as ScanData[]; // 🕮 <cyberbiont> c02edcce-c3e0-48a5-ab51-c4d3053ec7d5.md
 			const flat = fileMatches.flat();
-			const keysOnly: string[] = flat.map(scanData => scanData.key);
-			return keysOnly;
+
+			return flat;
 		};
 
 		const fileUris = await getFiles(folder);
 		const contents = await readFiles(fileUris);
 		const keys = scanContents(contents);
-		const uniqueKeys = new Set(keys);
+
+		// 🕮 <cyberbiont> 34b6db88-b3d6-44d5-8d6c-2d9b6500d957.md
+		const uniqueKeys = getUniqueByKey(keys);
+
+		function getUniqueByKey<U extends { key: string }>(arr: Array<U>) {
+			const ids = arr.map(obj => obj.key);
+			return arr.filter(({ key }, index) => !ids.includes(key, index + 1));
+		}
+
 		return uniqueKeys;
 	}
 

@@ -5,13 +5,10 @@ import { DecorableDecoration } from './decorator';
 import Scanner from './scanner';
 
 // 🕮 <cyberbiont> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
-export interface Anchor {
-	marker: string;
-}
 export interface Anchorable {
+	// 🕮 <cyberbiont> c2ae3978-3d5e-466a-807e-50188962dcd9.md
+	marker: string;
 	id: string;
-	anchor: Anchor;
-	content?: string;
 }
 
 export type OAnchorer = {
@@ -31,12 +28,6 @@ export default class Anchorer {
 		public scanner: Scanner,
 		public cfg: OAnchorer,
 	) {}
-
-	getAnchor(uuid: string, extension?: string): Anchor {
-		return {
-			marker: this.utils.getMarker(uuid, extension),
-		};
-	}
 
 	// <cyberbiont> ea500e39-2499-4f4c-9f71-45a579bbe7af.md
 	async write(anchorable: Anchorable, ranges: Range[]): Promise<void> {
@@ -61,14 +52,44 @@ export default class Anchorer {
 		range: Range,
 		editor = this.editor,
 	): Promise<boolean> {
-		await editor.edit(
-			edit => edit.insert(range.start, anchorable.anchor.marker),
-			{ undoStopAfter: false, undoStopBefore: false },
-		);
+		await editor.edit(edit => edit.insert(range.start, anchorable.marker), {
+			undoStopAfter: false,
+			undoStopBefore: false,
+		});
 		return this.utils.toggleComment(range, editor, {
 			useBlockComments: this.cfg.anchor.comments.useBlockComments,
 		});
 	}
+
+	private async deleteRange(
+		range: Range,
+		editor = this.editor,
+	): Promise<boolean> {
+		let rangeToDelete: Range;
+
+		if (!this.cfg.anchor.comments.useBlockComments) {
+			// just delete the whole line
+			rangeToDelete = this.utils.extendRangeToFullLine(range);
+			// 🕮 <cyberbiont> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
+		} else {
+			await this.utils.toggleComment(range, editor, {
+				useBlockComments: this.cfg.anchor.comments.useBlockComments,
+			});
+
+			// we have to re-calculate range after the comment toggle
+			rangeToDelete = this.rescanLine(range);
+		}
+
+		return editor.edit(
+			edit => {
+				edit.delete(rangeToDelete);
+			},
+			{ undoStopAfter: false, undoStopBefore: false },
+		);
+		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
+	}
+
+	async replace(anchorable: Anchorable, ranges: Range[]) {}
 
 	async delete(
 		anchored: Anchorable & { decorations: DecorableDecoration[] },
@@ -112,34 +133,4 @@ export default class Anchorer {
 		return this.scanner.scanLine(this.utils.getTextLine(range.start))!
 			.ranges[0];
 	}
-
-	private async deleteRange(
-		range: Range,
-		editor = this.editor,
-	): Promise<boolean> {
-		let rangeToDelete: Range;
-
-		if (!this.cfg.anchor.comments.useBlockComments) {
-			// just delete the whole line
-			rangeToDelete = this.utils.extendRangeToFullLine(range);
-			// 🕮 <cyberbiont> 04489f5c-ef73-4c4d-a40b-d7d824ebc9db.md
-		} else {
-			await this.utils.toggleComment(range, editor, {
-				useBlockComments: this.cfg.anchor.comments.useBlockComments,
-			});
-
-			// we have to re-calculate range after the comment toggle
-			rangeToDelete = this.rescanLine(range);
-		}
-
-		return editor.edit(
-			edit => {
-				edit.delete(rangeToDelete);
-			},
-			{ undoStopAfter: false, undoStopBefore: false },
-		);
-		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
-	}
-
-	// old 🕮 <cyberbiont> 889a4671-a154-4c3c-95f5-abf72fb5b8aa.md
 }

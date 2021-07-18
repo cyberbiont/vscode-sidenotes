@@ -10,6 +10,7 @@ import {
 } from 'vscode';
 
 import EditorServiceController from './editorServiceController';
+import { ScanData } from './scanner';
 import { Sidenote } from './sidenote';
 import Signature from './signature';
 import SnFileSystem from './fileSystem';
@@ -42,9 +43,16 @@ interface FileStorageKey {
 	signature?: string;
 }
 
+type FileData = {
+	uri: Uri;
+	id: string;
+	extension: string;
+	signature: string;
+};
+
 interface FileAnalysisData {
-	fileUrisByFilenames: { [filename: string]: Uri };
-	strayEntries: Uri[];
+	fileDataByFilenames: { [filename: string]: FileData };
+	strayEntries: FileData;
 }
 
 type DefaultContentFileExtension = `.md` | `.markdown`;
@@ -249,10 +257,6 @@ export class FileStorage implements StorageService {
 	private getWorkspaceFolders(): readonly WorkspaceFolder[] {
 		const { workspaceFolders } = workspace;
 		if (!workspaceFolders || workspaceFolders.length === 0) {
-			// const message = `You need to have at least one workspace folder open to run this command`
-			// vscode.window.showInformationMessage(
-
-			// );
 			throw FileSystemError.Unavailable(
 				`You need to have at least one workspace folder open to run this command`,
 			);
@@ -260,14 +264,16 @@ export class FileStorage implements StorageService {
 		return workspaceFolders;
 	}
 
-	async migrate(): Promise<void> {
+	async migrate() {
+		// 🕮 <cyberbiont> 2a802e28-555a-434e-8375-f3b911c79466.md
 		const folders = this.getWorkspaceFolders();
 
 		folders.forEach(async folder => {
 			const {
 				detectedKeys,
-				files: { fileUrisByFilenames: fileKeys },
+				files: { fileDataByFilenames: fileKeys },
 			} = await this.analyzeWorkspaceFolder(folder.uri);
+			// 🕮 <cyberbiont> e0cee32a-711d-49e8-940e-f10da2d654a0.md
 
 			const broken: string[] = [];
 
@@ -329,7 +335,7 @@ export class FileStorage implements StorageService {
 				);
 
 				const successfulResults = results
-					.filter((result): result is Uri => !!result)
+					.filter((result): result is Uri => Boolean(result))
 					.map(uri => path.basename(uri.fsPath));
 
 				const message =
@@ -408,22 +414,14 @@ export class FileStorage implements StorageService {
 		folders.forEach(async folder => {
 			const {
 				detectedKeys,
-				// files
-				files: { fileUrisByFilenames, strayEntries },
+				files: { fileDataByFilenames: fileUrisByFilenames, strayEntries },
 			} = await this.analyzeWorkspaceFolder(folder.uri);
 
 			const extraneous: Uri[] = [];
-			// const stray: Uri[] = [];
-
-			// files.forEach((sigFolderFiles) => {
-
-			// 	const { fileUrisByFilenames, strayEntries } = sigFolderFiles;
-			// 	stray.push(..strayEntries);
 
 			for (const [filename, fileUris] of Object.entries(fileUrisByFilenames)) {
 				if (!detectedKeys.includes(filename)) extraneous.push(fileUris);
 			}
-			// });
 
 			await handleResults(`extraneous`, extraneous, folder);
 			await handleResults(`stray`, strayEntries, folder);
@@ -431,22 +429,18 @@ export class FileStorage implements StorageService {
 	}
 
 	async analyzeWorkspaceFolder(workspaceFolder: Uri): Promise<{
-		detectedKeys: string[];
+		detectedKeys: ScanData[];
 		files: FileAnalysisData;
 	}> {
 		// 🕮 <cyberbiont> 577caec8-36d6-4f29-93ba-d8e357563aef.md
-		const attachDefaultExtension = (key: string): string => {
-			if (!path.extname(key))
-				key = `${key}${this.o.defaultContentFileExtension}`;
-			return key;
-		};
 
-		const detectedKeysSet = await this.fs.scanDirectoryFilesContentsForKeys(
+		const detectedKeys = await this.fs.scanDirectoryFilesContentsForKeys(
 			workspaceFolder,
 		);
-		const detectedKeys = Array.from(detectedKeysSet).map(
-			attachDefaultExtension,
-		);
+
+		// const keysOnly: string[] = flat.map(scanData => scanData.key);
+		// 	// 🕮 <cyberbiont> 55586d82-4c4d-4553-917f-1b19f28cc35f.md
+		// 	return keysOnly;
 
 		const files = await this.analyzeWorkspaceContentFiles(workspaceFolder);
 
@@ -469,19 +463,15 @@ export class FileStorage implements StorageService {
 				this.analyzeFolderContentFiles(workspaceFolder, sigFolderTuple[0]),
 			),
 		);
-
-		// let combinedData;
+		// gather info from all workspaces
 		const reduced = sigFoldersData.reduce((acc, current) => ({
-			fileUrisByFilenames: {
-				...acc.fileUrisByFilenames,
-				...current.fileUrisByFilenames,
+			fileDataByFilenames: {
+				...acc.fileDataByFilenames,
+				...current.fileDataByFilenames,
 			},
-			strayEntries: [...acc.strayEntries, ...current.strayEntries],
+			strayEntries: { ...acc.strayEntries, ...current.strayEntries },
 		}));
-		// const combinedData = sigFoldersData.reduce((acc, current) => {
-		// 	return Object.assign(acc, current);
-		// })
-		// const combinedData = Object.assign.apply(null, sigFoldersData);
+
 		return reduced;
 
 		// 🕮 <cyberbiont> 93a94260-1109-4f86-9a54-e5e03355e683.md
@@ -489,38 +479,39 @@ export class FileStorage implements StorageService {
 
 	async analyzeFolderContentFiles(
 		workspaceFolder: Uri,
-		sigFolderName?: string,
+		sigFolderName: string,
 	): Promise<FileAnalysisData> {
 		// 🕮 <cyberbiont> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
 
-		const fileUrisByFilenames: {
-			[filename: string]: Uri;
-		} = Object.create(null);
+		const fileDataByFilenames: FileAnalysisData = Object.create(null);
 
 		const strayEntries: Uri[] = [];
 
-		const folder = sigFolderName
-			? this.getUri(
-					path.join(
-						this.getNotesFolder(workspaceFolder.fsPath).fsPath,
-						sigFolderName,
-					),
-			  )
-			: this.getNotesFolder(workspaceFolder.fsPath);
+		const folder = this.getUri(
+			path.join(
+				this.getNotesFolder(workspaceFolder.fsPath).fsPath,
+				sigFolderName,
+			),
+		);
 
 		for (const [name] of await workspace.fs.readDirectory(folder)) {
 			const uri = this.getUri(path.join(folder.fsPath, name));
 
 			const id = this.utils.getIdFromString(uri.fsPath);
+			const extension = path.extname(uri.fsPath);
 			// if (type === vscode.FileType.File) {
-
 			if (!id) strayEntries.push(uri);
 			else {
 				const filename = this.getContentFileName({
 					id,
-					extension: path.extname(uri.fsPath),
+					extension,
 				});
-				fileUrisByFilenames[filename] = uri;
+				fileDataByFilenames[filename] = {
+					uri,
+					id,
+					extension,
+					signature: folder,
+				};
 			}
 			// } else if (type === vscode.FileType.Directory) {
 			// 	strayEntries.push(filePath);
@@ -528,7 +519,7 @@ export class FileStorage implements StorageService {
 		}
 
 		return {
-			fileUrisByFilenames,
+			fileDataByFilenames,
 			strayEntries,
 		};
 	}

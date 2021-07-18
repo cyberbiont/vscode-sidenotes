@@ -193,7 +193,7 @@ export default class App {
 
 		const anchorer = new Anchorer(editor, utils, scanner, this.cfg);
 
-		const inspector = new Inspector();
+		const inspector = new Inspector(utils);
 		const styler = new Styler(inspector, this.cfg);
 
 		const sidenoteProcessor = new SidenoteProcessor(
