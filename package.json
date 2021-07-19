@@ -119,7 +119,11 @@
 					},
 					"sidenotes.hoverToolbar": {
 						"type": "boolean",
-						"description": "Show actions buttons underneath the hover tooltip"
+						"description": "Show the hoverToolbar with actions buttons and id underneath the hover tooltip"
+					},
+					"sidenotes.showIdOnHover": {
+						"type": "boolean",
+						"description": "Show id at the bottom of the hover tooltip"
 					}
 				}
 			}

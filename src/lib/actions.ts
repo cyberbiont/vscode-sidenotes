@@ -1,12 +1,15 @@
 import {
 	Hover,
 	MarkdownString,
+	OpenDialogOptions,
 	Position,
 	Range,
 	TextDocument,
 	Uri,
 	window,
+	WorkspaceFolder,
 } from 'vscode';
+import dedent from 'ts-dedent';
 import { Inspector, Sidenote } from './sidenote';
 import Scanner, { ScanData } from './scanner';
 import {
@@ -19,14 +22,21 @@ import UserInteraction, {
 } from './userInteraction';
 
 import { EditorUtils } from './utils';
+import { FileData, FileStorage } from './storageService';
 import Pruner from './pruner';
 import { ReferenceController } from './referenceContainer';
 import SidenoteProcessor from './sidenoteProcessor';
 import Signature from './signature';
 import Styler from './styler';
-import dedent from 'ts-dedent';
+
+import path from 'path';
+import SnFileSystem from './fileSystem';
+import VsOutputChannel from './outputChannel';
 
 export type OActions = {
+	app: {
+		showIdOnHover: boolean;
+	};
 	storage: {
 		files: {
 			extensionsQuickPick: string[];
@@ -36,8 +46,10 @@ export type OActions = {
 
 export default class Actions {
 	constructor(
+		public channel: VsOutputChannel,
 		public styler: Styler,
 		public inspector: Inspector,
+		public fileStorage: FileStorage,
 		public pool: SidenotesDictionary,
 		public poolController: ReferenceController<
 			SidenotesDictionary,
@@ -52,6 +64,7 @@ export default class Actions {
 		public utils: EditorUtils,
 		public userInteraction: UserInteraction,
 		public signature: Signature,
+		public fs: SnFileSystem,
 		public cfg: OActions,
 	) {}
 
@@ -88,6 +101,8 @@ export default class Actions {
 			`command:sidenotes.changeSidenoteSignature?${uriEncodedScanData}`,
 		);
 
+		const id = this.cfg.app.showIdOnHover ? scanData.id : ``;
+
 		const contents = new MarkdownString(
 			dedent`
 			[Edit](${editCommandUri})
@@ -95,7 +110,7 @@ export default class Actions {
 			[Wipe](${wipeCommandUri})
 			[Sign](${signCommandUri})
 			by ${scanData.signature}\n
-			${scanData.id}`,
+			${id}`,
 		);
 		const [range] = scanData.ranges;
 		contents.isTrusted = true;
@@ -226,6 +241,7 @@ export default class Actions {
 
 	async switchActiveSignature() {
 		this.signature.switchActiveSignature();
+		this.decorator.updateDecorations();
 	}
 
 	async wipeAnchor({ onHoverScanData }: { onHoverScanData?: ScanData } = {}) {
@@ -290,5 +306,167 @@ export default class Actions {
 			this.decoratorController.key === `default` ? `alternative` : `default`;
 		this.decoratorController.update(key);
 		this.refresh();
+	}
+
+	async migrate() {
+		// 🕮 <cyberbiont> 2a802e28-555a-434e-8375-f3b911c79466.md
+		const folders = this.fileStorage.getWorkspaceFolders();
+
+		folders.forEach(async folder => {
+			const {
+				detectedKeys: detectedKeysScanData,
+				files: { fileDataByFilenames: fileKeys },
+			} = await this.fileStorage.analyzeWorkspaceFolder(folder.uri);
+			// 🕮 <cyberbiont> e0cee32a-711d-49e8-940e-f10da2d654a0.md
+
+			const sidenotes = await Promise.all(
+				detectedKeysScanData.map(scanData =>
+					this.sidenotesRepository.obtain(scanData),
+				),
+			);
+
+			const broken = sidenotes.filter(sidenote =>
+				this.inspector.isBroken(sidenote),
+			);
+
+			if (broken.length === 0) {
+				window.showInformationMessage(
+					`Sidenotes: no broken sidenote anchors was found\n
+							in ${folder.uri.fsPath} workspace folder`,
+				);
+				return undefined;
+			}
+
+			const action = await window.showQuickPick(
+				[
+					{
+						label: `yes`,
+						description: `look for missing content files (select folder to look in)`,
+					},
+					{
+						label: `no`,
+						description: `cancel`,
+					},
+				],
+				{
+					placeHolder: `Sidenotes: ${broken.length} broken anchors was found.	Do you want to look for content files?`,
+					// in ${folder.uri.fsPath} workspace folder
+				},
+			);
+
+			if (action?.label === `yes`) {
+				const options: OpenDialogOptions = {
+					canSelectMany: false,
+					canSelectFolders: true,
+					defaultUri: folder.uri,
+					openLabel: `Confirm selection`,
+				};
+
+				const promptResult = await window.showOpenDialog(options);
+				if (!promptResult) return undefined;
+				const [lookupUri] = promptResult;
+
+				const results = await Promise.all(
+					broken.map(async sidenote =>
+						this.fileStorage.lookup(sidenote, lookupUri),
+					),
+				);
+
+				const successfulResults = results
+					.filter((result): result is Uri => Boolean(result))
+					.map(uri => path.basename(uri.fsPath));
+
+				const message =
+					successfulResults.length === 0
+						? `No missing files were found in specified directory`
+						: `The following file(s) have been found and copied to the current workspace:\n
+								${successfulResults.join(`,\n`)}`;
+
+				window.showInformationMessage(message);
+
+				return true;
+			}
+
+			return undefined;
+		});
+	}
+
+	async extraneous() {
+		const handleResults = async (
+			type: string,
+			uris: Uri[],
+			folder: WorkspaceFolder,
+		): Promise<boolean> => {
+			if (uris.length === 0) {
+				window.showInformationMessage(
+					`Sidenotes: no ${type} files was found in "${folder.uri.fsPath}" workspace folder`,
+				);
+				return false;
+			}
+
+			this.channel.appendLine(
+				`${uris.length} ${type} file(s) in folder ${folder.uri.fsPath}:\n(${uris
+					.map(uri => uri.fsPath)
+					.join(`\n`)})`,
+			);
+
+			const action = await window.showQuickPick(
+				[
+					{
+						label: `yes`,
+						description: `delete ${type} file(s)`,
+					},
+					{
+						label: `no`,
+						description: `cancel`,
+					},
+				],
+				{
+					placeHolder: dedent(`
+						Sidenotes: found ${uris.length} ${type} file(s).
+						Do you want to delete them now?`),
+				},
+			);
+
+			if (action && action.label === `yes`) {
+				const deleted = await Promise.all(
+					uris.map(async (uri: Uri) => {
+						await this.fs.delete(uri);
+						return path.basename(uri.fsPath);
+					}),
+				);
+
+				window.showInformationMessage(
+					`The following file(s) have been deleted from your workspace folder:\n
+					${deleted.join(`,\n`)}`,
+				);
+				return true;
+			}
+
+			return false;
+		};
+
+		const folders = this.fileStorage.getWorkspaceFolders();
+
+		folders.forEach(async folder => {
+			const {
+				detectedKeys,
+				files: { fileDataByFilenames, strayEntries },
+			} = await this.fileStorage.analyzeWorkspaceFolder(folder.uri);
+
+			const extraneous: FileData[] = [];
+
+			for (const [filename, fileData] of Object.entries(fileDataByFilenames)) {
+				if (!detectedKeys.some(scanData => scanData.key.includes(filename)))
+					extraneous.push(fileData);
+			}
+
+			await handleResults(
+				`extraneous`,
+				extraneous.map(fileData => fileData.uri),
+				folder,
+			);
+			await handleResults(`stray`, strayEntries, folder);
+		});
 	}
 }

@@ -1,17 +1,14 @@
 import { EditorUtils, MarkerUtils } from './utils';
 import {
 	FileSystemError,
-	OpenDialogOptions,
 	Uri,
 	WorkspaceFolder,
-	commands,
 	window,
 	workspace,
 } from 'vscode';
 
 import EditorServiceController from './editorServiceController';
 import { ScanData } from './scanner';
-import { Sidenote } from './sidenote';
 import Signature from './signature';
 import SnFileSystem from './fileSystem';
 import path from 'path';
@@ -32,8 +29,10 @@ export interface StorageService {
 	lookup?(
 		key: FileStorageKey,
 		lookupFolderUri?: Uri,
-		workspace?: string,
-		resolveAction?: string,
+		options?: {
+			workspace?: string;
+			resolveAction?: string;
+		},
 	): Promise<Uri | boolean>;
 }
 
@@ -43,16 +42,17 @@ interface FileStorageKey {
 	signature?: string;
 }
 
-type FileData = {
+export type FileData = {
 	uri: Uri;
 	id: string;
 	extension: string;
 	signature: string;
 };
 
+type FileDataByFilenames = { [filename: string]: FileData };
 interface FileAnalysisData {
-	fileDataByFilenames: { [filename: string]: FileData };
-	strayEntries: FileData;
+	fileDataByFilenames: FileDataByFilenames;
+	strayEntries: Uri[];
 }
 
 type DefaultContentFileExtension = `.md` | `.markdown`;
@@ -67,7 +67,7 @@ export type OFileStorage = {
 	};
 };
 export class FileStorage implements StorageService {
-	private uriCache: WeakMap<FileStorageKey, Uri> = new WeakMap();
+	public uriCache: WeakMap<FileStorageKey, Uri> = new WeakMap();
 	// 🕮 <cyberbiont> 126a0df4-003e-4bf3-bf41-929db6ae35e7.md
 
 	private o: {
@@ -83,15 +83,9 @@ export class FileStorage implements StorageService {
 		cfg: OFileStorage,
 	) {
 		this.o = cfg.storage.files;
-		commands.registerCommand(`sidenotes.migrate`, this.migrate, this);
-		commands.registerCommand(
-			`sidenotes.extraneous`,
-			this.cleanExtraneous,
-			this,
-		);
 	}
 
-	private getUri(path: string): Uri {
+	public getUri(path: string): Uri {
 		return Uri.parse(`file:${path}`, true);
 	}
 
@@ -107,7 +101,7 @@ export class FileStorage implements StorageService {
 		return `${id}${extension}`;
 	}
 
-	private getContentFileUri(
+	getContentFileUri(
 		key: FileStorageKey,
 		workspace: string = this.utils.getWorkspaceFolderPath(),
 		{ ownSignature }: { ownSignature?: boolean } = {},
@@ -206,8 +200,10 @@ export class FileStorage implements StorageService {
 	async lookup(
 		key: FileStorageKey,
 		lookupFolderUri: Uri,
-		workspace: string = this.utils.getWorkspaceFolderPath(),
-		resolveAction = `copy`,
+		{
+			workspace = this.utils.getWorkspaceFolderPath(),
+			resolveAction = `copy`,
+		} = {},
 	): Promise<Uri | boolean> {
 		const fileName = this.getContentFileName(key);
 
@@ -254,7 +250,7 @@ export class FileStorage implements StorageService {
 		return false;
 	}
 
-	private getWorkspaceFolders(): readonly WorkspaceFolder[] {
+	getWorkspaceFolders(): readonly WorkspaceFolder[] {
 		const { workspaceFolders } = workspace;
 		if (!workspaceFolders || workspaceFolders.length === 0) {
 			throw FileSystemError.Unavailable(
@@ -262,170 +258,6 @@ export class FileStorage implements StorageService {
 			);
 		}
 		return workspaceFolders;
-	}
-
-	async migrate() {
-		// 🕮 <cyberbiont> 2a802e28-555a-434e-8375-f3b911c79466.md
-		const folders = this.getWorkspaceFolders();
-
-		folders.forEach(async folder => {
-			const {
-				detectedKeys,
-				files: { fileDataByFilenames: fileKeys },
-			} = await this.analyzeWorkspaceFolder(folder.uri);
-			// 🕮 <cyberbiont> e0cee32a-711d-49e8-940e-f10da2d654a0.md
-
-			const broken: string[] = [];
-
-			detectedKeys.forEach(key => {
-				if (
-					!(
-						(key in fileKeys && typeof this.fs.read(fileKeys[key]) === `string`) // ensure that content note is readable
-					)
-				) {
-					broken.push(key);
-				}
-			});
-
-			if (broken.length === 0) {
-				window.showInformationMessage(
-					`Sidenotes: no broken sidenote anchors was found\n
-					in ${folder.uri.fsPath} workspace folder`,
-				);
-				return undefined;
-			}
-
-			const action = await window.showQuickPick(
-				[
-					{
-						label: `yes`,
-						description: `look for missing content files (select folder to look in)`,
-					},
-					{
-						label: `no`,
-						description: `cancel`,
-					},
-				],
-				{
-					placeHolder: `Sidenotes: ${broken.length} broken anchors was found.	Do you want to look for content files?`,
-					// in ${folder.uri.fsPath} workspace folder
-				},
-			);
-
-			if (action?.label === `yes`) {
-				const options: OpenDialogOptions = {
-					canSelectMany: false,
-					canSelectFolders: true,
-					defaultUri: folder.uri,
-					openLabel: `Confirm selection`,
-				};
-
-				const promptResult = await window.showOpenDialog(options);
-				if (!promptResult) return undefined;
-				const [lookupUri] = promptResult;
-
-				const results = await Promise.all(
-					// ids.map
-					broken.map(async key => {
-						// const [id, extension] = key.split('.');
-						const { name: id, ext: extension } = path.parse(key);
-						// !🕮 <cyberbiont> 8fc4b127-f19f-498b-afea-70c6d27839bf.md
-						return this.lookup({ id, extension }, lookupUri);
-					}),
-				);
-
-				const successfulResults = results
-					.filter((result): result is Uri => Boolean(result))
-					.map(uri => path.basename(uri.fsPath));
-
-				const message =
-					successfulResults.length === 0
-						? `No missing files were found in specified directory`
-						: `The following file(s) have been found and copied to the current workspace:\n
-						${successfulResults.join(`,\n`)}`;
-
-				window.showInformationMessage(message);
-
-				return true;
-			}
-
-			return undefined;
-		});
-	}
-
-	async cleanExtraneous(): Promise<void> {
-		const handleResults = async (
-			type: string,
-			uris: Uri[],
-			folder: WorkspaceFolder,
-		): Promise<boolean> => {
-			if (uris.length === 0) {
-				window.showInformationMessage(
-					`Sidenotes: no ${type} files was found in "${folder.uri.fsPath}" workspace folder`,
-				);
-				return false;
-			}
-
-			console.log(
-				`Sidenotes: ${uris.length} ${type} file(s) in folder ${
-					folder.uri.fsPath
-				}:\n(${uris.join(`)\n(`)})`,
-			);
-			// paths.forEach(path => console.log(path));
-
-			const action = await window.showQuickPick(
-				[
-					{
-						label: `yes`,
-						description: `delete ${type} file(s)`,
-					},
-					{
-						label: `no`,
-						description: `cancel`,
-					},
-				],
-				{
-					placeHolder: `Sidenotes: found ${uris.length} ${type} file(s)
-					in "${folder.uri.fsPath}" workspace folder.
-					Do you want to delete them now?`,
-				},
-			);
-
-			if (action && action.label === `yes`) {
-				const deleted = await Promise.all(
-					uris.map(async (uri: Uri) => {
-						await this.fs.delete(uri);
-						return path.basename(uri.fsPath);
-					}),
-				);
-
-				window.showInformationMessage(
-					`The following file(s) have been deleted from your workspace folder:\n
-					${deleted.join(`,\n`)}`,
-				);
-				return true;
-			}
-
-			return false;
-		};
-
-		const folders = this.getWorkspaceFolders();
-
-		folders.forEach(async folder => {
-			const {
-				detectedKeys,
-				files: { fileDataByFilenames: fileUrisByFilenames, strayEntries },
-			} = await this.analyzeWorkspaceFolder(folder.uri);
-
-			const extraneous: Uri[] = [];
-
-			for (const [filename, fileUris] of Object.entries(fileUrisByFilenames)) {
-				if (!detectedKeys.includes(filename)) extraneous.push(fileUris);
-			}
-
-			await handleResults(`extraneous`, extraneous, folder);
-			await handleResults(`stray`, strayEntries, folder);
-		});
 	}
 
 	async analyzeWorkspaceFolder(workspaceFolder: Uri): Promise<{
@@ -483,7 +315,7 @@ export class FileStorage implements StorageService {
 	): Promise<FileAnalysisData> {
 		// 🕮 <cyberbiont> d7ba6b50-007c-4c92-84e9-d0c10e0386ef.md
 
-		const fileDataByFilenames: FileAnalysisData = Object.create(null);
+		const fileDataByFilenames: FileDataByFilenames = Object.create(null);
 
 		const strayEntries: Uri[] = [];
 
@@ -506,11 +338,12 @@ export class FileStorage implements StorageService {
 					id,
 					extension,
 				});
+
 				fileDataByFilenames[filename] = {
 					uri,
 					id,
 					extension,
-					signature: folder,
+					signature: sigFolderName,
 				};
 			}
 			// } else if (type === vscode.FileType.Directory) {

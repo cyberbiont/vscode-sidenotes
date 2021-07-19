@@ -92,8 +92,9 @@ export class SidenoteBuilder implements Partial<Sidenote> {
 
 	withDecorations(
 		decorations: DecorableDecoration[],
+		ranges: Range[],
 	): this & Pick<Sidenote, `decorations`> {
-		return Object.assign(this, { decorations });
+		return Object.assign(this, { decorations, ranges });
 	}
 
 	build(this: Sidenote): Sidenote {
@@ -159,12 +160,12 @@ export class SidenoteFactory {
 
 			content = storageEntry?.content;
 
-			const withAnchor = new this.SidenoteBuilder()
+			const withContent = new this.SidenoteBuilder()
 				.withMeta(key, marker, signature, id, extension, mime)
 				.withContent(content);
 
-			sidenote = withAnchor
-				.withDecorations(this.styler.get(withAnchor, ranges))
+			sidenote = withContent
+				.withDecorations(this.styler.get(withContent, ranges), ranges)
 				.build();
 
 			return sidenote;
@@ -232,7 +233,7 @@ export class SidenoteFactory {
 		({ ranges } = this.scanner.scanLine(this.utils.getTextLine(range.start))!);
 
 		sidenote = withContent
-			.withDecorations(this.styler.get(withContent, ranges))
+			.withDecorations(this.styler.get(withContent, ranges), ranges)
 			.build();
 
 		return sidenote;

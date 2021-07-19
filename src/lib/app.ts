@@ -227,8 +227,10 @@ export default class App {
 		);
 
 		const actions = new Actions(
+			outputChannel,
 			styler,
 			inspector,
+			storageService,
 			pool,
 			poolController,
 			pruner,
@@ -240,6 +242,7 @@ export default class App {
 			utils,
 			userInteraction,
 			signature,
+			fileSystem,
 			this.cfg,
 		);
 
@@ -345,6 +348,16 @@ export default class App {
 			commands.registerCommand(
 				`sidenotes.changeSidenoteSignature`,
 				this.actions.changeSidenoteSignature,
+				this.actions,
+			),
+			commands.registerCommand(
+				`sidenotes.migrate`,
+				this.actions.migrate,
+				this.actions,
+			),
+			commands.registerCommand(
+				`sidenotes.extraneous`,
+				this.actions.extraneous,
 				this.actions,
 			),
 		);

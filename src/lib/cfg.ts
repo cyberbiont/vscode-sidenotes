@@ -50,6 +50,7 @@ export default class ConfigMaker {
 				defaultMarkdownEditor:
 					settings.get(`defaultMarkdownEditor`) || `vscode`,
 				hoverToolbar: settings.get(`hoverToolbar`) || true,
+				showIdOnHover: settings.get(`showIdOnHover`) || false,
 			},
 
 			storage: {

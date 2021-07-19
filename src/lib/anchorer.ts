@@ -3,6 +3,7 @@ import { Range, TextEditor } from 'vscode';
 
 import { DecorableDecoration } from './decorator';
 import Scanner from './scanner';
+import { Sidenote } from './sidenote';
 
 // 🕮 <cyberbiont> f58ba286-a09a-42d1-8bbf-a3bda39ccafa.md
 export interface Anchorable {
@@ -35,9 +36,9 @@ export default class Anchorer {
 		process.env.SIDENOTES_LOCK_EVENTS = `true`;
 
 		const writeRangeInChain = async (range: Range) =>
-			this.writeRange(anchorable, range);
+			this.writeMarkerRange(anchorable, range);
 
-		for (const [i, range] of ranges.entries()) {
+		for (const range of ranges) {
 			// eslint-disable-next-line no-await-in-loop
 			await writeRangeInChain(range);
 		}
@@ -47,7 +48,7 @@ export default class Anchorer {
 	/**
 	 * writes anchor comment to document at current cursor position
 	 */
-	private async writeRange(
+	private async writeMarkerRange(
 		anchorable: Anchorable,
 		range: Range,
 		editor = this.editor,
@@ -61,7 +62,7 @@ export default class Anchorer {
 		});
 	}
 
-	private async deleteRange(
+	private async deleteMarkerRange(
 		range: Range,
 		editor = this.editor,
 	): Promise<boolean> {
@@ -89,7 +90,37 @@ export default class Anchorer {
 		// internalization 🕮 <cyberbiont> 07fb08db-1c38-4376-90c2-72ca16623ff5.md
 	}
 
-	async replace(anchorable: Anchorable, ranges: Range[]) {}
+	async replaceSignature(
+		sidenote: Sidenote,
+		newSignature: string,
+		editor = this.editor,
+	) {
+		const signatureRanges = sidenote.ranges.map(range =>
+			this.utils.getMarkerSubRange(
+				range.start,
+				sidenote.marker,
+				sidenote.signature,
+			),
+		);
+
+		for (const range of signatureRanges) {
+			// eslint-disable-next-line no-await-in-loop
+			await editor.edit(
+				edit => {
+					edit.delete(range);
+				},
+				{ undoStopAfter: false, undoStopBefore: false },
+			);
+			// eslint-disable-next-line no-await-in-loop
+			await editor.edit(edit => edit.insert(range.start, newSignature), {
+				undoStopAfter: false,
+				undoStopBefore: false,
+			});
+		}
+
+		sidenote.marker = sidenote.marker.replace(sidenote.signature, newSignature);
+		sidenote.signature = newSignature;
+	}
 
 	async delete(
 		anchored: Anchorable & { decorations: DecorableDecoration[] },
@@ -117,7 +148,7 @@ export default class Anchorer {
 
 				range = this.utils.extendRangeToFullLine(nextRange);
 			}
-			return this.deleteRange(range);
+			return this.deleteMarkerRange(range);
 		};
 
 		for (const [i, range] of ranges.entries()) {
