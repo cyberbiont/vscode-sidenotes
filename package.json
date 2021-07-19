@@ -1,7 +1,7 @@
 {
 	"name": "vscode-sidenotes",
 	"displayName": "Sidenotes",
-	"description": "Annotate your code with external notes, stored separately and shown on hover",
+	"description": "Better than comments! Clean up your code, view your notes as tooltips or in a side editor",
 	"version": "1.0.0",
 	"publisher": "cyberbiont",
 	"repository": {
@@ -21,7 +21,7 @@
 		"notes",
 		"comments",
 		"Markdown",
-		"annotations"
+		"annotation"
 	],
 	"activationEvents": [
 		"*"
