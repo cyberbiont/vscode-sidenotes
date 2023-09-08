@@ -19,6 +19,7 @@
 				"<node_internals>/**/*.js",
 				"${workspaceFolder}/node_modules/**/*.js"
 			],
+			"nodeVersionHint": 14,
 			"preLaunchTask": "npm: webpack",
 			"smartStep": true
 		},

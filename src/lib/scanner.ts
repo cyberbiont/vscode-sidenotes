@@ -1,5 +1,5 @@
 import { EditorUtils, MarkerUtils } from './utils';
-import { Range, TextEditor, TextLine } from 'vscode';
+import { Range, TextDocument, TextLine } from 'vscode';
 
 export type OScanner = AnyObject;
 
@@ -16,12 +16,12 @@ export interface ScanData {
 
 export default class Scanner {
 	constructor(
-		private editor: TextEditor, // TODO narrow class to active Editor
+		private document: TextDocument,
 		private utils: EditorUtils & MarkerUtils,
 	) {}
 
 	scanText(
-		text: string = this.editor.document.getText(),
+		text: string = this.document.getText(),
 	): ScanData[] | undefined {
 		// 🕮 <cyberbiont> a844327f-600d-4f49-91c5-bba1899aa441.md
 		const regex = this.utils.bareMarkerRegex;
@@ -66,7 +66,7 @@ export default class Scanner {
 				...tempData,
 				ranges: Array.from(tempData.positions, index => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					const position = this.editor.document.positionAt(index!);
+					const position = this.document.positionAt(index!);
 					const range = this.utils.getMarkerRange(tempData.marker, position);
 					return range;
 				}),
@@ -76,13 +76,13 @@ export default class Scanner {
 
 	rescanForRange(
 		regex: RegExp,
-		text: string = this.editor.document.getText(),
+		text: string = this.document.getText(),
 	): Range | undefined {
 		const match = text.match(regex);
 		if (match?.index) {
 			const [fullMatch] = match;
 			const { index } = match;
-			const position = this.editor.document.positionAt(index);
+			const position = this.document.positionAt(index);
 			const range = this.utils.getMarkerRange(fullMatch, position);
 			return range;
 		}

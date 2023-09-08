@@ -50,6 +50,7 @@ import UuidProvider from './idProvider';
 import { VSCodeFileSystemWatcherMaker } from './changeTracker';
 import VsOutputChannel from './outputChannel';
 import { copyProperties } from './utilityFunctions';
+import { NoteLinkProvider } from './NoteLinkProvider';
 
 export type OApp = {
 	app: {
@@ -164,7 +165,7 @@ export default class App {
 		copyProperties(utils, editorUtils);
 		copyProperties(utils, markerUtils);
 
-		const scanner = new Scanner(editor, utils);
+		const scanner = new Scanner(editor.document, utils);
 
 		const fileSystem = new SnFileSystem(scanner, utils, this.cfg);
 
@@ -383,5 +384,10 @@ export default class App {
 					}
 				})(),
 			);
+		const utils = app.actions.sidenoteProcessor.fileStorage.utils;
+		const provider = new NoteLinkProvider(utils);
+		app.context.subscriptions.push(
+			languages.registerDocumentLinkProvider('*', provider)
+		);
 	}
 }
